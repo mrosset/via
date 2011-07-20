@@ -1,0 +1,7 @@
+pkgname="binutils-bootstrap"
+fullname="binutils-2.21.1"
+version="2.21.1"
+source="http://mirrors.kernel.org/gnu/binutils/binutils-2.21.1.tar.bz2"
+build="gnu_build"
+buildargs="--disable-nls --disable-werror"
+install="gnu_install"

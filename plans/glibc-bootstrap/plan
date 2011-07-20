@@ -1,0 +1,7 @@
+name="glibc-bootstrap"
+fullname="glibc-2.12.2"
+version="2.12.2"
+source="http://mirrors.kernel.org/gnu/glibc/glibc-2.12.2.tar.bz2"
+build="gnu_build"
+buildargs=""
+install="gnu_install"

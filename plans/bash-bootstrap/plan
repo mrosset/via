@@ -1,0 +1,7 @@
+name="bash-bootstrap"
+fullname="bash-4.2"
+version="4.2"
+source="http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+build="gnu_build"
+buildargs=""
+install="gnu_install"
