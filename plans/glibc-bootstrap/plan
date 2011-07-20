@@ -1,7 +1,9 @@
 name="glibc-bootstrap"
-fullname="glibc-2.12.2"
-version="2.12.2"
-source="http://mirrors.kernel.org/gnu/glibc/glibc-2.12.2.tar.bz2"
+fullname="glibc-2.14"
+version="2.14"
+source="http://mirrors.kernel.org/gnu/glibc/glibc-2.14.tar.bz2"
 build="gnu_build"
-buildargs=""
+buildargs="--with-headers=/tools/include \
+--disable-profile --enable-add-ons libc_cv_forced_unwind=yes \
+libc_cv_c_cleanup=yes"
 install="gnu_install"

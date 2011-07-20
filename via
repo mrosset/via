@@ -1,10 +1,17 @@
 #!/bin/sh
 
+pwd=$PWD
+user=$USER
+term=$TERM
+unset `env | awk -F= '/^\w/ {print $1}' | xargs`
+
 set -e
 set -h
 
-export PATH=/usr/lib/ccache/bin:/tools/bin:/bin:/usr/bin
-export LD_RUN_PATH=/tools/lib
+export PWD=$pwd
+export USER=$user
+export TERM=$term
+export PATH=/usr/lib/ccache/bin:/bin:/usr/bin
 
 cache=$PWD/cache
 plans=$PWD/plans
@@ -15,9 +22,19 @@ stage=$cache/stage
 logs=$PWD/logs
 
 sanity() {
+	env
 	for i in gcc ld bash sh; do
 		log $FUNCNAME $(which $i)
 	done
+}
+
+adjust_gcc() {
+	SPECS=`dirname $(gcc -print-libgcc-file-name)`/specs
+	gcc -dumpspecs | sed \
+		-e 's@/lib\(64\)\?/ld@/tools&@g' \
+		-e "/^\*cpp:$/{n;s,$, -isystem /tools/include,}" > $SPECS 
+	echo "New specs file is: $SPECS"
+	unset SPECS
 }
 
 create() {
@@ -50,9 +67,10 @@ pdownload() {
 
 pbuild() {
 	. $plans/$1/plan
+	log starting $1
 	log $FUNCNAME $1
 	bdir=$bdir/$fullname
-	log="$logs/$name.log"
+	log="$logs/via.log"
 	pdownload $source
 
 	pstage $source
@@ -63,10 +81,12 @@ pbuild() {
 	fi
 	$build
 	$install
+	log finished $1
 }
 
 pstage() {
 	local file=$(basename $1)
+	[ -d $stage/$fullname ] && return
 	log $FUNCNAME $fullname
 	_pushd $stage
 	tar -xf $sources/$file
@@ -84,10 +104,16 @@ debug() {
 	fi
 }
 
-confargs="--prefix=/tools --config-cache"
+error() {
+	local red=$(tput setaf 1)
+	local reset=$(tput sgr0)
+	echo "${red}${1}${reset}"
+}
+
+confargs="--prefix=/tools"
 
 gnu_build() {
-	log $FUNCNAME $name build
+	log $FUNCNAME $name
 	_pushd $bdir
 	$stage/$fullname/configure $confargs $buildargs &> $log
 	make -j2 &> $log
@@ -95,19 +121,28 @@ gnu_build() {
 }
 
 gnu_make() {
-	log $FUNCNAME $name build
+	log $FUNCNAME $name 
+	cp -a $stage/$fullname $(dirname $bdir)
 	_pushd $bdir
 	make -j2 $buildargs &> $log
 	_popd
 }
 
 gnu_install() {
-	log $FUNCNAME $name install
-	local log="$logs/$name.log"
-	make install &> $log
+	log $FUNCNAME $name
+	_pushd $bdir
+	make install $installargs &> $log
+	_popd
 }
 
-sanity
+back_trace() {
+	which tic
+	error "*****   BACKTRACE     *****"
+	tail $log
+	error "***** END BACKTRACE	*****"
+}
+
+#sanity
 create
 action=$1 
 shift

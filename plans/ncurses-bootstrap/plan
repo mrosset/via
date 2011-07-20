@@ -1,0 +1,7 @@
+name="ncurses-bootstrap"
+version="5.9"
+fullname="ncurses-5.9"
+source="http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
+build="gnu_build"
+buildargs="--with-shared --enable-widec"
+install="gnu_install"

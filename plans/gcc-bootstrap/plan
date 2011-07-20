@@ -1,4 +1,4 @@
-pkgname="gcc-bootstrap"
+name="gcc-bootstrap"
 fullname="gcc-4.5.2"
 version="4.5.2"
 source="http://mirrors.kernel.org/gnu/gcc/gcc-4.5.2/gcc-4.5.2.tar.gz"
