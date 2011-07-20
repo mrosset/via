@@ -1,0 +1,114 @@
+#!/bin/sh
+
+set -e
+set -h
+
+export PATH=/usr/lib/ccache/bin:/tools/bin:/bin:/usr/bin
+export LD_RUN_PATH=/tools/lib
+
+cache=$PWD/cache
+plans=$PWD/plans
+
+bdir=$cache/build
+sources=$cache/sources
+stage=$cache/stage
+logs=$PWD/logs
+
+sanity() {
+	for i in gcc ld bash sh; do
+		log $FUNCNAME $(which $i)
+	done
+}
+
+create() {
+	for d in $logs $bdir $sources $stage ; do
+		if [ ! -d $d ]; then
+			log $FUNCNAME $d
+			mkdir -p $d
+		fi
+	done
+}
+
+_pushd() {
+	debug $FUNCNAME $1
+	pushd $1 &> /dev/null
+}
+
+_popd() {
+	debug $FUNCNAME $(popd)
+}
+
+pdownload() {
+	local file=$(basename $1)
+	_pushd $sources
+	if [ ! -f $file ]; then
+		log $FUNCNAME $1
+		curl -L -# -O $1
+	fi
+	_popd
+}
+
+pbuild() {
+	. $plans/$1/plan
+	log $FUNCNAME $1
+	bdir=$bdir/$fullname
+	log="$logs/$name.log"
+	pdownload $source
+
+	pstage $source
+
+	if [ ! -d $bdir ]; then
+		log create $bdir
+		mkdir $bdir
+	fi
+	$build
+	$install
+}
+
+pstage() {
+	local file=$(basename $1)
+	log $FUNCNAME $fullname
+	_pushd $stage
+	tar -xf $sources/$file
+	_popd 
+}
+
+# <action> <package> <details>
+log() {
+	printf "%-15.15s %s %s\n" "$1" "$2" "$3"
+}
+
+debug() {
+	if [ ! -z $debug ]; then
+		log $1 $2 $3
+	fi
+}
+
+confargs="--prefix=/tools --config-cache"
+
+gnu_build() {
+	log $FUNCNAME $name build
+	_pushd $bdir
+	$stage/$fullname/configure $confargs $buildargs &> $log
+	make -j2 &> $log
+	_popd
+}
+
+gnu_make() {
+	log $FUNCNAME $name build
+	_pushd $bdir
+	make -j2 $buildargs &> $log
+	_popd
+}
+
+gnu_install() {
+	log $FUNCNAME $name install
+	local log="$logs/$name.log"
+	make install &> $log
+}
+
+sanity
+create
+action=$1 
+shift
+$action $@
