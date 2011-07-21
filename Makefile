@@ -17,7 +17,8 @@ test:
 	#./via build tar
 	#./via build texinfo
 	#./via build xz
-	./via strip_tools
+	#./via strip_tools
+	./via chroot
 	
 clean:
 	rm -rf cache/builds

@@ -5,13 +5,18 @@ set -h
 set -o nounset 
 
 
-cache=$PWD/cache
-plans=$PWD/plans
+
+VIAHOME=/home/strings/github/via
+
+chroot=$VIAHOME/chroot
+cache=$VIAHOME/cache
+plans=$VIAHOME/plans
+logs=$VIAHOME/logs
+log=$VIAHOME/logs/via.log
+
 builds=$cache/builds
 sources=$cache/sources
 stages=$cache/stages
-logs=$PWD/logs
-log=$PWD/logs/via.log
 
 PATH=/tools/bin:$PATH
 
@@ -29,6 +34,7 @@ download() {
 	local file=$(basename $url)
 	_pushd $sources
 	if [ ! -f $file ]; then
+		log $FUNCNAME $url
 		curl -# -O $url
 	fi	
 	_popd
@@ -59,7 +65,6 @@ build() {
 	source $plans/$1/plan
 	local btype=$(echo $build)
 	log starting $name
-	log download $name
 	download $source
 	$verify $source
 	log stageing $name
@@ -170,6 +175,39 @@ strip_tools() {
 	strip --strip-debug /tools/lib/*
 	strip --strip-unneeded /tools/{,s}bin/*
 	rm -rf /tools/{,share}/{info,man}
+}
+
+chroot() {
+	for i in bin via dev proc sys; do
+		if [ ! -d $chroot/$i ]; then
+			log create $i
+			mkdir $chroot/$i
+		fi
+	done
+
+	if [ ! -f $chroot/bin/sh ]; then
+		ln -s /tools/bin/bash $chroot/bin/sh
+	fi
+
+	sudo mount -o bind $VIAHOME $chroot/via
+	sudo mount -o bind /dev $chroot/dev
+	sudo mount -vt devpts devpts $chroot/dev/pts
+	sudo mount -vt tmpfs shm $chroot/dev/shm
+	sudo mount -vt proc proc $chroot/proc
+	sudo mount -vt sysfs sysfs $chroot/sys
+
+
+	sudo chroot "$chroot" /tools/bin/env -i \
+		HOME=/root TERM="$TERM" PS1='\u:\w\$ ' \
+		PATH=/bin:/usr/bin:/sbin:/usr/sbin:/tools/bin \
+		/tools/bin/bash --login +h
+
+	sudo umount $chroot/via
+	sudo umount $chroot/dev/pts
+	sudo umount $chroot/dev/shm
+	sudo umount $chroot/proc
+	sudo umount $chroot/sys
+	sudo umount $chroot/dev
 }
 
 create
