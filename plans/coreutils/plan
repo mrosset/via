@@ -1,0 +1,8 @@
+name="coreutils"
+version="8.12"
+source="http://mirrors.kernel.org/gnu/coreutils/coreutils-8.12.tar.gz"
+build="gnu_build"
+buildargs="--enable-install-program=hostname"
+install="gnu_install"
+installargs=""
+verify="gnu_verify"

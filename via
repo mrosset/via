@@ -11,8 +11,9 @@ builds=$cache/builds
 sources=$cache/sources
 stages=$cache/stages
 logs=$PWD/logs
+log=$PWD/logs/via.log
 
-GNU_MIRROR="http://mirrors.kernel.org/gnu"
+PATH=/tools/bin:$PATH
 
 create() {
 	for d in $logs $builds $sources $stages ; do
@@ -24,34 +25,154 @@ create() {
 }
 
 download() {
+	local url=$1
+	local file=$(basename $url)
+	_pushd $sources
+	if [ ! -f $file ]; then
+		curl -# -O $url
+	fi	
+	_popd
+}
 
+stage() {
+	local fullname=$1
+	local file=$2
+	local btype=$3
+	_pushd $stages
+		if [ ! -d $fullname ]; then
+			tar xf $sources/$file
+		fi
+	_popd
+	_pushd $builds
+		if [ ! -d $fullname ]; then
+			mkdir -v $fullname
+		fi
+	_popd
+	if [ $btype = "gnu_make" ] || [ $btype = "custom_build" ]; then
+		if [ ! -d $fullname ]; then
+			cp -afv $stages/$name-$version $builds 
+		fi
+	fi
+}
+
+build() {
+	source $plans/$1/plan
+	local btype=$(echo $build)
+	log starting $name
+	log download $name
+	download $source
+	$verify $source
+	log stageing $name
+	stage $name-$version $(basename $source) $btype &> $log
+
+	_pushd $builds/$name-$version
+		log $(echo $build) $name
+		$build &> $log
+		log $(echo $install) $name
+		$install &> $log
+	_popd
 }
 
 # <action> <details>
 log() {
-	printf "%-15.15s %s\n" "$1" "$2"
+	printf "%-15.15s %s\n" "$1" "$2" | tee -a $log
 }
 
+_pushd() {
+	pushd $1 &> /dev/null
+}
+
+_popd() {
+	popd &> /dev/null
+}
+
+confargs="--prefix=/tools"
+
 gnu_build() {
-	$stage/$fullname/configure $confargs $buildargs
+	$stages/$name-$version/configure $confargs $buildargs
 	make -j2
 }
 
+gnu_install() {
+	make install $installargs
+}
+
 gnu_make() {
-	cp -a $stage/$fullname $(dirname $bdir)
 	make -j2 $buildargs
 }
 
-gnu_install() {
-	make install $installargs 
+gnu_verify() {
+	local url=$1
+	local file=$(basename $url)
+	log $FUNCNAME $name
+	_pushd $sources
+		if [ ! -f $file.sig ]; then
+			download $url.sig
+		fi
+		if ! gpg --verify $file.sig &> /dev/null; then
+			log $FUNCNAME $(red FAILED)
+			return 1
+		fi	
+		log $FUNCNAME $(green PASS)
+	_popd
+}
+
+sha_verify() {
+	local url=$1
+	local file=$(basename $url)
+	log $FUNCNAME $name
+	_pushd $sources
+		sha=$(sha256sum $file | awk '{print $1}')
+		if [ ! $sha = $verifyargs ]; then
+			log $FUNCNAME $(red FAILED)
+			return 1
+		fi	
+		log $FUNCNAME $(green PASS)
+	_popd
+}
+
+red() {
+	local red=$(tput setaf 1)
+	local reset=$(tput sgr0)
+	echo ${red}$1${reset}
+}
+
+green() {
+	local green=$(tput setaf 2)
+	local reset=$(tput sgr0)
+	echo ${green}$1${reset}
 }
 
 tail() {
 	inotail -f logs/via.log
 }
 
+new() {
+	local name=$1
+	local version=$2
+	log $FUNCNAME $name
+	if [ ! -d $plans/$name ]; then
+		cp -a $plans/make $plans/$name
+		echo $name >> $plans/$name/plan
+		echo $version >> $plans/$name/plan
+		vim $plans/$name/plan
+		return 0
+	fi
+	log $FUNCNAME $(red "exists already")
+}
+
+edit() {
+	local name=$1
+	$EDITOR $plans/$name/plan
+}
+
+strip_tools() {
+	strip --strip-debug /tools/lib/*
+	strip --strip-unneeded /tools/{,s}bin/*
+	rm -rf /tools/{,share}/{info,man}
+}
+
 create
-#sanity
-#action=$1 
-#shift
-#$action $@
+action=$1 
+shift
+$action $@

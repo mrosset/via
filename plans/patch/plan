@@ -1,0 +1,8 @@
+name="patch"
+version="2.6.1"
+source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
+build="gnu_build"
+buildargs=""
+install="gnu_install"
+installargs=""
+verify="gnu_verify"

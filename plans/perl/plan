@@ -1,0 +1,22 @@
+name="perl"
+version="5.14.1"
+source="http://www.cpan.org/src/5.0/$name-$version.tar.bz2"
+build="custom_build"
+buildargs=""
+install="custom_install"
+installargs=""
+verify="sha_verify"
+verifyargs="29b4a7e7c22d4a980ab9eb1ea486c5c4ee9ec533192a1ce8f3fe9ae32fb1f862"
+
+custom_build() {
+	download http://www.linuxfromscratch.org/patches/lfs/development/perl-5.14.1-libc-1.patch
+	patch -Np1 -i $sources/perl-5.14.1-libc-1.patch
+	sh Configure -des -Dprefix=/tools
+	make
+}
+
+custom_install() {
+	cp -vn perl cpan/podlators/pod2man /tools/bin 
+	mkdir -pv /tools/lib/perl5/5.14.1 
+	cp -vn lib/* /tools/lib/perl5/5.14.1
+}

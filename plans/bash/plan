@@ -1,0 +1,8 @@
+name="bash"
+version="4.2"
+source="http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+build="gnu_build"
+buildargs="--without-bash-malloc"
+install="gnu_install"
+installargs=""
+verify="gnu_verify"
