@@ -1,0 +1,322 @@
+#!/bin/sh 
+
+set -e
+set -h
+set -o nounset 
+
+pwd=$PWD
+user=$USER
+term=$TERM
+unset `env | awk -F= '/^\w/ {print $1}' | xargs`
+
+export PWD=$pwd
+export USER=$user
+export TERM=$term
+export PATH=/usr/lib/ccache/bin:/tools/bin:/bin:/usr/bin
+export LC_ALL=POSIX
+export LFS_TGT=$(uname -m)-vanilla-linux-gnu
+
+cache=$PWD/cache
+plans=$PWD/plans
+builds=$cache/builds
+sources=$cache/sources
+stages=$cache/stages
+logs=$PWD/logs
+log=$PWD/logs/bootstrap.log
+
+GNU_MIRROR="http://mirrors.kernel.org/gnu"
+
+create() {
+	for d in $logs $builds $sources $stages ; do
+		if [ ! -d $d ]; then
+			log $FUNCNAME $d
+			mkdir -p $d
+		fi
+	done
+}
+
+gcc_dowloads() {
+	_pushd $sources
+	download http://www.mpfr.org/mpfr-3.0.1/mpfr-3.0.1.tar.bz2
+	download http://ftp.gnu.org/gnu/gmp/gmp-5.0.2.tar.bz2
+	download http://www.multiprecision.org/mpc/download/mpc-0.9.tar.gz
+	download http://www.linuxfromscratch.org/patches/lfs/6.8/gcc-4.5.2-startfiles_fix-1.patch
+	_popd
+}
+
+log() {
+	local action=$1
+	local details=$2
+	printf "%-20.20s %s \n" "$action" "$details" | tee -a $log
+}
+
+download() {
+	local url=$1
+	local file=$(basename $url)
+	_pushd $sources
+	if [ ! -f $file ]; then
+		log $FUNCNAME $url
+		curl -L -# -O $url
+	fi	
+	_popd
+}
+
+stage() {
+	local name=$1
+	local fullname=$2
+	local file=$3
+	_pushd $stages
+	if [ ! -d $fullname ]; then
+		log $FUNCNAME $name
+		tar xf $sources/$file
+	fi
+	_popd
+	_pushd $builds
+	if [ ! -d $name-build ]; then
+		mkdir $name-build
+	fi
+	_popd
+}
+
+_pushd() {
+	pushd $1 &> /dev/null
+}
+
+_popd() {
+	popd &> /dev/null
+}
+
+stage_gcc_depends() {
+	gcc_dowloads
+	log $FUNCNAME starting
+	tar -jxf $sources/mpfr-3.0.1.tar.bz2
+	mv -v mpfr-3.0.1 mpfr
+	tar -jxf $sources/gmp-5.0.2.tar.bz2
+	mv -v gmp-5.0.2 gmp
+	tar -zxf $sources/mpc-0.9.tar.gz
+	mv -v mpc-0.9 mpc
+	log $FUNCNAME finished
+}
+
+binutils_phase1() {
+	log $FUNCNAME started
+	local name=binutils
+	local version=2.21.1
+	local url=$GNU_MIRROR/$name/$name-$version.tar.bz2
+	download $url
+	stage $FUNCNAME $name-$version $(basename $url)
+	_pushd $builds/$FUNCNAME-build
+	$stages/$name-$version/configure \
+		--target=$LFS_TGT --prefix=/tools \
+		--disable-nls --disable-werror &> $log
+	make &> $log
+	case $(uname -m) in
+		x86_64) mkdir -v /tools/lib && ln -sv lib /tools/lib64 &> $log;;
+	esac
+	make install &> $log
+	_popd
+	log $FUNCNAME finished
+}
+
+gcc_phase1() {
+	log $FUNCNAME started
+	local name=gcc
+	local version=4.6.1
+	local url=$GNU_MIRROR/$name/$name-$version/$name-$version.tar.bz2
+	download $url
+	download http://www.linuxfromscratch.org/patches/lfs/development/gcc-4.6.1-cross_compile-1.patch
+	stage $FUNCNAME $name-$version $(basename $url)
+	_pushd $stages/$name-$version
+		[ ! -d mpfr ] && stage_gcc_depends
+		patch -Np1 -i $sources/gcc-4.6.1-cross_compile-1.patch
+	_popd
+	_pushd $builds/$FUNCNAME-build
+		
+	$stages/$name-$version/configure \
+    --target=$LFS_TGT --prefix=/tools \
+    --disable-nls --disable-shared --disable-multilib \
+    --disable-decimal-float --disable-threads \
+    --disable-libmudflap --disable-libssp \
+    --disable-libgomp --disable-libquadmath \
+    --disable-target-libiberty --disable-target-zlib \
+    --enable-languages=c --without-ppl --without-cloog
+
+	make
+	make install
+	ln -vs libgcc.a `$LFS_TGT-gcc -print-libgcc-file-name | \
+		sed 's/libgcc/&_eh/'`
+	_popd
+	log $FUNCNAME finished
+}
+
+linux_api_headers() {
+	log $FUNCNAME started
+	local name=linux
+	local version=2.6.39.3
+	local url="http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.3.tar.bz2"
+	download $url
+	stage $FUNCNAME $name-$version $(basename $url)
+	cp -an $stages/$name-$version $builds/$FUNCNAME-build
+	_pushd $builds/$FUNCNAME-build/$name-$version
+	make mrproper &> $log
+	make headers_check &> $log
+	make INSTALL_HDR_PATH=dest headers_install &> $log
+	cp -rv dest/include/* /tools/include &> $log
+	_popd
+	log $FUNCNAME finished
+}
+
+glibc() {
+	log $FUNCNAME started
+
+	local name=glibc
+	local version=2.14
+	local url=$GNU_MIRROR/$name/$name-$version.tar.bz2
+	download $url
+	download http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.14-gcc_fix-1.patch
+	download http://www.linuxfromscratch.org/patches/lfs/development/glibc-2.14-cpuid-1.patch
+	stage $FUNCNAME $name-$version $(basename $url)
+
+	_pushd $stages/$name-$version
+		patch -Np1 -i $sources/glibc-2.14-gcc_fix-1.patch
+		patch -Np1 -i $sources/glibc-2.14-cpuid-1.patch
+	_popd
+
+	_pushd $builds/$FUNCNAME-build
+	case `uname -m` in
+		i?86) echo "CFLAGS += -march=i486 -mtune=native" > configparms ;;
+	esac
+
+	$stages/$name-$version/configure --prefix=/tools \
+		--host=$LFS_TGT --build=$($stages/$name-$version/scripts/config.guess) \
+		--disable-profile --enable-add-ons \
+		--enable-kernel=2.6.22.5 --with-headers=/tools/include \
+		libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes &> $log
+
+	make &> $log
+	make install &> $log
+	_popd
+
+	log $FUNCNAME finished
+}
+
+adjust_toolchain() {
+	SPECS=`dirname $($LFS_TGT-gcc -print-libgcc-file-name)`/specs
+	$LFS_TGT-gcc -dumpspecs | sed \
+		-e 's@/lib\(64\)\?/ld@/tools&@g' \
+		-e "/^\*cpp:$/{n;s,$, -isystem /tools/include,}" > $SPECS 
+	echo "New specs file is: $SPECS"
+	unset SPECS
+
+	echo 'main(){}' > dummy.c
+	$LFS_TGT-gcc -B/tools/lib dummy.c
+	readelf -l a.out | grep ': /tools'
+	rm -v dummy.c a.out
+}
+
+binutils_phase2() {
+	log $FUNCNAME started
+	local name=binutils
+	local version=2.21.1
+	local url=$GNU_MIRROR/$name/$name-$version.tar.bz2
+	download $url
+	stage $FUNCNAME $name-$version $(basename $url)
+	_pushd $builds/$FUNCNAME-build
+
+	CC="$LFS_TGT-gcc -B/tools/lib/" \
+		AR=$LFS_TGT-ar RANLIB=$LFS_TGT-ranlib \
+		$stages/$name-$version/configure --prefix=/tools \
+		--disable-nls --with-lib-path=/tools/lib &> $log
+
+	make &> $log
+	make install &> $log 
+	make -C ld clean &> $log
+	make -C ld LIB_PATH=/usr/lib:/lib &> $log
+	cp -v ld/ld-new /tools/bin
+
+	_popd
+	log $FUNCNAME finished
+}
+
+gcc_phase2() {
+	log $FUNCNAME started
+	local name=gcc
+	local version=4.6.1
+	local url=$GNU_MIRROR/$name/$name-$version/$name-$version.tar.bz2
+	download $url
+	download http://www.linuxfromscratch.org/patches/lfs/development/gcc-4.6.1-cross_compile-1.patch
+	download http://www.linuxfromscratch.org/patches/lfs/development/gcc-4.6.1-startfiles_fix-1.patch
+	[ -d $stages/$name-$version ] && rm -rf $stages/$name-$version
+	stage $FUNCNAME $name-$version $(basename $url)
+	_pushd $stages/$name-$version
+		[ ! -d mpfr ] && stage_gcc_depends
+		patch -Np1 -i $sources/gcc-4.6.1-startfiles_fix-1.patch
+
+		cp -v gcc/Makefile.in{,.orig}
+		sed 's@\./fixinc\.sh@-c true@' gcc/Makefile.in.orig > gcc/Makefile.in
+
+		cp -v gcc/Makefile.in{,.tmp}
+		sed 's/^T_CFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in.tmp \
+			> gcc/Makefile.in
+
+
+		for file in $(find gcc/config -name linux64.h -o -name linux.h -o -name sysv4.h); do
+			cp -uv $file{,.orig}
+			sed -e 's@/lib\(64\)\?\(32\)\?/ld@/tools&@g' \
+				-e 's@/usr@/tools@g' $file.orig > $file
+			echo '
+			#undef STANDARD_INCLUDE_DIR
+			#define STANDARD_INCLUDE_DIR 0
+			#define STANDARD_STARTFILE_PREFIX_1 ""
+			#define STANDARD_STARTFILE_PREFIX_2 ""' >> $file
+			touch $file.orig
+		done
+
+
+		case $(uname -m) in
+			x86_64)
+				for file in $(find gcc/config -name t-linux64) ; do 
+					cp -v $file{,.orig}
+					sed '/MULTILIB_OSDIRNAMES/d' $file.orig > $file
+				done
+				;;
+		esac
+	_popd
+
+	_pushd $builds/$FUNCNAME-build
+
+	CC="$LFS_TGT-gcc -B/tools/lib/" \
+		AR=$LFS_TGT-ar RANLIB=$LFS_TGT-ranlib \
+		$stages/$name-$version/configure --prefix=/tools \
+		--with-local-prefix=/tools --enable-clocale=gnu \
+		--enable-shared --enable-threads=posix \
+		--enable-__cxa_atexit --enable-languages=c,c++ \
+		--disable-libstdcxx-pch --disable-multilib \
+		--disable-bootstrap --disable-libgomp \
+		--without-ppl --without-cloog &> $log
+
+
+	make &> $log
+	make install &> $log
+
+	ln -vs gcc /tools/bin/cc
+
+	_popd
+	log $FUNCNAME finished
+}
+
+test_phase2() {
+	echo 'main(){}' > dummy.c
+	cc dummy.c
+	readelf -l a.out | grep ': /tools'
+}
+
+create
+#binutils_phase1
+#gcc_phase1
+#linux_api_headers
+#glibc
+#adjust_toolchain
+#binutils_phase2
+gcc_phase2
+test_phase2
