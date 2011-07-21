@@ -1,44 +1,21 @@
 #!/bin/sh
 
-pwd=$PWD
-user=$USER
-term=$TERM
-unset `env | awk -F= '/^\w/ {print $1}' | xargs`
-
 set -e
 set -h
+set -o nounset 
 
-export PWD=$pwd
-export USER=$user
-export TERM=$term
-export PATH=/usr/lib/ccache/bin:/bin:/usr/bin
 
 cache=$PWD/cache
 plans=$PWD/plans
-
-bdir=$cache/build
+builds=$cache/builds
 sources=$cache/sources
-stage=$cache/stage
+stages=$cache/stages
 logs=$PWD/logs
 
-sanity() {
-	env
-	for i in gcc ld bash sh; do
-		log $FUNCNAME $(which $i)
-	done
-}
-
-adjust_gcc() {
-	SPECS=`dirname $(gcc -print-libgcc-file-name)`/specs
-	gcc -dumpspecs | sed \
-		-e 's@/lib\(64\)\?/ld@/tools&@g' \
-		-e "/^\*cpp:$/{n;s,$, -isystem /tools/include,}" > $SPECS 
-	echo "New specs file is: $SPECS"
-	unset SPECS
-}
+GNU_MIRROR="http://mirrors.kernel.org/gnu"
 
 create() {
-	for d in $logs $bdir $sources $stage ; do
+	for d in $logs $builds $sources $stages ; do
 		if [ ! -d $d ]; then
 			log $FUNCNAME $d
 			mkdir -p $d
@@ -46,104 +23,35 @@ create() {
 	done
 }
 
-_pushd() {
-	debug $FUNCNAME $1
-	pushd $1 &> /dev/null
+download() {
+
 }
 
-_popd() {
-	debug $FUNCNAME $(popd)
-}
-
-pdownload() {
-	local file=$(basename $1)
-	_pushd $sources
-	if [ ! -f $file ]; then
-		log $FUNCNAME $1
-		curl -L -# -O $1
-	fi
-	_popd
-}
-
-pbuild() {
-	. $plans/$1/plan
-	log starting $1
-	log $FUNCNAME $1
-	bdir=$bdir/$fullname
-	log="$logs/via.log"
-	pdownload $source
-
-	pstage $source
-
-	if [ ! -d $bdir ]; then
-		log create $bdir
-		mkdir $bdir
-	fi
-	$build
-	$install
-	log finished $1
-}
-
-pstage() {
-	local file=$(basename $1)
-	[ -d $stage/$fullname ] && return
-	log $FUNCNAME $fullname
-	_pushd $stage
-	tar -xf $sources/$file
-	_popd 
-}
-
-# <action> <package> <details>
+# <action> <details>
 log() {
-	printf "%-15.15s %s %s\n" "$1" "$2" "$3"
+	printf "%-15.15s %s\n" "$1" "$2"
 }
-
-debug() {
-	if [ ! -z $debug ]; then
-		log $1 $2 $3
-	fi
-}
-
-error() {
-	local red=$(tput setaf 1)
-	local reset=$(tput sgr0)
-	echo "${red}${1}${reset}"
-}
-
-confargs="--prefix=/tools"
 
 gnu_build() {
-	log $FUNCNAME $name
-	_pushd $bdir
-	$stage/$fullname/configure $confargs $buildargs &> $log
-	make -j2 &> $log
-	_popd
+	$stage/$fullname/configure $confargs $buildargs
+	make -j2
 }
 
 gnu_make() {
-	log $FUNCNAME $name 
 	cp -a $stage/$fullname $(dirname $bdir)
-	_pushd $bdir
-	make -j2 $buildargs &> $log
-	_popd
+	make -j2 $buildargs
 }
 
 gnu_install() {
-	log $FUNCNAME $name
-	_pushd $bdir
-	make install $installargs &> $log
-	_popd
+	make install $installargs 
 }
 
-back_trace() {
-	which tic
-	error "*****   BACKTRACE     *****"
-	tail $log
-	error "***** END BACKTRACE	*****"
+tail() {
+	inotail -f logs/via.log
 }
 
-#sanity
 create
-action=$1 
-shift
-$action $@
+#sanity
+#action=$1 
+#shift
+#$action $@
