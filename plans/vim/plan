@@ -1,0 +1,14 @@
+name="vim"
+version="7.3"
+source="ftp://ftp.vim.org/pub/vim/unix/$name-$version.tar.bz2"
+pre_build="pre_build"
+build="gnu_build"
+build_args=""
+install="gnu_install"
+install_args="--enable-multibyte"
+verify="sha_verify"
+verify_args="5c5d5d6e07f1bbc49b6fe3906ff8a7e39b049928b68195b38e3e3d347100221d"
+
+pre_build() {
+	echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
+}

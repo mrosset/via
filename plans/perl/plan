@@ -2,11 +2,11 @@ name="perl"
 version="5.14.1"
 source="http://www.cpan.org/src/5.0/$name-$version.tar.bz2"
 build="custom_build"
-buildargs=""
+build_args=""
 install="custom_install"
-installargs=""
+install_args=""
 verify="sha_verify"
-verifyargs="29b4a7e7c22d4a980ab9eb1ea486c5c4ee9ec533192a1ce8f3fe9ae32fb1f862"
+verify_args="29b4a7e7c22d4a980ab9eb1ea486c5c4ee9ec533192a1ce8f3fe9ae32fb1f862"
 
 custom_build() {
 	download http://www.linuxfromscratch.org/patches/lfs/development/perl-5.14.1-libc-1.patch

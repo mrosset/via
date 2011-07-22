@@ -3,7 +3,7 @@ fullname="binutils-2.21.1"
 version="2.21.1"
 source="http://mirrors.kernel.org/gnu/binutils/binutils-2.21.1.tar.bz2"
 build="gnu_build"
-buildargs="--target=$LFS_TGT --disable-nls --disable-werror"
+build_args="--target=$LFS_TGT --disable-nls --disable-werror"
 install="gnu_install"
 pre="pre_install"
 

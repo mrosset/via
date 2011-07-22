@@ -4,9 +4,7 @@ set -e
 set -h
 set -o nounset 
 
-
-
-VIAHOME=/home/strings/github/via
+source /via/via.conf
 
 chroot=$VIAHOME/chroot
 cache=$VIAHOME/cache
@@ -17,21 +15,29 @@ log=$VIAHOME/logs/via.log
 builds=$cache/builds
 sources=$cache/sources
 stages=$cache/stages
+packages=$cache/packages
 
 PATH=/tools/bin:$PATH
 
-create() {
-	for d in $logs $builds $sources $stages ; do
+init() {
+	# setup cache dir end log dir
+	for d in $logs $builds $sources $stages $packages; do
 		if [ ! -d $d ]; then
 			log $FUNCNAME $d
 			mkdir -p $d
 		fi
 	done
+
+	export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
 }
 
 download() {
 	local url=$1
 	local file=$(basename $url)
+	if [ $url = "nil" ]; then
+		log $FUNCNAME "no source file"
+		return 0
+	fi
 	_pushd $sources
 	if [ ! -f $file ]; then
 		log $FUNCNAME $url
@@ -40,23 +46,28 @@ download() {
 	_popd
 }
 
+# TODO: rework staging to be more flexiable
 stage() {
-	local fullname=$1
-	local file=$2
-	local btype=$3
+	local file=$1
+	local btype=$2
+	if [ $file = "nil" ]; then
+		build_name=$name-$version
+		log $FUNCNAME "no source file"
+		[ ! -d $builds/$build_name] && mkdir -v $builds/$build_name
+		return 0
+	fi
+	build_name=$(tar tf $sources/$file | head -1)
 	_pushd $stages
-		if [ ! -d $fullname ]; then
+		if [ ! -d $build_name ]; then
 			tar xf $sources/$file
 		fi
 	_popd
-	_pushd $builds
-		if [ ! -d $fullname ]; then
-			mkdir -v $fullname
-		fi
-	_popd
+	if [ ! -d $builds/$build_name ] && [ $btype = "gnu_build" ]; then
+		mkdir -v $builds/$build_name
+	fi
 	if [ $btype = "gnu_make" ] || [ $btype = "custom_build" ]; then
-		if [ ! -d $fullname ]; then
-			cp -afv $stages/$name-$version $builds 
+		if [ ! -d $builds/$build_name ]; then
+			cp -af $stages/$build_name $builds 
 		fi
 	fi
 }
@@ -68,14 +79,29 @@ build() {
 	download $source
 	$verify $source
 	log stageing $name
-	stage $name-$version $(basename $source) $btype &> $log
-
-	_pushd $builds/$name-$version
+	stage $(basename $source) $btype #&> $log
+	export DESTDIR=$packages/$name-$version
+	if [ -d $DESTDIR ]; then
+		rm -rf $DESTDIR
+	fi	
+	mkdir -p $DESTDIR
+	_pushd $builds/$build_name
 		log $(echo $build) $name
-		$build &> $log
+		$build #&> $log
 		log $(echo $install) $name
-		$install &> $log
+		log installing "to $DESTDIR"
+		$install #&> $log
+		package
 	_popd
+}
+
+package() {
+	cd $packages
+	stow -R -vvv -t / **
+}
+
+unstow() {
+	stow -D -vvv -t / **
 }
 
 # <action> <details>
@@ -84,26 +110,35 @@ log() {
 }
 
 _pushd() {
-	pushd $1 &> /dev/null
+	#pushd $1 &> /dev/null
+	builtin pushd "$@" > /dev/null
 }
 
 _popd() {
 	popd &> /dev/null
 }
 
-confargs="--prefix=/tools"
+confargs="--prefix=/usr"
 
 gnu_build() {
-	$stages/$name-$version/configure $confargs $buildargs
-	make -j2
+	$stages/$name-$version/configure $confargs $build_args
+	make
+}
+
+no_build() {
+	log $FUNCNAME "$name skipping build"
 }
 
 gnu_install() {
-	make install $installargs
+	if [ ! -d $DESTDIR ]; then
+		mkdir $DESTDIR
+	fi
+	make DESTDIR=$DESTDIR install $install_args
 }
 
 gnu_make() {
-	make -j2 $buildargs
+	echo $PWD
+	make $build_args
 }
 
 gnu_verify() {
@@ -114,12 +149,16 @@ gnu_verify() {
 		if [ ! -f $file.sig ]; then
 			download $url.sig
 		fi
-		if ! gpg --verify $file.sig &> /dev/null; then
+		if ! gpg --verify $file.sig; then
 			log $FUNCNAME $(red FAILED)
 			return 1
 		fi	
 		log $FUNCNAME $(green PASS)
 	_popd
+}
+
+no_verify() {
+	echo "**** WARNING VERIFICATION IS TURNED OFF for $name ****"
 }
 
 sha_verify() {
@@ -128,7 +167,7 @@ sha_verify() {
 	log $FUNCNAME $name
 	_pushd $sources
 		sha=$(sha256sum $file | awk '{print $1}')
-		if [ ! $sha = $verifyargs ]; then
+		if [ ! $sha = $verify_args ]; then
 			log $FUNCNAME $(red FAILED)
 			return 1
 		fi	
@@ -149,7 +188,7 @@ green() {
 }
 
 tail() {
-	inotail -f logs/via.log
+	tail -f $log
 }
 
 new() {
@@ -189,28 +228,28 @@ chroot() {
 		ln -s /tools/bin/bash $chroot/bin/sh
 	fi
 
+	if [ ! -f $chroot/bin/via ]; then
+		ln -s /via/via $chroot/bin/via
+	fi
+
 	sudo mount -o bind $VIAHOME $chroot/via
-	sudo mount -o bind /dev $chroot/dev
-	sudo mount -vt devpts devpts $chroot/dev/pts
-	sudo mount -vt tmpfs shm $chroot/dev/shm
-	sudo mount -vt proc proc $chroot/proc
-	sudo mount -vt sysfs sysfs $chroot/sys
-
-
+	
 	sudo chroot "$chroot" /tools/bin/env -i \
-		HOME=/root TERM="$TERM" PS1='\u:\w\$ ' \
+		HOME=/via TERM="linux" PS1='\u:\w\$ ' \
 		PATH=/bin:/usr/bin:/sbin:/usr/sbin:/tools/bin \
 		/tools/bin/bash --login +h
-
-	sudo umount $chroot/via
-	sudo umount $chroot/dev/pts
-	sudo umount $chroot/dev/shm
-	sudo umount $chroot/proc
-	sudo umount $chroot/sys
-	sudo umount $chroot/dev
 }
 
-create
+umount_all() {
+	sudo umount $chroot/via
+}
+
+back_trace() {
+	cat $log
+}
+
+#trap back_trace ERR
+init
 action=$1 
 shift
 $action $@

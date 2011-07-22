@@ -1,8 +1,0 @@
-name="busybox-bootstrap"
-fullname="busybox-1.18.5"
-version="1.18.5"
-source="http://busybox.net/downloads/busybox-1.18.5.tar.bz2"
-build="gnu_make"
-buildargs="defconfig"
-install="gnu_install"
-installargs="CONFIG_PREFIX=/tools"
