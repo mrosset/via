@@ -41,7 +41,8 @@ download() {
 	_pushd $sources
 	if [ ! -f $file ]; then
 		log $FUNCNAME $url
-		curl -# -O $url
+		#curl -# -O $url
+		wget -c $url
 	fi	
 	_popd
 }
@@ -50,13 +51,14 @@ download() {
 stage() {
 	local file=$1
 	local btype=$2
+	if [ $build_name = "" ]; then
+		$build_name=$name-$version
+	fi
 	if [ $file = "nil" ]; then
-		build_name=$name-$version
 		log $FUNCNAME "no source file"
-		[ ! -d $builds/$build_name] && mkdir -v $builds/$build_name
+		[ ! -d $builds/$build_name ] && mkdir -v $builds/$build_name
 		return 0
 	fi
-	build_name=$(tar tf $sources/$file | head -1)
 	_pushd $stages
 		if [ ! -d $build_name ]; then
 			tar xf $sources/$file
@@ -80,28 +82,13 @@ build() {
 	$verify $source
 	log stageing $name
 	stage $(basename $source) $btype #&> $log
-	export DESTDIR=$packages/$name-$version
-	if [ -d $DESTDIR ]; then
-		rm -rf $DESTDIR
-	fi	
-	mkdir -p $DESTDIR
 	_pushd $builds/$build_name
 		log $(echo $build) $name
 		$build #&> $log
 		log $(echo $install) $name
-		log installing "to $DESTDIR"
+		log installing $name
 		$install #&> $log
-		package
 	_popd
-}
-
-package() {
-	cd $packages
-	stow -R -vvv -t / **
-}
-
-unstow() {
-	stow -D -vvv -t / **
 }
 
 # <action> <details>
@@ -130,10 +117,7 @@ no_build() {
 }
 
 gnu_install() {
-	if [ ! -d $DESTDIR ]; then
-		mkdir $DESTDIR
-	fi
-	make DESTDIR=$DESTDIR install $install_args
+	make install $install_args
 }
 
 gnu_make() {
@@ -223,10 +207,6 @@ chroot() {
 			mkdir $chroot/$i
 		fi
 	done
-
-	if [ ! -f $chroot/bin/sh ]; then
-		ln -s /tools/bin/bash $chroot/bin/sh
-	fi
 
 	if [ ! -f $chroot/bin/via ]; then
 		ln -s /via/via $chroot/bin/via

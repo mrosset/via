@@ -8,7 +8,7 @@ install_args=""
 verify="no_verify"
 
 custom_install() {
-	cd $DESTDIR
+	cd /
 	mkdir -pv {bin,boot,etc/opt,home,lib,mnt,opt,run}
 	mkdir -pv {media/{floppy,cdrom},sbin,srv,var}
 	install -dv -m 0750 /root

@@ -1,0 +1,10 @@
+name="glibc"
+fullname="glibc-2.14"
+version="2.14"
+source="http://mirrors.kernel.org/gnu/glibc/glibc-2.14.tar.bz2"
+build="gnu_build"
+build_args="--disable-profile --enable-add-ons \
+--enable-kernel=2.6.22.5 --libexecdir=/usr/lib/glibc"
+install="gnu_install"
+install_args=""
+verify="gnu_verify"

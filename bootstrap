@@ -312,11 +312,11 @@ test_phase2() {
 }
 
 create
-#binutils_phase1
-#gcc_phase1
-#linux_api_headers
-#glibc
-#adjust_toolchain
-#binutils_phase2
+binutils_phase1
+gcc_phase1
+linux_api_headers
+glibc
+adjust_toolchain
+binutils_phase2
 gcc_phase2
 test_phase2

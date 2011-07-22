@@ -1,5 +1,5 @@
 name="linux-api-headers"
-fullname="linux-2.6.39.3"
+build_name="linux-2.6.39.3"
 version="2.6.39.3"
 source="http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.3.tar.bz2"
 build="custom_build"
@@ -14,5 +14,6 @@ custom_build() {
 }
 
 custom_install() {
-	make INSTALL_HDR_PATH=$DESTDIR/usr headers_install
+	#make INSTALL_HDR_PATH=$DESTDIR/usr headers_install
+	make INSTALL_HDR_PATH=/usr headers_install
 }
