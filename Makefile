@@ -53,10 +53,10 @@ core:
 	#via build shadow
 	#via build sysklogd
 	#via build sysvinit
-	via build tar
-	via build texinfo
-	via build udev
-	via build vim
+	#via build tar
+	#via build texinfo
+	#via build udev
+	#via build vim
 
 glibc-bootstrap:
 	#via build filesystem
