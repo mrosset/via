@@ -1,0 +1,16 @@
+name="attr"
+version="2.4.46"
+source="http://download.savannah.nongnu.org/releases/attr/attr-$version.src.tar.gz"
+build_name=""
+pre=""
+build="custom_build"
+build_args=""
+install="gnu_install"
+install_args="install-lib install-dev"
+post=""
+verify="sha_verify"
+verify_args="dcd69bdca7ff166bc45141eddbcf21967999a6b66b0544be12a1cc2fd6340e1f"
+
+custom_build() {
+	gnu_build
+}

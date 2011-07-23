@@ -1,6 +1,6 @@
 name="NAME"
 version="VERSION"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
+source="SOURCE"
 build_name=""
 pre=""
 build="gnu_build"

@@ -1,9 +1,9 @@
 TODO
 ========
 
-packages
+Packages
 --------
-1. sudo
+1. dhcpd
 
 Via
 -------

@@ -1,0 +1,18 @@
+name="dbus"
+version="1.4.12"
+source="http://dbus.freedesktop.org/releases/dbus/dbus-$version.tar.gz"
+build_name=""
+pre=""
+build="gnu_build"
+build_args="--sysconfdir=/etc --localstatedir=/var \
+--libexecdir=/usr/lib/dbus-1.0 --with-dbus-user=81 \
+--with-system-pid-file=/var/run/dbus.pid \
+--enable-inotify --disable-dnotify \
+--disable-verbose-mode --disable-static \
+--disable-tests --disable-asserts \
+--with-systemdsystemunitdir=/lib/systemd/system"
+install="gnu_install"
+install_args=""
+post=""
+verify="sha_verify"
+verify_args="da3c97fd546610558d588799e27c4fa81101e754acbcd34747a42c131f30dbe7"

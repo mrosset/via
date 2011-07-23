@@ -1,0 +1,16 @@
+name="dhcpcd"
+version="5.2.12"
+source="http://roy.marples.name/downloads/dhcpcd/dhcpcd-5.2.12.tar.bz2"
+build_name=""
+pre=""
+build="custom_build"
+build_args=""
+install="gnu_install"
+install_args=""
+post=""
+verify="sha_verify"
+verify_args="55da7dcf64cd3dda5217d0e01748a3d980ab0cd625bae0efc00420eadd7f559b"
+
+custom_build() {
+	gnu_build
+}

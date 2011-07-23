@@ -1,0 +1,22 @@
+name="openssl"
+version="1.0.0d"
+source="https://www.openssl.org/source/openssl-$version.tar.gz"
+build_name=""
+pre=""
+build="custom_build"
+build_args=""
+install="custom_install"
+install_args=""
+post=""
+verify="sha_verify"
+verify_args="92511d1f0caaa298dba250426f8e7d5d00b271847886d1adc62422778d6320db"
+
+custom_build() {
+	./config --prefix=/usr --openssldir=/etc/ssl --libdir=lib \
+		shared zlib enable-md2 -Wa,--noexecstack
+	make
+}
+
+custom_install() {
+	sudo make MANDIR=/usr/share/man install
+}

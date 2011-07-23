@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 set -h
-set -o nounset 
+set -u
 
-source /via/via.conf
+VIAHOME=/home/strings/github/via
+
+source $VIAHOME/via.conf
 
 chroot=$VIAHOME/chroot
 cache=$VIAHOME/cache
@@ -68,13 +70,11 @@ stage() {
 			fi
 		fi
 	_popd
-	if [ ! -d $builds/$build_name ] && [ $btype = "gnu_build" ]; then
+	if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
 		mkdir -v $builds/$build_name
 	fi
-	if [ $btype = "gnu_make" ] || [ $btype = "custom_build" ]; then
-		if [ ! -d $builds/$build_name ]; then
-			cp -af $stages/$build_name $builds 
-		fi
+	if [ "$btype" = "gnu_make" ] || [ "$btype" = "custom_build" ]; then
+		cp -af $stages/$build_name $builds 
 	fi
 }
 
@@ -100,7 +100,7 @@ build() {
 
 # <action> <details>
 log() {
-	printf "%-15.15s %s\n" "$1" "$2" | tee -a $log
+	printf "%-15.15s %s\n" "$1" "$2"
 }
 
 _pushd() {
@@ -115,7 +115,7 @@ _popd() {
 confargs="--prefix=/usr"
 
 gnu_build() {
-	$stages/$build_name/configure $confargs "$build_args"
+	$stages/$build_name/configure $confargs $build_args
 	make
 }
 
@@ -124,7 +124,11 @@ no_build() {
 }
 
 gnu_install() {
-	make install $install_args
+	if [ -z $install_args ]; then
+		sudo make install
+	else
+		sudo make install $install_args
+	fi
 }
 
 gnu_make() {
@@ -183,20 +187,7 @@ tail() {
 	tail -f $log
 }
 
-new() {
-	local name=$1
-	local version=$2
-	log $FUNCNAME $name
-	if [ ! -d $plans/incoming/$name ]; then
-		mkdir $plans/incoming/$name
-		cp $plans/plan.proto $plans/incoming/$name/plan
-		sed -i "s:NAME:$name:" $plans/incoming/$name/plan
-		sed -i "s:VERSION:$version:" $plans/incoming/$name/plan
-		cat $plans/incoming/$name/plan
-		return 0
-	fi
-	log $FUNCNAME $(red "exists already")
-}
+
 
 edit() {
 	local name=$1
@@ -221,13 +212,13 @@ chroot() {
 		ln -s /via/via $chroot/bin/via
 	fi
 
-	sudo mount -o bind $VIAHOME $chroot/via
+	#sudo mount -o bind $VIAHOME $chroot/via
 	
 	sudo chroot "$chroot" /usr/bin/env -i \
 		HOME=/via TERM="linux" PS1='(chroot) \u:\w\$ ' \
 		PATH=/bin:/usr/bin:/sbin:/usr/sbin: \
 		/bin/bash --login +h
-	sudo umount $chroot/via
+	#sudo umount $chroot/via
 }
 
 mkvirt() {
@@ -240,7 +231,6 @@ mkvirt() {
 	echo "/dev/sda / ext2 defaults 1 2" > fstab
 	sudo mv fstab $target/etc/fstab
 	sudo umount $target
-
 }
 
 start_virt() {
@@ -258,11 +248,46 @@ umount_all() {
 	sudo umount $chroot/via
 }
 
-back_trace() {
-	cat $log
+import() {
+	local abs=/var/abs/
+	local target=$1
+	local path=$(find $abs -type d -name $target)
+	if [ -d $plans/*/$target ]; then
+		log $FUNCNAME "$target already exists"
+		return 1
+	fi
+	if [ -z $path ]; then
+		log $FUNCNAME "$1 abs not found"
+		return
+	fi
+	source $path/PKGBUILD
+	local t=$plans/incoming/$target/plan
+	mkdir -v $plans/incoming/$target
+	cp -v $plans/plan.proto $t
+	sed -i "s,NAME,$pkgname," $t
+	sed -i "s,VERSION,$pkgver," $t
+	sed -i "s,SOURCE,$source," $t
+	gen_hash $target
+	cat $t
+	log $FUNCNAME "$target imported"
 }
 
-#trap back_trace ERR
+gen_hash() {
+	source $plans/*/$1/plan
+	download $source
+	local plan=$plans/*/$1/plan
+	local file=$(basename $source)
+	sed -i "s,gnu_verify,sha_verify," $plan
+	sha=$(sha256sum $sources/$file | awk '{print $1}')
+	echo verify_args=\"$sha\" >> $plan
+}
+
+back_trace() {
+	log $FUNCNAME "ERROR"
+	pwd
+}
+
+trap back_trace ERR
 init
 action=$1 
 shift
