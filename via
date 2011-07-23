@@ -224,7 +224,7 @@ chroot() {
 
 	sudo mount -o bind $VIAHOME $chroot/via
 	
-	sudo chroot "$chroot" /bin/env -i \
+	sudo chroot "$chroot" /usr/bin/env -i \
 		HOME=/via TERM="linux" PS1='\u:\w\$ ' \
 		PATH=/bin:/usr/bin:/sbin:/usr/sbin \
 		/bin/bash --login +h
