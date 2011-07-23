@@ -1,0 +1,16 @@
+name="module-init-tools"
+version="3.12"
+source="http://www.kernel.org/pub/linux/utils/kernel/module-init-tools/module-init-tools-$version.tar.bz2"
+build_name=""
+pre="pre_build"
+build="gnu_build"
+build_args="--enable-zlib-dynamic --mandir=/usr/share/man"
+install="gnu_install"
+install_args=""
+post=""
+verify="sha_verify"
+verify_args="d012ab07ea26721467a85a775f34747c1c8897e37f16bec5317d8a72ef8b4f17"
+
+pre_build() {
+	echo '.so man5/modprobe.conf.5' > modprobe.d.5
+}

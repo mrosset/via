@@ -1,0 +1,8 @@
+name="ncdu-bootstrap"
+version="1.7"
+fullname="ncdu-1.7"
+source="http://dev.yorhel.nl/download/ncdu-1.7.tar.gz"
+build="gnu_build"
+install="gnu_install"
+pre=""
+post=""

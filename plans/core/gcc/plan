@@ -1,0 +1,14 @@
+name="gcc"
+version="4.6.1"
+source="http://mirrors.kernel.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2"
+build_name=""
+build="gnu_build"
+build_args="--libexecdir=/usr/lib --enable-shared \
+--enable-threads=posix --enable-__cxa_atexit \
+--enable-clocale=gnu --enable-languages=c,c++ \
+--disable-multilib --disable-bootstrap --with-system-zlib"
+install="gnu_install"
+install_args=""
+verify="gnu_verify"
+pre=""
+post=""

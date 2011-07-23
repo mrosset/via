@@ -1,0 +1,30 @@
+name="bzip2"
+version="1.0.6"
+source="http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
+build_name=""
+build="custom_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd"
+pre=""
+post=""
+
+custom_build() {
+	sed -i 's@\(ln -s -f \)$(PREFIX)/bin/@\1@' Makefile
+	make -f Makefile-libbz2_so
+	make clean
+	make
+}
+
+custom_install() {
+	make PREFIX=/usr install
+	cp -v bzip2-shared /bin/bzip2
+	cp -av libbz2.so* /lib
+	ln -sfv ../../lib/libbz2.so.1.0 /usr/lib/libbz2.so
+	rm -v /usr/bin/{bunzip2,bzcat,bzip2}
+	ln -sfv bzip2 /bin/bunzip2
+	ln -sfv bzip2 /bin/bzcat
+}
+

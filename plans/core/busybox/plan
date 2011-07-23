@@ -1,0 +1,15 @@
+name="busybox"
+version="1.18.5"
+source="http://busybox.net/downloads/busybox-1.18.5.tar.bz2"
+build="gnu_make"
+build_args=""
+install="custom_install"
+verify="sha_verify"
+verify_args="10954fcd5c48d8a262a3497b16227bf983a05658bf2bf661af2fdeca773f2fc0"
+
+custom_install() {
+	mkdir -p $DESTDIR/tools/bin
+	cp busybox $DESTDIR/tools/bin
+}
+pre=""
+post=""
