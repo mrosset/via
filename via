@@ -17,8 +17,6 @@ sources=$cache/sources
 stages=$cache/stages
 packages=$cache/packages
 
-PATH=/tools/bin:$PATH
-
 init() {
 	# setup cache dir end log dir
 	for d in $logs $builds $sources $stages $packages; do
@@ -56,15 +54,16 @@ stage() {
 	fi
 	if [ $file = "nil" ]; then
 		log $FUNCNAME "no source file"
-		[ ! -d $builds/$build_name ] && mkdir -v $builds/$build_name
+		[ ! -d $builds/$build_name ] && mkdir $builds/$build_name
 		return 0
 	fi
 	_pushd $stages
 		if [ ! -d $build_name ]; then
 			tar xf $sources/$file
-			if [ -d $plans/$name/patches ]; then
-				for i in $plans/$name/patches/*; do
-					patch -Np1 $1
+			if [ -d $plans/*/$name/patches ]; then
+				for i in $plans/*/$name/patches/*; do
+					patch -Np1 -i $i
+					exit
 				done
 			fi
 		fi
@@ -80,7 +79,7 @@ stage() {
 }
 
 build() {
-	source $plans/$1/plan
+	source $plans/*/$1/plan
 	local btype=$(echo $build)
 	log starting $name
 	download $source
@@ -116,7 +115,7 @@ _popd() {
 confargs="--prefix=/usr"
 
 gnu_build() {
-	$stages/$build_name/configure $confargs $build_args
+	$stages/$build_name/configure "$confargs $build_args"
 	make
 }
 
@@ -188,12 +187,12 @@ new() {
 	local name=$1
 	local version=$2
 	log $FUNCNAME $name
-	if [ ! -d $plans/$name ]; then
-		mkdir $plans/$name
-		cp $plans/plan.proto $plans/$name/plan
-		sed -i "s:NAME:$name:" $plans/$name/plan
-		sed -i "s:VERSION:$version:" $plans/$name/plan
-		cat $plans/$name/plan
+	if [ ! -d $plans/incoming/$name ]; then
+		mkdir $plans/incoming/$name
+		cp $plans/plan.proto $plans/incoming/$name/plan
+		sed -i "s:NAME:$name:" $plans/incoming/$name/plan
+		sed -i "s:VERSION:$version:" $plans/incoming/$name/plan
+		cat $plans/incoming/$name/plan
 		return 0
 	fi
 	log $FUNCNAME $(red "exists already")
@@ -201,7 +200,7 @@ new() {
 
 edit() {
 	local name=$1
-	$EDITOR $plans/$name/plan
+	$EDITOR $plans/*/$name/plan
 }
 
 strip_tools() {
@@ -225,8 +224,8 @@ chroot() {
 	sudo mount -o bind $VIAHOME $chroot/via
 	
 	sudo chroot "$chroot" /usr/bin/env -i \
-		HOME=/via TERM="linux" PS1='\u:\w\$ ' \
-		PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+		HOME=/via TERM="linux" PS1='(chroot) \u:\w\$ ' \
+		PATH=/bin:/usr/bin:/sbin:/usr/sbin: \
 		/bin/bash --login +h
 	sudo umount $chroot/via
 }
