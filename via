@@ -115,7 +115,7 @@ _popd() {
 confargs="--prefix=/usr"
 
 gnu_build() {
-	$stages/$build_name/configure "$confargs $build_args"
+	$stages/$build_name/configure $confargs "$build_args"
 	make
 }
 
