@@ -1,5 +1,6 @@
 core:
 	via build zlib
+	via build file
 
 glibc-bootstrap:
 	#via build filesystem
@@ -29,7 +30,7 @@ tools:
 	
 clean:
 	rm -rf cache/{builds,stages,packages}
-	rm -rf /tools/*
+	#rm -rf /tools/*
 
 bootstrap:
 	#./boostrap

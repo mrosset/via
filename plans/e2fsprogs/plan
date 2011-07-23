@@ -1,0 +1,14 @@
+name="e2fsprogs"
+version="1.41.14"
+source="http://downloads.sourceforge.net/sourceforge/e2fsprogs/e2fsprogs-$version.tar.gz"
+build_name=""
+build="gnu_build"
+build_args="-with-root-prefix= \
+--enable-elf-shlibs --disable-libblkid --disable-libuuid \
+--disable-uuidd --disable-fsck"
+pre=""
+install="gnu_install"
+install_args=""
+post=""
+verify="sha_verify"
+verify_args="3f8ac1fedd7c4bec480afcbe4acabdd4ac59ec0446a0fd50c8975cd0aad7b176"

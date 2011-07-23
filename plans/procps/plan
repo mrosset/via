@@ -1,0 +1,17 @@
+name="procps"
+version="3.2.8"
+source="http://procps.sf.net/procps-$version.tar.gz"
+build_name=""
+pre="pre_build"
+build="gnu_make"
+build_args=""
+install="gnu_install"
+install_args=""
+post=""
+verify="sha_verify"
+verify_args="11ed68d8a4433b91cd833deb714a3aa849c02aea738c42e6b4557982419c1535"
+
+pre_build() {
+	pwd
+	sed -i -e 's@\*/module.mk@proc/module.mk ps/module.mk@' Makefile
+}

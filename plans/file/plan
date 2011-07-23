@@ -1,6 +1,7 @@
 name="file"
 version="5.07"
 source="ftp://ftp.astron.com/pub/file/file-5.07.tar.gz"
+build_name=""
 build="gnu_build"
 build_args=""
 install="gnu_install"

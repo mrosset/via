@@ -1,0 +1,20 @@
+name="pcre"
+version="8.12"
+source="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$version.tar.bz2"
+build_name=""
+build="gnu_build"
+build_args="--docdir=/usr/share/doc/pcre-8.12 \
+--enable-utf8 \
+--enable-unicode-properties \
+--enable-pcregrep-libz \
+--enable-pcregrep-libbz2"
+install="gnu_install"
+install_args=""
+verify="sha_verify"
+verify_args="c63070d461edc451ec9457f2324e152a531e907d5c5d2d8f8121e725acd1aeec"
+post="post_install"
+
+post_install() {
+	mv -v /usr/lib/libpcre.so.* /lib/ &&
+		ln -v -sf ../../lib/libpcre.so.0 /usr/lib/libpcre.so
+}

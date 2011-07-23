@@ -1,22 +1,28 @@
 name="perl"
 version="5.14.1"
 source="http://www.cpan.org/src/5.0/$name-$version.tar.bz2"
+build_name=""
+pre=""
 build="custom_build"
 build_args=""
-install="custom_install"
+install="gnu_install"
 install_args=""
 verify="sha_verify"
 verify_args="29b4a7e7c22d4a980ab9eb1ea486c5c4ee9ec533192a1ce8f3fe9ae32fb1f862"
+post=""
 
 custom_build() {
-	download http://www.linuxfromscratch.org/patches/lfs/development/perl-5.14.1-libc-1.patch
-	patch -Np1 -i $sources/perl-5.14.1-libc-1.patch
-	sh Configure -des -Dprefix=/tools
-	make
-}
+	sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
+		-e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
+		-e "s|LIB\s*= ./zlib-src|LIB        = /usr/lib|"         \
+		cpan/Compress-Raw-Zlib/config.in
 
-custom_install() {
-	cp -vn perl cpan/podlators/pod2man /tools/bin 
-	mkdir -pv /tools/lib/perl5/5.14.1 
-	cp -vn lib/* /tools/lib/perl5/5.14.1
+	sh Configure -des -Dprefix=/usr \
+		-Dinc_version_list=none \
+		-Dvendorprefix=/usr           \
+		-Dman1dir=/usr/share/man/man1 \
+		-Dman3dir=/usr/share/man/man3 \
+		-Dpager="/usr/bin/less -isR"  \
+		-Duseshrplib
+	make
 }

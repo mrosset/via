@@ -1,8 +1,12 @@
 name="findutils"
 version="4.4.2"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
+pre=""
+build_name=""
 build="gnu_build"
-build_args=""
+build_args="--libexecdir=/usr/lib/findutils \
+--localstatedir=/var/lib/locate"
 install="gnu_install"
 install_args=""
+post=""
 verify="gnu_verify"

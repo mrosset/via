@@ -1,8 +1,12 @@
 name="m4"
 version="1.4.16"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
+build_name=""
 build="gnu_build"
-build_args="--disable-perl-regexp"
+build_args=""
+pre=""
 install="gnu_install"
 install_args=""
+post=""
 verify="gnu_verify"
+

@@ -1,0 +1,20 @@
+name="readline"
+version="6.2"
+source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
+build_name=""
+pre=""
+build="gnu_build"
+build_args="--libdir=/lib"
+install="gnu_install"
+install_args=""
+post="post_install"
+verify="gnu_verify"
+
+export SHLIB_LIBS=-lncurses
+
+post_install() {
+	mv -v /lib/lib{readline,history}.a /usr/lib
+	rm -v /lib/lib{readline,history}.so
+	ln -sfv ../../lib/libreadline.so.6 /usr/lib/libreadline.so
+	ln -sfv ../../lib/libhistory.so.6 /usr/lib/libhistory.so
+}

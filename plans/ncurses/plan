@@ -1,8 +1,29 @@
 name="ncurses"
 version="5.9"
-source="http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz"
+source="http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz"
+build_name=""
 build="gnu_build"
 build_args="--with-shared --enable-widec"
 install="gnu_install"
 install_args=""
 verify="gnu_verify"
+post="post_install"
+
+post_install() {
+	mv -v /usr/lib/libncursesw.so.5* /lib
+	ln -sfv ../../lib/libncursesw.so.5 /usr/lib/libncursesw.so
+
+	for lib in ncurses form panel menu ; do 
+		rm -vf /usr/lib/lib${lib}.so 
+		echo "INPUT(-l${lib}w)" >/usr/lib/lib${lib}.so
+		ln -sfv lib${lib}w.a /usr/lib/lib${lib}.a 
+	done
+
+	ln -sfv libncurses++w.a /usr/lib/libncurses++.a
+
+	rm -vf /usr/lib/libcursesw.so
+	echo "INPUT(-lncursesw)" >/usr/lib/libcursesw.so
+	ln -sfv libncurses.so /usr/lib/libcurses.so
+	ln -sfv libncursesw.a /usr/lib/libcursesw.a
+	ln -sfv libncurses.a /usr/lib/libcurses.a
+}

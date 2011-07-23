@@ -41,8 +41,8 @@ download() {
 	_pushd $sources
 	if [ ! -f $file ]; then
 		log $FUNCNAME $url
-		#curl -# -O $url
-		wget -c $url
+		curl -L -# -O $url
+		#wget -c $url
 	fi	
 	_popd
 }
@@ -51,8 +51,8 @@ download() {
 stage() {
 	local file=$1
 	local btype=$2
-	if [ $build_name = "" ]; then
-		$build_name=$name-$version
+	if [ -z $build_name ]; then
+		build_name=$name-$version
 	fi
 	if [ $file = "nil" ]; then
 		log $FUNCNAME "no source file"
@@ -62,6 +62,11 @@ stage() {
 	_pushd $stages
 		if [ ! -d $build_name ]; then
 			tar xf $sources/$file
+			if [ -d $plans/$name/patches ]; then
+				for i in $plans/$name/patches/*; do
+					patch -Np1 $1
+				done
+			fi
 		fi
 	_popd
 	if [ ! -d $builds/$build_name ] && [ $btype = "gnu_build" ]; then
@@ -79,16 +84,19 @@ build() {
 	local btype=$(echo $build)
 	log starting $name
 	download $source
-	$verify $source
+	${verify} $source
 	log stageing $name
 	stage $(basename $source) $btype #&> $log
 	_pushd $builds/$build_name
 		log $(echo $build) $name
+		$pre
 		$build #&> $log
 		log $(echo $install) $name
 		log installing $name
 		$install #&> $log
+		$post
 	_popd
+	log finished $name
 }
 
 # <action> <details>
@@ -108,7 +116,7 @@ _popd() {
 confargs="--prefix=/usr"
 
 gnu_build() {
-	$stages/$name-$version/configure $confargs $build_args
+	$stages/$build_name/configure $confargs $build_args
 	make
 }
 
@@ -153,6 +161,7 @@ sha_verify() {
 		sha=$(sha256sum $file | awk '{print $1}')
 		if [ ! $sha = $verify_args ]; then
 			log $FUNCNAME $(red FAILED)
+			echo $sha
 			return 1
 		fi	
 		log $FUNCNAME $(green PASS)
@@ -180,10 +189,11 @@ new() {
 	local version=$2
 	log $FUNCNAME $name
 	if [ ! -d $plans/$name ]; then
-		cp -a $plans/make $plans/$name
-		echo $name >> $plans/$name/plan
-		echo $version >> $plans/$name/plan
-		vim $plans/$name/plan
+		mkdir $plans/$name
+		cp $plans/plan.proto $plans/$name/plan
+		sed -i "s:NAME:$name:" $plans/$name/plan
+		sed -i "s:VERSION:$version:" $plans/$name/plan
+		cat $plans/$name/plan
 		return 0
 	fi
 	log $FUNCNAME $(red "exists already")
@@ -214,10 +224,11 @@ chroot() {
 
 	sudo mount -o bind $VIAHOME $chroot/via
 	
-	sudo chroot "$chroot" /tools/bin/env -i \
+	sudo chroot "$chroot" /bin/env -i \
 		HOME=/via TERM="linux" PS1='\u:\w\$ ' \
-		PATH=/bin:/usr/bin:/sbin:/usr/sbin:/tools/bin \
-		/tools/bin/bash --login +h
+		PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+		/bin/bash --login +h
+	sudo umount $chroot/via
 }
 
 umount_all() {
