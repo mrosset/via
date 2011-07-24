@@ -369,23 +369,28 @@ chroot() {
 mkvirt() {
 	local image=./vanilla.img
 	local target=./vanilla
+	trap "sudo umount $target" ERR
+	[ ! -d $target ] && mkdir $target
+	ROOT=$target
 	qemu-img create -f raw $image 700M
 	mkfs.ext2 -F $image
 	sudo mount -o loop $image $target
-	sudo cp -a ./chroot/* $target/
+	install core
+	install dbus
 	echo "/dev/sda / ext2 defaults 1 2" > fstab
 	sudo mv fstab $target/etc/fstab
 	sudo umount $target
+	log $FUNCNAME "completed"
 }
 
 start_virt() {
 	local kernel=/boot/vmlinuz26
 	local initrd=/boot/kernel26-fallback.img
 	echo "starting emulator"
-	qemu-system-x86_64 -hda ./vanilla.img \
+	qemu-system-x86_64 -enable-kvm -hda ./vanilla.img \
 		-initrd $initrd \
 		-kernel $kernel \
-		-nographic -append "quiet console=ttyS0 root=/dev/sda"
+		-nographic -append "quiet console=ttyS0 root=/dev/sda init=/bin/systemd"
 		#-append "root=/dev/sda"
 }
 
