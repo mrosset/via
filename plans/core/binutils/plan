@@ -13,5 +13,5 @@ post="post_install"
 
 post_install() {
 	#FIXME: 
-	cp -v $stages/$name-$version/include/libiberty.h /usr/include
+	cp -v $stages/$name-$version/include/libiberty.h $DESTDIR/usr/include
 }

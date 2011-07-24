@@ -9,12 +9,11 @@ verify="sha_verify"
 verify_args="324bd8bde3929be5d9c33e262d8ca197a45e7e2587b7c5703a7004d78901a8d3"
 post=""
 
-
 custom_build() {
 	make mrproper
 	make headers_check
 }
 
 custom_install() {
-	make INSTALL_HDR_PATH=/usr headers_install
+	make INSTALL_HDR_PATH=$DESTDIR/usr headers_install
 }

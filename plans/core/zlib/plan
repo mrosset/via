@@ -3,14 +3,10 @@ version="1.2.5"
 source="http://zlib.net/$name-$version.tar.gz"
 pre=""
 build_name=""
-build="custom_build"
+build="gnu_build"
 build_args=""
 install="gnu_install"
 install_args=""
 verify="sha_verify"
-verify_args=""
+verify_args="6064e52e513facb0fbb7998c6413406cf253cfb986063d68f4771c2bf7a3f958"
 post=""
-
-custom_build() {
-	gnu_build
-}

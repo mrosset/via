@@ -1,4 +1,5 @@
 cache
 logs
-chroot
 keys
+root
+repo
