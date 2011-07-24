@@ -20,6 +20,8 @@ CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
 LDFLAGS="-Wl,--hash-style=gnu -Wl,--as-needed"
 MAKEFLAGS="-j3"
 
+GPG_USER="test@test.com"
+
 source $VIAHOME/via.conf
 
 chroot=$VIAHOME/chroot
@@ -172,7 +174,7 @@ package() {
 		pkgfile=$name-$version-via.tar.gz
 		log "signing" $pkgfile
 		[ -f $pkgfile.sig ] && rm $pkgfile.sig
-		gpg -u test@test.com --detach-sign $pkgfile
+		gpg -u $GPG_USER --detach-sign $pkgfile
 		log $pkgfile $(green "OK")
 		gpg --verify $pkgfile.sig 
 	_popd
