@@ -6,9 +6,24 @@ set -u
 
 VIAHOME=/home/strings/github/via
 
+ROOT=$VIAHOME/test
+#ROOT=$VIAHOME/root
+
+PREFIX="/usr"
+
+CARCH="x86_64"
+CHOST="x86_64-unknown-linux-gnu"
+
+CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+
+LDFLAGS="-Wl,--hash-style=gnu -Wl,--as-needed"
+MAKEFLAGS="-j3"
+
 source $VIAHOME/via.conf
 
 chroot=$VIAHOME/chroot
+repo=$VIAHOME/repo
 cache=$VIAHOME/cache
 plans=$VIAHOME/plans
 logs=$VIAHOME/logs
@@ -21,7 +36,7 @@ packages=$cache/packages
 
 init() {
 	# setup cache dir end log dir
-	for d in $logs $builds $sources $stages $packages; do
+	for d in $logs $repo $builds $sources $stages $packages; do
 		if [ ! -d $d ]; then
 			log $FUNCNAME $d
 			mkdir -p $d
@@ -51,9 +66,7 @@ download() {
 stage() {
 	local file=$1
 	local btype=$2
-	if [ -z $build_name ]; then
-		build_name=$name-$version
-	fi
+
 	if [ $file = "nil" ]; then
 		log $FUNCNAME "no source file"
 		[ ! -d $builds/$build_name ] && mkdir $builds/$build_name
@@ -63,56 +76,187 @@ stage() {
 		if [ ! -d $build_name ]; then
 			tar xf $sources/$file
 			if [ -d $plans/*/$name/patches ]; then
+				_pushd $build_name
 				for i in $plans/*/$name/patches/*; do
 					patch -Np1 -i $i
-					exit
 				done
+				_popd
 			fi
 		fi
 	_popd
 	if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
 		mkdir -v $builds/$build_name
 	fi
-	if [ "$btype" = "gnu_make" ] || [ "$btype" = "custom_build" ]; then
+	if [ ! "$btype" = "gnu_build" ]; then
 		cp -af $stages/$build_name $builds 
 	fi
 }
 
-build() {
+build_core() {
+	local db=$ROOT/var/db/via
+	for i in $plans/core/*; do
+		i=$(basename $i)
+		manifest="$db/$i-*/MANIFEST"
+		if [ ! -f $manifest ] ; then
+			build "$i"
+			install "$i"
+		else
+			log skipping $i
+		fi
+	done
+}
+
+build_install() {
+	build $1
+	install "$1"
+}
+
+source_plan() {
+	DESTDIR=
 	source $plans/*/$1/plan
+	if [ -z $build_name ]; then
+		build_name=$name-$version
+	fi
+	export DESTDIR="$packages/$name-$version"
+	source $plans/*/$1/plan
+	if [ -z $build_name ]; then
+		build_name=$name-$version
+	fi
+}
+
+build() {
+	if [ "$1" = "core" ]; then
+		build_core
+		return
+	fi
+	source_plan $1
 	local btype=$(echo $build)
 	log starting $name
 	download $source
-	${verify} $source
+	$verify $source
 	log stageing $name
 	stage $(basename $source) $btype #&> $log
 	_pushd $builds/$build_name
 		log $(echo $build) $name
 		$pre
 		$build #&> $log
-		log $(echo $install) $name
-		log installing $name
-		$install #&> $log
-		$post
+		package $name
 	_popd
-	log finished $name
+	log done $name
+}
+
+install_dest() {
+	source_plan "$1"
+	log $FUNCNAME "$name"
+	if [ -d $DESTDIR ]; then
+		log "cleaning" "$DESTDIR"
+		rm -rf $DESTDIR
+	fi
+	log $(echo $install) $name
+	_pushd $builds/$build_name
+		$install
+	_popd
+}
+
+package() {
+	source_plan "$1"
+	install_dest $name
+	local pkgfile=$repo/$name-$version-via.tar.gz
+	_pushd $packages/$name-$version
+		$post
+		find . | tee MANIFEST
+		log "compressing" $pkgfile
+		fakeroot tar cfz $pkgfile *
+	_popd
+	_pushd $repo
+		pkgfile=$name-$version-via.tar.gz
+		log "signing" $pkgfile
+		[ -f $pkgfile.sig ] && rm $pkgfile.sig
+		gpg -u test@test.com --detach-sign $pkgfile
+		log $pkgfile $(green "OK")
+		gpg --verify $pkgfile.sig 
+	_popd
+}
+
+# TODO: add logic to work of base dirs or files. 
+install() {
+	if [ "$1" = "core" ]; then
+		for i in $plans/core/*; do
+			install "$(basename $i)"
+		done
+		return
+	fi
+	source_plan $1
+	local fullname=$name-$version
+	local pkgfile=$repo/$fullname-via.tar.gz
+	local db=var/db/via
+
+	[ -d $ROOT ] || mkdir -p $ROOT
+	[ -d $db ] || mkdir -p $db
+
+	gpg --verify $pkgfile.sig &> /dev/null
+	_pushd $ROOT
+		if [ -f MANIFEST ]; then
+			log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
+			#return 1
+		fi
+		if [ ! -d "$db/$fullname" ]; then
+			mkdir -p "$db/$fullname"
+		else
+			w=$(yellow "WARNING")
+			log "$w" "$fullname is already installed?"
+			echo -n "reinstall ? y/n "
+			read ok
+			if [ "$ok" = "n" ] || [ -z "$ok" ]; then
+				echo "not installing"
+				return 0
+			fi
+			remove $1
+		fi
+		log "installing" $(basename $pkgfile)
+		tar --overwrite -xf $pkgfile
+		mv MANIFEST $db/$fullname/
+	_popd
+}
+
+remove() {
+	source $plans/*/$1/plan
+	local fullname=$name-$version
+	local pkgfile=$repo/$fullname-via.tar.gz
+	local db=var/db/via
+	_pushd $ROOT
+		local manifest=$db/$name-*/MANIFEST	
+		# remove files
+		while read file; do
+			if [ -f $file ]; then
+				rm $file
+			fi
+		done < $manifest
+	_popd
+	rm -r $(dir $manifest)
 }
 
 # <action> <details>
 log() {
-	printf "%-15.15s %s\n" "$1" "$2"
+	local blue=$(tput setaf 4)
+	local reset=$(tput sgr0)
+	printf "${blue}via: ${reset}%-15.15s %s\n" "$1" "$2"
 }
 
 _pushd() {
-	#pushd $1 &> /dev/null
 	builtin pushd "$@" > /dev/null
 }
 
 _popd() {
-	popd &> /dev/null
+	builtin popd &> /dev/null
 }
 
-confargs="--prefix=/usr"
+# HOOKS
+confargs="--prefix=$PREFIX"
+
+relocate_build() {
+	gnu_build
+}
 
 gnu_build() {
 	$stages/$build_name/configure $confargs $build_args
@@ -124,15 +268,10 @@ no_build() {
 }
 
 gnu_install() {
-	if [ -z $install_args ]; then
-		sudo make install
-	else
-		sudo make install $install_args
-	fi
+	fakeroot make DESTDIR=$DESTDIR install $install_args 
 }
 
 gnu_make() {
-	echo $PWD
 	make $build_args
 }
 
@@ -152,17 +291,13 @@ gnu_verify() {
 	_popd
 }
 
-no_verify() {
-	echo "**** WARNING VERIFICATION IS TURNED OFF for $name ****"
-}
-
 sha_verify() {
 	local url=$1
 	local file=$(basename $url)
 	log $FUNCNAME $name
 	_pushd $sources
 		sha=$(sha256sum $file | awk '{print $1}')
-		if [ ! $sha = $verify_args ]; then
+		if [ ! "$sha" = "$verify_args" ]; then
 			log $FUNCNAME $(red FAILED)
 			echo $sha
 			return 1
@@ -170,6 +305,8 @@ sha_verify() {
 		log $FUNCNAME $(green PASS)
 	_popd
 }
+# END HOOKS
+
 
 red() {
 	local red=$(tput setaf 1)
@@ -183,11 +320,17 @@ green() {
 	echo ${green}$1${reset}
 }
 
-tail() {
-	tail -f $log
+yellow() {
+	local yellow=$(tput setaf 3)
+	local reset=$(tput sgr0)
+	echo "${yellow}${1}${reset}"
 }
 
-
+blue() {
+	local blue=$(tput setaf 4)
+	local reset=$(tput sgr0)
+	echo ${blue}$1${reset}
+}
 
 edit() {
 	local name=$1
@@ -283,8 +426,7 @@ gen_hash() {
 }
 
 back_trace() {
-	log $FUNCNAME "ERROR"
-	pwd
+	log $FUNCNAME "$(red "ERROR $?")"
 }
 
 trap back_trace ERR
