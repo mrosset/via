@@ -4,9 +4,14 @@ source="http://curl.haxx.se/download/curl-$version.tar.bz2"
 build_name=""
 pre=""
 build="gnu_build"
-build_args="--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt"
+build_args="--with-ca-bundle=/etc/ca-bundle.crt --with-gnutls --without-ssl"
 install="gnu_install"
-install_args=""
-post=""
+install_args="ca-bundle"
+post="post_install"
 verify="sha_verify"
 verify_args="1a50dd17400c042090203eef347e946f29c342c32b6c4843c740c80975e8215a"
+
+post_install() {
+	mkdir $DESTDIR/etc
+	cp $builds/$name-$version/lib/ca-bundle.crt $DESTDIR/etc/
+}
