@@ -3,8 +3,7 @@ TODO
 
 Packages
 --------
-1. dhcpd
 
 Via
 -------
-1. segment build/install functions
+1. sanitize all function names
