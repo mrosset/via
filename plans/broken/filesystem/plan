@@ -1,16 +1,16 @@
 name="filesystem"
 version="1"
 source="nil"
+build_name=""
 build="no_build"
 build_args=""
-install="custom_install"
+install="no_install"
 install_args=""
 verify="no_verify"
 pre=""
-post=""
+post="post_install"
 
-custom_install() {
-	cd /
+post_install() {
 	mkdir -pv {bin,boot,etc/opt,home,lib,mnt,opt,run}
 	mkdir -pv {media/{floppy,cdrom},sbin,srv,var}
 	install -dv -m 0750 /root

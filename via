@@ -8,6 +8,7 @@ VIAHOME=/home/strings/github/via
 
 ROOT=$VIAHOME/test
 #ROOT=$VIAHOME/root
+#ROOT=/
 
 PREFIX="/usr"
 
@@ -21,8 +22,6 @@ LDFLAGS="-Wl,--hash-style=gnu -Wl,--as-needed"
 MAKEFLAGS="-j3"
 
 GPG_USER="test@test.com"
-
-source $VIAHOME/via.conf
 
 chroot=$VIAHOME/chroot
 repo=$VIAHOME/repo
@@ -101,7 +100,7 @@ build_core() {
 		manifest="$db/$i-*/MANIFEST"
 		if [ ! -f $manifest ] ; then
 			build "$i"
-			install "$i"
+			install_root "$i"
 		else
 			log skipping $i
 		fi
@@ -110,7 +109,7 @@ build_core() {
 
 build_install() {
 	build $1
-	install "$1"
+	install_root "$1"
 }
 
 source_plan() {
@@ -164,7 +163,10 @@ package() {
 	source_plan "$1"
 	install_dest $name
 	local pkgfile=$repo/$name-$version-via.tar.gz
-	_pushd $packages/$name-$version
+	if [ ! -d $DESTDIR ]; then
+		mkdir $DESTDIR
+	fi
+	_pushd $DESTDIR
 		$post
 		find . | tee MANIFEST
 		log "compressing" $pkgfile
@@ -181,10 +183,10 @@ package() {
 }
 
 # TODO: add logic to work of base dirs or files. 
-install() {
+install_root() {
 	if [ "$1" = "core" ]; then
 		for i in $plans/core/*; do
-			install "$(basename $i)"
+			install_root "$(basename $i)"
 		done
 		return
 	fi
@@ -266,15 +268,24 @@ gnu_build() {
 }
 
 no_build() {
-	log $FUNCNAME "$name skipping build"
+	log $FUNCNAME "$name"
 }
 
 gnu_install() {
 	fakeroot make DESTDIR=$DESTDIR install $install_args 
 }
 
+no_install() {
+	log $FUNCNAME "$name"
+}
+
 gnu_make() {
 	make $build_args
+}
+
+
+no_verify() {
+	log $FUNCNAME "no file to verify"
 }
 
 gnu_verify() {
@@ -375,8 +386,8 @@ mkvirt() {
 	qemu-img create -f raw $image 700M
 	mkfs.ext2 -F $image
 	sudo mount -o loop $image $target
-	install core
-	install dbus
+	install_root core
+	install_root dbus
 	echo "/dev/sda / ext2 defaults 1 2" > fstab
 	sudo mv fstab $target/etc/fstab
 	sudo umount $target
