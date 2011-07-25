@@ -57,7 +57,7 @@ download() {
 	_pushd $sources
 	if [ ! -f $file ]; then
 		log $FUNCNAME $url
-		curl -L -# -O $url
+		curl -v -L -# -O $url
 		#wget -c $url
 	fi	
 	_popd
@@ -242,6 +242,7 @@ remove() {
 	local fullname=$name-$version
 	local pkgfile=$repo/$fullname-via.tar.gz
 	local db=var/db/via
+	log "removing" $1
 	_pushd $ROOT
 		local manifest=$db/$fullname/MANIFEST	
 		# remove files
@@ -252,6 +253,7 @@ remove() {
 		done < $manifest
 		rm -r $(dir $manifest)
 	_popd
+	log "$1" "removed"
 }
 
 # <action> <details>
