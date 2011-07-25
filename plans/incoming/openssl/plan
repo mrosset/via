@@ -1,6 +1,6 @@
 name="openssl"
 version="1.0.0d"
-source="https://www.openssl.org/source/openssl-$version.tar.gz"
+source="http://www.openssl.org/source/openssl-$version.tar.gz"
 build_name=""
 pre=""
 build="custom_build"

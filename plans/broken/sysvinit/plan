@@ -22,9 +22,10 @@ custom_build() {
 }
 
 custom_install() {
-	make -C src install
+	make -C src ROOT=$DESTDIR install
 
-cat > /etc/inittab << "EOF"
+	mkdir $DESTDIR/etc
+cat > $DESTDIR/etc/inittab << "EOF"
 # Begin /etc/inittab
 
 id:3:initdefault:

@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 
 set -e
 set -h
@@ -6,9 +6,9 @@ set -u
 
 VIAHOME=/home/strings/github/via
 
-ROOT=$VIAHOME/test
+#ROOT=$VIAHOME/test
 #ROOT=$VIAHOME/root
-#ROOT=/
+ROOT=/
 
 PREFIX="/usr"
 
@@ -100,7 +100,7 @@ build_core() {
 		manifest="$db/$i-*/MANIFEST"
 		if [ ! -f $manifest ] ; then
 			build "$i"
-			install_root "$i"
+			root_install "$i"
 		else
 			log skipping $i
 		fi
@@ -109,7 +109,7 @@ build_core() {
 
 build_install() {
 	build $1
-	install_root "$1"
+	sudo via root_install "$1"
 }
 
 source_plan() {
@@ -168,7 +168,7 @@ package() {
 	fi
 	_pushd $DESTDIR
 		$post
-		find . | tee MANIFEST
+		find . > MANIFEST
 		log "compressing" $pkgfile
 		fakeroot tar cfz $pkgfile *
 	_popd
@@ -182,14 +182,27 @@ package() {
 	_popd
 }
 
+install_core() {
+	_pushd $ROOT
+		$VIAHOME/mkrootfs
+	_popd
+	for i in $plans/core/*; do
+		root_install "$(basename $i)"
+	done
+	cp /etc/ld.so.conf $ROOT/etc
+	cp /etc/nsswitch.conf $ROOT/etc
+	chroot $ROOT ldconfig
+	chroot $ROOT groupadd -g 81 dbus
+	chroot $ROOT useradd -u 81 -g dbus -d / -s /bin/false dbus
+	chroot $ROOT passwd -l dbus
+	chroot $ROOT dbus-uuidgen --ensure
+	chroot $ROOT groupadd -g 54 lock
+	chroot $ROOT systemd-machine-id-setup
+	log "core" "installed"
+}
+
 # TODO: add logic to work of base dirs or files. 
-install_root() {
-	if [ "$1" = "core" ]; then
-		for i in $plans/core/*; do
-			install_root "$(basename $i)"
-		done
-		return
-	fi
+root_install() {
 	source_plan $1
 	local fullname=$name-$version
 	local pkgfile=$repo/$fullname-via.tar.gz
@@ -198,7 +211,7 @@ install_root() {
 	[ -d $ROOT ] || mkdir -p $ROOT
 	[ -d $db ] || mkdir -p $db
 
-	gpg --verify $pkgfile.sig &> /dev/null
+	gpg --verify $pkgfile.sig  &> /dev/null
 	_pushd $ROOT
 		if [ -f MANIFEST ]; then
 			log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
@@ -221,6 +234,7 @@ install_root() {
 		tar --overwrite -xf $pkgfile
 		mv MANIFEST $db/$fullname/
 	_popd
+	ldconfig &> /dev/null
 }
 
 remove() {
@@ -229,15 +243,15 @@ remove() {
 	local pkgfile=$repo/$fullname-via.tar.gz
 	local db=var/db/via
 	_pushd $ROOT
-		local manifest=$db/$name-*/MANIFEST	
+		local manifest=$db/$fullname/MANIFEST	
 		# remove files
 		while read file; do
 			if [ -f $file ]; then
 				rm $file
 			fi
 		done < $manifest
+		rm -r $(dir $manifest)
 	_popd
-	rm -r $(dir $manifest)
 }
 
 # <action> <details>
@@ -256,7 +270,7 @@ _popd() {
 }
 
 # HOOKS
-confargs="--prefix=$PREFIX"
+confargs="--prefix=$PREFIX --sysconfdir=/etc"
 
 relocate_build() {
 	gnu_build
@@ -272,7 +286,7 @@ no_build() {
 }
 
 gnu_install() {
-	fakeroot make DESTDIR=$DESTDIR install $install_args 
+	make DESTDIR=$DESTDIR install $install_args
 }
 
 no_install() {
@@ -356,27 +370,6 @@ strip_tools() {
 	rm -rf /tools/{,share}/{info,man}
 }
 
-chroot() {
-	for i in bin via dev proc sys; do
-		if [ ! -d $chroot/$i ]; then
-			log create $i
-			mkdir $chroot/$i
-		fi
-	done
-
-	if [ ! -f $chroot/bin/via ]; then
-		ln -s /via/via $chroot/bin/via
-	fi
-
-	#sudo mount -o bind $VIAHOME $chroot/via
-	
-	sudo chroot "$chroot" /usr/bin/env -i \
-		HOME=/via TERM="linux" PS1='(chroot) \u:\w\$ ' \
-		PATH=/bin:/usr/bin:/sbin:/usr/sbin: \
-		/bin/bash --login +h
-	#sudo umount $chroot/via
-}
-
 mkvirt() {
 	local image=./vanilla.img
 	local target=./vanilla
@@ -384,13 +377,11 @@ mkvirt() {
 	[ ! -d $target ] && mkdir $target
 	ROOT=$target
 	qemu-img create -f raw $image 700M
-	mkfs.ext2 -F $image
+	mkfs.ext4 -F $image
 	sudo mount -o loop $image $target
-	install_root core
-	install_root dbus
-	echo "/dev/sda / ext2 defaults 1 2" > fstab
-	sudo mv fstab $target/etc/fstab
-	sudo umount $target
+	install_core
+	echo "/dev/sda / ext4 defaults 1 2" > $ROOT/etc/fstab
+	umount $target
 	log $FUNCNAME "completed"
 }
 
@@ -398,10 +389,10 @@ start_virt() {
 	local kernel=/boot/vmlinuz26
 	local initrd=/boot/kernel26-fallback.img
 	echo "starting emulator"
-	qemu-system-x86_64 -enable-kvm -hda ./vanilla.img \
+	qemu-system-x86_64 -hda ./vanilla.img \
 		-initrd $initrd \
 		-kernel $kernel \
-		-nographic -append "quiet console=ttyS0 root=/dev/sda init=/bin/systemd"
+		-nographic -append "console=ttyS0 root=/dev/sda init=/bin/systemd"
 		#-append "root=/dev/sda"
 }
 
@@ -431,6 +422,11 @@ import() {
 	gen_hash $target
 	cat $t
 	log $FUNCNAME "$target imported"
+}
+
+list() {
+	local db=/var/db/via
+	cat $db/$1-*/MANIFEST
 }
 
 gen_hash() {

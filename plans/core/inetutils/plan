@@ -7,10 +7,10 @@ build="gnu_build"
 build_args="--libexecdir=/usr/sbin \
 --localstatedir=/var --disable-ifconfig \
 --disable-logger --disable-syslogd --disable-whois \
---disable-servers"
+--disable-servers --with-pam"
 install="gnu_install"
 install_args=""
-post="post_install"
+post=""
 verify="gnu_verify"
 
 post_install() {
