@@ -57,7 +57,7 @@ download() {
 	_pushd $sources
 	if [ ! -f $file ]; then
 		log $FUNCNAME $url
-		curl -v -L -# -O $url
+		curl -L -# -O $url
 		#wget -c $url
 	fi	
 	_popd
@@ -215,11 +215,9 @@ root_install() {
 	_pushd $ROOT
 		if [ -f MANIFEST ]; then
 			log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
-			#return 1
+			return 1
 		fi
-		if [ ! -d "$db/$fullname" ]; then
-			mkdir -p "$db/$fullname"
-		else
+		if [ -d "$db/$fullname" ]; then
 			w=$(yellow "WARNING")
 			log "$w" "$fullname is already installed?"
 			echo -n "reinstall ? y/n "
@@ -231,8 +229,9 @@ root_install() {
 			remove $1
 		fi
 		log "installing" $(basename $pkgfile)
+		mkdir -p "$db/$fullname"
 		tar --overwrite -xf $pkgfile
-		mv MANIFEST $db/$fullname/
+		mv MANIFEST $db/$fullname/MANIFEST
 	_popd
 	ldconfig &> /dev/null
 }
@@ -251,7 +250,7 @@ remove() {
 				rm $file
 			fi
 		done < $manifest
-		rm -r $(dir $manifest)
+		rm -r $db/$fullname
 	_popd
 	log "$1" "removed"
 }
@@ -272,7 +271,7 @@ _popd() {
 }
 
 # HOOKS
-confargs="--prefix=$PREFIX --sysconfdir=/etc"
+confargs="--prefix=$PREFIX --sysconfdir=/etc --disable-dependency-tracking"
 
 relocate_build() {
 	gnu_build
@@ -288,7 +287,7 @@ no_build() {
 }
 
 gnu_install() {
-	make DESTDIR=$DESTDIR install $install_args
+	make $install_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
