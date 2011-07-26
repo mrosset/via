@@ -89,7 +89,7 @@ via_stage() {
 		fi
 	_popd
 	if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
-		mkdir -v $builds/$build_name
+		mkdir $builds/$build_name
 	fi
 	if [ ! "$btype" = "gnu_build" ]; then
 		cp -af $stages/$build_name $builds 
@@ -97,22 +97,22 @@ via_stage() {
 }
 
 via_build_core() {
+	ROOT=$VIAHOME/build_core
 	local db=$ROOT/var/db/via
 	for i in $plans/core/*; do
-		i=$(basename $i)
-		manifest="$db/$i-*/MANIFEST"
-		if [ ! -f $manifest ] ; then
-			build "$i"
-			via_install "$i"
+		source_plan "$(basename $i)"
+		if [ ! -d "$db/$name-$version" ] ; then
+			via_build "$name"
+			via_install "$name"
 		else
-			log skipping $i
+			log skipping $name
 		fi
 	done
 }
 
-build_install() {
-	build $1
-	sudo via via_install "$1"
+via_build_install() {
+	via_build $1
+	sudo via install "$1"
 }
 
 source_plan() {
@@ -140,11 +140,10 @@ via_build() {
 	via_stage $name
 	_pushd $builds/$build_name
 		log $(echo $build) $name
-		$pre
 		$build #&> $log
 		via_package $name
 	_popd
-	log done $name
+	log done "$name-$version"
 }
 
 install_dest() {
@@ -157,18 +156,21 @@ install_dest() {
 	log $(echo $install) $name
 	_pushd $builds/$build_name
 		$install
+		#FIXME: figure out a sane way to test for functions
+		set +e
+			post_hook
+		set -e
 	_popd
 }
 
 via_package() {
 	source_plan "$1"
-	install_dest $name
+	install_dest $name #&> $log
 	local pkgfile=$repo/$name-$version-via.tar.gz
 	if [ ! -d $DESTDIR ]; then
 		mkdir $DESTDIR
 	fi
 	_pushd $DESTDIR
-		$post
 		find . > MANIFEST
 		log "compressing" $pkgfile
 		fakeroot tar cfz $pkgfile *
@@ -210,31 +212,32 @@ via_install() {
 	local db=var/db/via
 
 	[ -d $ROOT ] || mkdir -p $ROOT
-	[ -d $db ] || mkdir -p $db
 
 	gpg --verify $pkgfile.sig  &> /dev/null
 	_pushd $ROOT
+		[ -d $db ] || mkdir -p $db
 		if [ -f MANIFEST ]; then
 			log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
 			return 1
 		fi
 		if [ -d "$db/$fullname" ]; then
-			w=$(yellow "WARNING")
-			log "$w" "$fullname is already installed?"
+			diff /$db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST) || true
+			log $(yellow "WARNING") "$fullname is already installed"
 			echo -n "reinstall ? y/n "
 			read ok
-			if [ "$ok" = "n" ] || [ -z "$ok" ]; then
+			if [ "$ok" = "N" ] || [ -z "$ok" ] || [ "$ok" != "y" ]; then
 				echo "not installing"
 				return 0
 			fi
-			remove $1
+			via_remove $1
 		fi
 		log "installing" $(basename $pkgfile)
 		mkdir -p "$db/$fullname"
-		tar --overwrite -xf $pkgfile
+		tar -xf $pkgfile
 		mv MANIFEST $db/$fullname/MANIFEST
 	_popd
 	ldconfig &> /dev/null
+	log $name-$version $(green "installed") 
 }
 
 via_remove() {
@@ -242,7 +245,7 @@ via_remove() {
 	local fullname=$name-$version
 	local pkgfile=$repo/$fullname-via.tar.gz
 	local db=var/db/via
-	log "removing" $1
+	log "removing" $fullname
 	_pushd $ROOT
 		local manifest=$db/$fullname/MANIFEST	
 		# remove files
@@ -253,14 +256,14 @@ via_remove() {
 		done < $manifest
 		rm -r $db/$fullname
 	_popd
-	log "$1" "removed"
+	log $fullname "removed"
 }
 
 # <action> <details>
 log() {
 	local blue=$(tput setaf 4)
 	local reset=$(tput sgr0)
-	printf "${blue}via: ${reset}%-15.15s %s\n" "$1" "$2"
+	printf "${blue}via: ${reset}%-20.20s %s\n" "$1" "$2"
 }
 
 _pushd() {
@@ -271,8 +274,8 @@ _popd() {
 	builtin popd &> /dev/null
 }
 
-# HOOKS
-confargs="--prefix=$PREFIX --sysconfdir=/etc"
+# BUILD HOOKS
+confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared"
 
 relocate_build() {
 	gnu_build
@@ -288,7 +291,7 @@ no_build() {
 }
 
 gnu_install() {
-	make $install_args DESTDIR=$DESTDIR install
+	fakeroot make $install_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
@@ -304,6 +307,15 @@ no_verify() {
 	log $FUNCNAME "no file to verify"
 }
 
+python_build() {
+	python setup.py build
+}
+
+python_install() {
+	python setup.py install --root="$DESTDIR/" --optimize=2
+}
+
+# VERIFY HOOKS
 gnu_verify() {
 	local url=$1
 	local file=$(basename $url)
@@ -339,7 +351,7 @@ sha_verify() {
 
 red() {
 	local red=$(tput setaf 1)
-	local reset=$(tput sgr0)
+	local reset= #$(tput sgr0)
 	echo ${red}$1${reset}
 }
 
@@ -416,7 +428,7 @@ via_import() {
 	sed -i "s,VERSION,$pkgver," $t
 	sed -i "s,SOURCE,$source," $t
 	via_gen_hash $target
-	cat $t
+	cat $path/PKGBUILD >> $t
 	log $FUNCNAME "$target imported"
 }
 
