@@ -9,7 +9,6 @@ build_args="--disable-profile --enable-add-ons \
 install="custom_install"
 install_args=""
 verify="gnu_verify"
-post=""
 
 custom_install() {
 	unset MAKEFLAGS

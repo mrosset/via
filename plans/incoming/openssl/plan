@@ -6,7 +6,6 @@ build="custom_build"
 build_args=""
 install="custom_install"
 install_args=""
-post=""
 verify="sha_verify"
 verify_args="92511d1f0caaa298dba250426f8e7d5d00b271847886d1adc62422778d6320db"
 

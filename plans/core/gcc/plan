@@ -10,4 +10,3 @@ build_args="--libexecdir=/usr/lib --enable-shared \
 install="gnu_install"
 install_args=""
 verify="gnu_verify"
-post=""

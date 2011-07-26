@@ -13,6 +13,5 @@ build_args="--with-rootdir=/ \
 --with-distro=other"
 install="gnu_install"
 install_args=""
-post=""
 verify="sha_verify"
 verify_args="10f6fffe45fab4c2985267fad25781eb51aa07a216541443806cf7da7f616bb7"

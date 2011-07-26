@@ -8,5 +8,4 @@ build_args="--bindir=/bin --without-bash-malloc \
 --with-installed-readline"
 install="gnu_install"
 install_args=""
-post=""
 verify="gnu_verify"

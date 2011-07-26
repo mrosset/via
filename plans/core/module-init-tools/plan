@@ -7,7 +7,6 @@ build="custom_build"
 #build_args="--enable-zlib-dynamic --mandir=/usr/share/man"
 install="gnu_install"
 install_args=""
-post=""
 verify="sha_verify"
 verify_args="d012ab07ea26721467a85a775f34747c1c8897e37f16bec5317d8a72ef8b4f17"
 

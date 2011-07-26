@@ -8,9 +8,7 @@ install="gnu_install"
 install_args=""
 verify="sha_verify"
 verify_args="222f3055d6c413417b50901008c654865e5a311c73f0ae918b0a9978d1f9466f"
-post=""
 
 export PCRE_LIBS="-L/usr/lib -lpcre" 
 export PCRE_CFLAGS="-I/usr/include"
 
-post=""

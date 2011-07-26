@@ -12,6 +12,5 @@ build_args="--sysconfdir=/etc --localstatedir=/var \
 --with-systemdsystemunitdir=/lib/systemd/system"
 install="gnu_install"
 install_args=""
-post=""
 verify="sha_verify"
 verify_args="da3c97fd546610558d588799e27c4fa81101e754acbcd34747a42c131f30dbe7"

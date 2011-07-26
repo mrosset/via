@@ -8,7 +8,6 @@ install="gnu_install"
 install_args=""
 verify="sha_verify"
 verify_args="29b4a7e7c22d4a980ab9eb1ea486c5c4ee9ec533192a1ce8f3fe9ae32fb1f862"
-post=""
 
 custom_build() {
 	sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \

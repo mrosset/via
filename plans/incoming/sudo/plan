@@ -9,6 +9,5 @@ build_args="--libexecdir=/usr/lib \
 --with-logfac=auth --without-pam --without-sendmail"
 install="gnu_install"
 install_args=""
-post=""
 verify="sha_verify"
 verify_args="281f90c80547cf22132e351e7f61c25ba4ba9cf393438468f318f9a7884026fb"

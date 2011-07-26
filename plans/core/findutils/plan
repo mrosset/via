@@ -7,5 +7,4 @@ build_args="--libexecdir=/usr/lib/findutils \
 --localstatedir=/var/lib/locate"
 install="gnu_install"
 install_args=""
-post=""
 verify="gnu_verify"

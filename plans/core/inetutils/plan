@@ -9,7 +9,6 @@ build_args="--libexecdir=/usr/sbin \
 --disable-servers --with-pam"
 install="gnu_install"
 install_args=""
-post=""
 verify="gnu_verify"
 
 post_install() {

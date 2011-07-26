@@ -6,7 +6,6 @@ build="relocate_build"
 build_args="--without-python"
 install="custom_install"
 install_args=""
-post=""
 verify="sha_verify"
 verify_args="778795cece63cd758192378f3a999870cea290181b3a4c9de573c77192561082"
 #$Id$
