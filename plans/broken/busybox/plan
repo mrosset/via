@@ -11,5 +11,4 @@ custom_install() {
 	mkdir -p $DESTDIR/tools/bin
 	cp busybox $DESTDIR/tools/bin
 }
-pre=""
 post=""

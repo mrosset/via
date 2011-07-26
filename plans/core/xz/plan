@@ -1,7 +1,6 @@
 name="xz"
 version="5.0.3"
 source="http://tukaani.org/$name/$name-$version.tar.bz2"
-pre=""
 build_name=""
 build="gnu_build"
 build_args=""

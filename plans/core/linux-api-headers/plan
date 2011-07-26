@@ -1,7 +1,6 @@
 name="linux-api-headers"
 version="2.6.39.3"
 source="http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.3.tar.bz2"
-pre=""
 build_name="linux-2.6.39.3"
 build="custom_build"
 install="custom_install"

@@ -1,7 +1,6 @@
 name="gettext"
 version="0.18.1.1"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-pre=""
 build_name=""
 build="gnu_build"
 build_args="--disable-shared"

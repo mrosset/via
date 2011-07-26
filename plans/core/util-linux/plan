@@ -4,7 +4,6 @@ source="http://www.kernel.org/pub/linux/utils/util-linux/v2.19/util-linux-$versi
 build_name=""
 build="gnu_build"
 build_args="--enable-arch --enable-partx --enable-write"
-pre=""
 install="gnu_install"
 install_args=""
 post=""

@@ -1,7 +1,6 @@
 name="coreutils"
 version="8.12"
 source="http://mirrors.kernel.org/gnu/coreutils/coreutils-$version.tar.gz"
-pre=""
 build_name=""
 build="gnu_build"
 build_args="--enable-no-install-program=kill,uptime"

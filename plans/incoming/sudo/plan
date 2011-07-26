@@ -2,7 +2,6 @@ name="sudo"
 version="1.8.1p2"
 source="http://www.sudo.ws/sudo/dist/sudo-$version.tar.gz"
 build_name=""
-pre=""
 build="gnu_build"
 build_args="--libexecdir=/usr/lib \
 --with-ignore-dot --with-all-insults \

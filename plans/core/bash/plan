@@ -1,7 +1,6 @@
 name="bash"
 version="4.2"
 source="http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
-pre=""
 build_name=""
 build="gnu_build"
 build_args="--bindir=/bin --without-bash-malloc \

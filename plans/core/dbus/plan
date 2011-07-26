@@ -2,7 +2,6 @@ name="dbus"
 version="1.4.12"
 source="http://dbus.freedesktop.org/releases/dbus/dbus-$version.tar.gz"
 build_name=""
-pre=""
 build="gnu_build"
 build_args="--sysconfdir=/etc --localstatedir=/var \
 --libexecdir=/usr/lib/dbus-1.0 --with-dbus-user=81 \

@@ -13,5 +13,4 @@ post=""
 export PCRE_LIBS="-L/usr/lib -lpcre" 
 export PCRE_CFLAGS="-I/usr/include"
 
-pre=""
 post=""

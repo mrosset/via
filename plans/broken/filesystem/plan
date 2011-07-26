@@ -7,7 +7,6 @@ build_args=""
 install="no_install"
 install_args=""
 verify="no_verify"
-pre=""
 post="post_install"
 
 post_install() {

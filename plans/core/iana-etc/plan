@@ -4,7 +4,6 @@ source="ftp://ftp.sh.cvut.cz/storage/1/sourcemage/grimoire/fallback/iana-etc-$ve
 build_name=""
 build="gnu_make"
 build_args=""
-pre=""
 install="gnu_install"
 install_args=""
 post=""

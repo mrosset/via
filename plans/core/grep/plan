@@ -1,7 +1,6 @@
 name="grep"
 version="2.9"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-pre=""
 build_name=""
 build="gnu_build"
 build_args="--bindir=/bin"

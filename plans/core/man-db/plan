@@ -1,7 +1,6 @@
 name="man-db"
 version="2.6.0.2"
 source="http://download.savannah.gnu.org/releases/man-db/man-db-$version.tar.gz"
-pre=""
 build_name=""
 build="gnu_build"
 build_args="--libexecdir=/usr/lib \

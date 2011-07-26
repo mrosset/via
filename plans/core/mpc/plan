@@ -1,7 +1,6 @@
 name="mpc"
 version="0.9"
 source="http://www.multiprecision.org/mpc/download/mpc-$version.tar.gz"
-pre=""
 build="gnu_build"
 build_name=""
 build_args=""

@@ -6,7 +6,6 @@ build="gnu_build"
 build_args="-with-root-prefix= \
 --enable-elf-shlibs --disable-libblkid --disable-libuuid \
 --disable-uuidd --disable-fsck"
-pre=""
 install="gnu_install"
 install_args=""
 post=""
