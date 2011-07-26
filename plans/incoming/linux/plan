@@ -1,0 +1,25 @@
+name="linux"
+version="2.6.39.3"
+source="ftp://ftp.kernel.org/pub/linux/kernel/v2.6/linux-$version.tar.bz2"
+build_name=""
+build="custom_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="324bd8bde3929be5d9c33e262d8ca197a45e7e2587b7c5703a7004d78901a8d3"
+
+custom_build() {
+	#make mrproper
+	zcat /proc/config.gz > .config
+	sed -i 's,-ARCH,-vanilla,g' .config
+	grep vanilla .config
+	make
+}
+
+custom_install() {
+	mkdir -p $DESTDIR/boot
+	cp arch/x86_64/boot/bzImage $DESTDIR/boot/vmlinux-2.6.39.3-vanilla
+	cp System.map $DESTDIR/boot/System.map-2.6.39.3
+	make INSTALL_MOD_PATH=$DESTDIR modules_install || true
+}
