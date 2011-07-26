@@ -64,7 +64,7 @@ download() {
 }
 
 # TODO: rework staging to be more flexiable
-stage() {
+via_stage() {
 	source_plan $1
 	local file=$(basename $source)
 	local btype=$(echo $build)
@@ -96,14 +96,14 @@ stage() {
 	fi
 }
 
-build_core() {
+via_build_core() {
 	local db=$ROOT/var/db/via
 	for i in $plans/core/*; do
 		i=$(basename $i)
 		manifest="$db/$i-*/MANIFEST"
 		if [ ! -f $manifest ] ; then
 			build "$i"
-			root_install "$i"
+			via_install "$i"
 		else
 			log skipping $i
 		fi
@@ -112,7 +112,7 @@ build_core() {
 
 build_install() {
 	build $1
-	sudo via root_install "$1"
+	sudo via via_install "$1"
 }
 
 source_plan() {
@@ -128,21 +128,21 @@ source_plan() {
 	fi
 }
 
-build() {
+via_build() {
 	if [ "$1" = "core" ]; then
-		build_core
+		via_build_core
 		return
 	fi
 	source_plan $1
 	log starting $name
 	download $source
 	$verify $source
-	stage $name
+	via_stage $name
 	_pushd $builds/$build_name
 		log $(echo $build) $name
 		$pre
 		$build #&> $log
-		package $name
+		via_package $name
 	_popd
 	log done $name
 }
@@ -160,7 +160,7 @@ install_dest() {
 	_popd
 }
 
-package() {
+via_package() {
 	source_plan "$1"
 	install_dest $name
 	local pkgfile=$repo/$name-$version-via.tar.gz
@@ -188,7 +188,7 @@ install_core() {
 		$VIAHOME/mkrootfs
 	_popd
 	for i in $plans/core/*; do
-		root_install "$(basename $i)"
+		via_install "$(basename $i)"
 	done
 	cp /etc/ld.so.conf $ROOT/etc
 	cp /etc/nsswitch.conf $ROOT/etc
@@ -203,7 +203,7 @@ install_core() {
 }
 
 # TODO: add logic to work of base dirs or files. 
-root_install() {
+via_install() {
 	source_plan $1
 	local fullname=$name-$version
 	local pkgfile=$repo/$fullname-via.tar.gz
@@ -237,7 +237,7 @@ root_install() {
 	ldconfig &> /dev/null
 }
 
-remove() {
+via_remove() {
 	source $plans/*/$1/plan
 	local fullname=$name-$version
 	local pkgfile=$repo/$fullname-via.tar.gz
@@ -272,7 +272,7 @@ _popd() {
 }
 
 # HOOKS
-confargs="--prefix=$PREFIX --sysconfdir=/etc --disable-dependency-tracking"
+confargs="--prefix=$PREFIX --sysconfdir=/etc"
 
 relocate_build() {
 	gnu_build
@@ -361,35 +361,33 @@ blue() {
 	echo ${blue}$1${reset}
 }
 
-edit() {
+via_edit() {
 	local name=$1
 	$EDITOR $plans/*/$name/plan
 }
 
-strip_tools() {
-	strip --strip-debug /tools/lib/*
-	strip --strip-unneeded /tools/{,s}bin/*
-	rm -rf /tools/{,share}/{info,man}
-}
-
-mkvirt() {
+via_mkvirt() {
 	local image=./vanilla.img
 	local target=./vanilla
-	trap "sudo umount $target" ERR
+	trap "umount $target" ERR
 	[ ! -d $target ] && mkdir $target
 	ROOT=$target
 	qemu-img create -f raw $image 700M
 	mkfs.ext4 -F $image
-	sudo mount -o loop $image $target
+	mount -o loop $image $target
 	install_core
 	echo "/dev/sda / ext4 defaults 1 2" > $ROOT/etc/fstab
+	echo "vanvirt" > $ROOT/etc/hostname
+	mount -o bind /dev $target/dev
+	chroot $target passwd
+	umount $target/dev
 	umount $target
 	log $FUNCNAME "completed"
 }
 
-start_virt() {
-	local kernel=/boot/vmlinuz26
-	local initrd=/boot/kernel26-fallback.img
+via_virt() {
+	local kernel=/mnt/archlinux/boot/vmlinuz26
+	local initrd=/mnt/archlinux/boot/kernel26-fallback.img
 	echo "starting emulator"
 	qemu-system-x86_64 -hda ./vanilla.img \
 		-initrd $initrd \
@@ -398,11 +396,7 @@ start_virt() {
 		#-append "root=/dev/sda"
 }
 
-umount_all() {
-	sudo umount $chroot/via
-}
-
-import() {
+via_import() {
 	local abs=/var/abs/
 	local target=$1
 	local path=$(find $abs -type d -name $target)
@@ -421,17 +415,17 @@ import() {
 	sed -i "s,NAME,$pkgname," $t
 	sed -i "s,VERSION,$pkgver," $t
 	sed -i "s,SOURCE,$source," $t
-	gen_hash $target
+	via_gen_hash $target
 	cat $t
 	log $FUNCNAME "$target imported"
 }
 
-list() {
+via_list() {
 	local db=/var/db/via
 	cat $db/$1-*/MANIFEST
 }
 
-gen_hash() {
+via_gen_hash() {
 	source $plans/*/$1/plan
 	download $source
 	local plan=$plans/*/$1/plan
@@ -449,4 +443,4 @@ trap back_trace ERR
 init
 action=$1 
 shift
-$action $@
+via_$action $@
