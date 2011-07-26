@@ -4,13 +4,14 @@ source="http://mirrors.kernel.org/gnu/coreutils/coreutils-$version.tar.gz"
 build_name=""
 build="gnu_build"
 build_args="--enable-no-install-program=kill,uptime"
-install="gnu_install"
+install="custom_install"
 install_args=""
 verify="gnu_verify"
 post="post_install"
 
 #FIXME:
-post_install() {
+	gnu_install
+	cd $DESTDIR
 	mkdir bin
 	mv -v usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo} bin/
 	mv -v usr/bin/{false,ln,ls,mkdir,mknod,mv,pwd,rm} bin/

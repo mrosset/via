@@ -7,13 +7,14 @@ build_args="-sysconfdir=/etc --sbindir=/sbin \
 --with-rootlibdir=/lib --libexecdir=/lib/udev \
 --disable-hwdb --disable-udev_acl --disable-introspection \
 --disable-keymap --with-systemdsystemunitdir=/lib/systemd/system"
-install="gnu_install"
+install="custom_install"
 install_args=""
-post="post_install"
 verify="sha_verify"
 verify_args="b8959cc951ff69ff13305aad6836eac1ff672d98d5a11435c38c4608f77bbd6a"
 
-post_install() {
-	/usr/bin/install -dv lib/{firmware,udev/devices/pts}
+custom_install() {
+	gnu_install
+	$DESTDIR
+	install -dv lib/{firmware,udev/devices/pts}
 	fakeroot mknod -m0666 lib/udev/devices/null c 1 3
 }

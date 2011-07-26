@@ -8,13 +8,14 @@ build_args="--docdir=/usr/share/doc/pcre-8.12 \
 --enable-unicode-properties \
 --enable-pcregrep-libz \
 --enable-pcregrep-libbz2"
-install="gnu_install"
+install="custom_install"
 install_args=""
 verify="sha_verify"
 verify_args="c63070d461edc451ec9457f2324e152a531e907d5c5d2d8f8121e725acd1aeec"
-post="post_install"
 
-post_install() {
+custom_install() {
+	gnu_make
+	cd $DESTDRI
 	mkdir lib
 	mv -v usr/lib/libpcre.so.* lib/ &&
 		ln -v -sf ../../lib/libpcre.so.0 usr/lib/libpcre.so
