@@ -2,9 +2,13 @@ name="bison"
 version="2.5"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
 build_name=""
-build="gnu_build"
+build="custom_build"
 build_args=""
-pre="echo '#define YYENABLE_NLS 1' >> lib/config.h"
 install="gnu_install"
 install_args=""
 verify="gnu_verify"
+
+custom_build() {
+	echo '#define YYENABLE_NLS 1' >> lib/config.h
+	gnu_build
+}
