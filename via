@@ -65,8 +65,11 @@ download() {
 
 # TODO: rework staging to be more flexiable
 stage() {
-	local file=$1
-	local btype=$2
+	source_plan $1
+	local file=$(basename $source)
+	local btype=$(echo $build)
+
+	log $FUNCNAME $name
 
 	if [ $file = "nil" ]; then
 		log $FUNCNAME "no source file"
@@ -131,12 +134,10 @@ build() {
 		return
 	fi
 	source_plan $1
-	local btype=$(echo $build)
 	log starting $name
 	download $source
 	$verify $source
-	log stageing $name
-	stage $(basename $source) $btype #&> $log
+	stage $name
 	_pushd $builds/$build_name
 		log $(echo $build) $name
 		$pre

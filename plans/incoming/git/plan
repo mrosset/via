@@ -5,9 +5,16 @@ build_name=""
 pre=""
 build="relocate_build"
 build_args="--without-python"
-install="gnu_install"
+install="custom_install"
 install_args=""
 post=""
 verify="sha_verify"
 verify_args="778795cece63cd758192378f3a999870cea290181b3a4c9de573c77192561082"
 #$Id$
+
+custom_install() {
+	gnu_install
+	#mkdir $DESTDIR/etc/bash_completetion.d
+
+	install -Dm 644 contrib/completion/git-completion.bash $DESTDIR/etc/bash_completion.d/git
+}
