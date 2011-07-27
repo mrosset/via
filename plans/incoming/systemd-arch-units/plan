@@ -1,0 +1,11 @@
+name="systemd-arch-units"
+version="20110628"
+source="https://www.github.com/falconindy/$name/tarball/$version/$name-$version.tar.gz"
+build_name="falconindy-systemd-arch-units-c85b66c"
+build="gnu_make"
+build_args=""
+install="gnu_install"
+install_args=""
+verify="sha_verify"
+verify_args="d2284f03f527530089b5ad927d4ff1e4e9ce0e0180dc62e3cf4369a459243309"
+
