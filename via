@@ -156,10 +156,6 @@ install_dest() {
 	log $(echo $install) $name
 	_pushd $builds/$build_name
 		$install
-		#FIXME: figure out a sane way to test for functions
-		set +e
-			post_hook
-		set -e
 	_popd
 }
 
@@ -236,7 +232,9 @@ via_install() {
 		tar -xf $pkgfile
 		mv MANIFEST $db/$fullname/MANIFEST
 	_popd
-	ldconfig &> /dev/null
+	if [[ $EUID = 0 ]]; then
+		ldconfig &> /dev/null
+	fi
 	log $name-$version $(green "installed") 
 }
 
