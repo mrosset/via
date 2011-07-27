@@ -11,6 +11,6 @@ verify="gnu_verify"
 
 custom_install() {
 	#FIXME: 
-	gnu_insatll
+	gnu_install
 	cp -v $stages/$name-$version/include/libiberty.h $DESTDIR/usr/include
 }

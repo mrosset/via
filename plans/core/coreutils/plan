@@ -7,9 +7,9 @@ build_args="--enable-no-install-program=kill,uptime"
 install="custom_install"
 install_args=""
 verify="gnu_verify"
-post="post_install"
 
 #FIXME:
+custom_install() {
 	gnu_install
 	cd $DESTDIR
 	mkdir bin

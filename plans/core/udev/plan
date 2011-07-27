@@ -14,7 +14,7 @@ verify_args="b8959cc951ff69ff13305aad6836eac1ff672d98d5a11435c38c4608f77bbd6a"
 
 custom_install() {
 	gnu_install
-	$DESTDIR
+	cd $DESTDIR
 	install -dv lib/{firmware,udev/devices/pts}
 	fakeroot mknod -m0666 lib/udev/devices/null c 1 3
 }

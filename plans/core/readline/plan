@@ -13,6 +13,7 @@ export SHLIB_LIBS=-lncurses
 custom_install() {
 	gnu_install
 	mkdir -p $DESTDIR/usr/lib
+	cd $DESTDIR
 	mv -v lib/lib{readline,history}.a $DESTDIR/usr/lib
 	rm -v lib/lib{readline,history}.so
 	ln -sfv ../../lib/libreadline.so.6 $DESTDIR/usr/lib/libreadline.so
