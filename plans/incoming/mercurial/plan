@@ -10,6 +10,5 @@ verify="sha_verify"
 verify_args="711e4b1cd2924a7a88499d6c431a9122390183bf554d4e153edbb3b2f30123e0"
 
 post_hook() {
-	set -e
 	install -m644 -D $builds/$name-$version/contrib/bash_completion "etc/bash_completion.d/hg"
 }

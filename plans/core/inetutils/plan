@@ -11,8 +11,8 @@ install="gnu_install"
 install_args=""
 verify="gnu_verify"
 
-post_install() {
-	mkdir $DESTDIR/{bin,sbin}
-	mv -v $DESTDIR/usr/bin/{hostname,ping,ping6} $DESTDIR/bin
-	mv -v $DESTDIR/usr/bin/traceroute $DESTDIR/sbin
+post_hook() {
+	mkdir {bin,sbin}
+	mv -v usr/bin/{hostname,ping,ping6} bin/
+	mv -v usr/bin/traceroute sbin/
 }
