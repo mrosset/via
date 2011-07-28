@@ -113,7 +113,7 @@ via_build_core() {
 
 via_build_install() {
 	via_build $1
-	sudo via install "$1"
+	via install "$1"
 }
 
 source_plan() {
@@ -199,8 +199,12 @@ install_core() {
 	log "core" "installed"
 }
 
-# TODO: add logic to work of base dirs or files. 
 via_install() {
+	sudo via real_install $1
+}
+
+# TODO: add logic to work of base dirs or files. 
+via_real_install() {
 	source_plan $1
 	local fullname=$name-$version
 	local pkgfile=$repo/$fullname-via.tar.gz
@@ -224,12 +228,7 @@ via_install() {
 				echo "not installing"
 				return 0
 			fi
-			if [ "$name" != "coreutils" ] || [ "$name" != "glibc" ]; then
-				:
-				#via_remove $1
-			else
-				log "FIXME" "skipping removal of $name-$version."
-			fi
+			via_remove $1
 		fi
 		log "installing" $(basename $pkgfile)
 		mkdir -p "$db/$fullname"
@@ -253,6 +252,7 @@ via_remove() {
 		# remove files
 		while read file; do
 			if [ -f $file ]; then
+				#printf "< %s\n" "${file:2}"
 				rm $file
 			fi
 		done < $manifest
@@ -423,14 +423,14 @@ via_import() {
 		return
 	fi
 	source $path/PKGBUILD
-	local t=$plans/incoming/$target/plan
-	mkdir -v $plans/incoming/$target
+	local t=$plans/x11/$target/plan
+	mkdir -p $plans/x11/$target
 	cp -v $plans/plan.proto $t
 	sed -i "s,NAME,$pkgname," $t
 	sed -i "s,VERSION,$pkgver," $t
 	sed -i "s,SOURCE,$source," $t
 	via_gen_hash $target
-	cat $path/PKGBUILD >> $t
+	cat $path/PKGBUILD
 	log $FUNCNAME "$target imported"
 }
 
@@ -454,7 +454,6 @@ back_trace() {
 }
 
 while getopts ":r:" opt; do
-
 	case $opt in
 		r)
 			ROOT=$OPTARG
@@ -465,7 +464,6 @@ while getopts ":r:" opt; do
 		:)
 			;;
 	esac
-
 done
 
 init
