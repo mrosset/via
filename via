@@ -10,6 +10,8 @@ VIAHOME=/home/strings/github/via
 #ROOT=$VIAHOME/root
 ROOT=/
 
+TEST=""
+
 PREFIX="/usr"
 
 CARCH="x86_64"
@@ -97,13 +99,12 @@ via_stage() {
 }
 
 via_build_core() {
-	ROOT=$VIAHOME/build_core
 	local db=$ROOT/var/db/via
 	for i in $plans/core/*; do
 		source_plan "$(basename $i)"
 		if [ ! -d "$db/$name-$version" ] ; then
-			via_build "$name"
-			via_install "$name"
+			#via build "$name"
+			via -r $ROOT install "$name"
 		else
 			log skipping $name
 		fi
@@ -129,25 +130,26 @@ source_plan() {
 }
 
 via_build() {
-	if [ "$1" = "core" ]; then
-		via_build_core
-		return
-	fi
 	source_plan $1
 	log starting $name
 	download $source
 	$verify $source
 	via_stage $name
 	_pushd $builds/$build_name
-		log $(echo $build) $name
+		build_type=$(echo $build)
+		log $build_type $name
 		$build #&> $log
+		if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
+			make check
+		fi
 		via_package $name
 	_popd
 	log done "$name-$version"
 }
 
-install_dest() {
+via_package() {
 	source_plan "$1"
+	local pkgfile=$repo/$name-$version-via.tar.gz
 	log $FUNCNAME "$name"
 	if [ -d $DESTDIR ]; then
 		log "cleaning" "$DESTDIR"
@@ -157,16 +159,13 @@ install_dest() {
 	_pushd $builds/$build_name
 		$install
 	_popd
-}
-
-via_package() {
-	source_plan "$1"
-	install_dest $name #&> $log
-	local pkgfile=$repo/$name-$version-via.tar.gz
 	if [ ! -d $DESTDIR ]; then
 		mkdir $DESTDIR
 	fi
 	_pushd $DESTDIR
+		if [ "$(type -t post_hook)" = "function" ]; then
+			post_hook
+		fi
 		find . > MANIFEST
 		log "compressing" $pkgfile
 		fakeroot tar cfz $pkgfile *
@@ -225,11 +224,16 @@ via_install() {
 				echo "not installing"
 				return 0
 			fi
-			via_remove $1
+			if [ "$name" != "coreutils" ] || [ "$name" != "glibc" ]; then
+				:
+				#via_remove $1
+			else
+				log "FIXME" "skipping removal of $name-$version."
+			fi
 		fi
 		log "installing" $(basename $pkgfile)
 		mkdir -p "$db/$fullname"
-		tar -xf $pkgfile
+		tar -xf $pkgfile | true
 		mv MANIFEST $db/$fullname/MANIFEST
 	_popd
 	if [[ $EUID = 0 ]]; then
@@ -273,7 +277,7 @@ _popd() {
 }
 
 # BUILD HOOKS
-confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared"
+confargs="--prefix=$PREFIX --sysconfdir=/etc" #--enable-shared"
 
 relocate_build() {
 	gnu_build
@@ -449,8 +453,22 @@ back_trace() {
 	log $FUNCNAME "$(red "ERROR $?")"
 }
 
-trap back_trace ERR
+while getopts ":r:" opt; do
+
+	case $opt in
+		r)
+			ROOT=$OPTARG
+			shift 2
+			;;
+		\?)
+			;;
+		:)
+			;;
+	esac
+
+done
+
 init
-action=$1 
+action=$1
 shift
 via_$action $@
