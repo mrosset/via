@@ -1,0 +1,26 @@
+name=xf86-video-nouveau
+version="0.0.16"
+source="nil"
+build_name=""
+build="custom_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="no_verify"
+
+custom_build()
+{
+	#cd ${wrksrc} && git clone -v --depth 1 $gitrepo ${build_wrksrc}
+	git clone -v --depth 1 git://anongit.freedesktop.org/nouveau/xf86-video-nouveau || true
+	_pushd $name
+		./autogen.sh --prefix=/usr
+		./configure
+		make
+	_popd
+}
+
+custom_install() {
+	_pushd $name
+		gnu_install
+	_popd
+}
