@@ -277,7 +277,7 @@ _popd() {
 }
 
 # BUILD HOOKS
-confargs="--prefix=$PREFIX --sysconfdir=/etc" #--enable-shared"
+confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared --localstatedir=/var"
 
 relocate_build() {
 	gnu_build
