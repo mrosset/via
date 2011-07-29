@@ -119,6 +119,7 @@ via_build_install() {
 source_plan() {
 	DESTDIR=
 	source $plans/*/$1/plan
+	plan_dir=$plans/*/$1
 	if [ -z $build_name ]; then
 		build_name=$name-$version
 	fi

@@ -9,13 +9,10 @@ verify="sha_verify"
 verify_args="10954fcd5c48d8a262a3497b16227bf983a05658bf2bf661af2fdeca773f2fc0"
 
 custom_build() {
-	unset CFLAGS
-	unset LDFLAGS
-	make defconfig
-	make menuconfig
+	cp $plan_dir/config .config
 	gnu_make
 }
+
 custom_install() {
-	mkdir -p $DESTDIR/usr/bin
-	cp busybox $DESTDIR/usr/bin
+	install -Dm 755 busybox $DESTDIR/bin/busybox
 }

@@ -10,16 +10,13 @@ verify="sha_verify"
 verify_args="324bd8bde3929be5d9c33e262d8ca197a45e7e2587b7c5703a7004d78901a8d3"
 
 custom_build() {
-	#make mrproper
-	zcat /proc/config.gz > .config
-	sed -i 's,-ARCH,-vanilla,g' .config
-	grep vanilla .config
+	cp $plan_dir/config .config
 	make
 }
 
 custom_install() {
 	mkdir -p $DESTDIR/boot
-	cp arch/x86_64/boot/bzImage $DESTDIR/boot/vmlinux-2.6.39.3-vanilla
-	cp System.map $DESTDIR/boot/System.map-2.6.39.3
+	cp arch/x86_64/boot/bzImage $DESTDIR/boot/vmlinuz-$version-vanilla
+	cp System.map $DESTDIR/boot/System.map-$verson
 	make INSTALL_MOD_PATH=$DESTDIR modules_install || true
 }
