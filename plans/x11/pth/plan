@@ -1,0 +1,10 @@
+name="pth"
+version="2.0.7"
+source="ftp://ftp.gnu.org/gnu/pth/pth-2.0.7.tar.gz"
+build_name=""
+build="relocate_build"
+build_args=""
+install="gnu_install"
+install_args=""
+verify="gnu_verify"
+unset MAKEFLAGS

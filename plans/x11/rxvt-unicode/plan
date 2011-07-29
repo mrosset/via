@@ -1,0 +1,28 @@
+name="rxvt-unicode"
+version="9.12"
+source="http://dist.schmorp.de/rxvt-unicode/rxvt-unicode-9.12.tar.bz2"
+build_name=""
+build="gnu_build"
+build_args="--with-terminfo=/usr/share/terminfo \
+--enable-256-color \
+--enable-font-styles \
+--enable-xim \
+--enable-keepscrolling \
+--enable-selectionscrolling \
+--enable-smart-resize \
+--enable-pixbuf \
+--enable-transparency \
+--enable-utmp \
+--enable-wtmp \
+--enable-lastlog \
+--disable-frills"
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="1db334204bfb264b3134e01d9d3cf446c5ac7d47514909435f914f3906f37e7e"
+
+custom_install() {
+  install -d "$DESTDIR/usr/share/terminfo"
+  export TERMINFO="$DESTDIR/usr/share/terminfo"
+  gnu_install
+}
