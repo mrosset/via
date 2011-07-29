@@ -113,7 +113,7 @@ via_build_core() {
 
 via_build_install() {
 	via_build $1
-	via install "$1"
+	sudo via install "$1"
 }
 
 source_plan() {
@@ -200,11 +200,6 @@ install_core() {
 }
 
 via_install() {
-	sudo via real_install $1
-}
-
-# TODO: add logic to work of base dirs or files. 
-via_real_install() {
 	source_plan $1
 	local fullname=$name-$version
 	local pkgfile=$repo/$fullname-via.tar.gz
@@ -238,7 +233,6 @@ via_real_install() {
 	if [[ $EUID = 0 ]]; then
 		ldconfig &> /dev/null
 	fi
-	log $name-$version $(green "installed") 
 }
 
 via_remove() {
@@ -400,8 +394,8 @@ via_mkvirt() {
 }
 
 via_virt() {
-	local kernel=/mnt/archlinux/boot/vmlinuz26
-	local initrd=/mnt/archlinux/boot/kernel26-fallback.img
+	local kernel=/boot/vmlinuz-*
+	local initrd=/boot/initrd-*.img
 	echo "starting emulator"
 	qemu-system-x86_64 -hda ./vanilla.img \
 		-initrd $initrd \
