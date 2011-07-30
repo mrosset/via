@@ -3,7 +3,26 @@ version="1.10.3"
 source="http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-$version.tar.bz2"
 build_name=""
 build="gnu_build"
-build_args="--enable-install-setuid"
+build_args="--enable-dri \
+--enable-xvfb \
+--enable-xnest \
+--enable-composite \
+--enable-xcsecurity \
+--enable-xorg \
+--enable-glx-tls \
+--enable-kdrive \
+--enable-install-setuid \
+--enable-config-udev \
+--disable-config-dbus \
+--enable-record \
+--disable-xfbdev \
+--disable-xfake \
+--disable-static \
+--sysconfdir=/etc/X11 \
+--localstatedir=/var \
+--with-xkb-path=/usr/share/X11/xkb \
+--with-xkb-output=/var/lib/xkb \
+--with-fontrootdir=/usr/share/fonts"
 install="gnu_install"
 install_args=""
 verify="sha_verify"

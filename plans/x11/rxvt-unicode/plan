@@ -3,19 +3,7 @@ version="9.12"
 source="http://dist.schmorp.de/rxvt-unicode/rxvt-unicode-9.12.tar.bz2"
 build_name=""
 build="gnu_build"
-build_args="--with-terminfo=/usr/share/terminfo \
---enable-256-color \
---enable-font-styles \
---enable-xim \
---enable-keepscrolling \
---enable-selectionscrolling \
---enable-smart-resize \
---enable-pixbuf \
---enable-transparency \
---enable-utmp \
---enable-wtmp \
---enable-lastlog \
---disable-frills"
+build_args="--enable-everything --enable-256-color"
 install="custom_install"
 install_args=""
 verify="sha_verify"

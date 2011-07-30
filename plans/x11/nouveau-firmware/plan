@@ -1,0 +1,18 @@
+name="nouveau-firmware"
+version="20091212"
+source="http://people.freedesktop.org/~pq/nouveau-drm/nouveau-firmware-20091212.tar.gz"
+build_name="nouveau"
+build="no_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="4eaeb2044c1da95b50ea4f1facb0effc74d65d8b13dc10893c26e4fe9fe23fb8"
+# $Id$
+# Maintainer: Andreas Radke <andyrtr@archlinux.org>
+
+custom_install() {
+	for i in *; do
+		install -Dm 644 $i $DESTDIR/lib/firmware/nouveau/$i
+	done
+}

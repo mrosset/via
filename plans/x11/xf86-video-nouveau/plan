@@ -14,8 +14,7 @@ custom_build()
 	git clone -v --depth 1 git://anongit.freedesktop.org/nouveau/xf86-video-nouveau || true
 	_pushd $name
 		./autogen.sh --prefix=/usr
-		./configure
-		make
+		gnu_make
 	_popd
 }
 
@@ -24,3 +23,4 @@ custom_install() {
 		gnu_install
 	_popd
 }
+# ex: ts=8 sw=4 sts=4 et filetype=sh
