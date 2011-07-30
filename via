@@ -1,4 +1,5 @@
 #! /bin/bash
+# ex: ts=8 sw=4 sts=4 et filetype=sh
 
 set -e
 set -h
@@ -17,9 +18,16 @@ PREFIX="/usr"
 CARCH="x86_64"
 CHOST="x86_64-unknown-linux-gnu"
 
+
+# -march : cpu to build for
+# -mtune : generic optimization for -march
+# -O2    : optimization level for code
+# -pipe  : use pipes instead of tmp files for compiler communication
 CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
 CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
 
+# --hash-style : use gnu hash tables
+# --as-needed  : only add libraries to DT_NEEDED that resolve 
 LDFLAGS="-Wl,--hash-style=gnu -Wl,--as-needed"
 MAKEFLAGS="-j3"
 
@@ -38,427 +46,435 @@ stages=$cache/stages
 packages=$cache/packages
 
 init() {
-	# setup cache dir end log dir
-	for d in $logs $repo $builds $sources $stages $packages; do
-		if [ ! -d $d ]; then
-			log $FUNCNAME $d
-			mkdir -p $d
-		fi
-	done
+    # setup cache dir end log dir
+    for d in $logs $repo $builds $sources $stages $packages; do
+        if [ ! -d $d ]; then
+            log $FUNCNAME $d
+            mkdir -p $d
+        fi
+    done
 
-	export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
+    export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
 }
 
+
+# function download()
+# downloads a url
+# $1 = url
+# example:
+# download http://www.foo.org/foo.tar.gz
 download() {
-	local url=$1
-	local file=$(basename $url)
-	if [ $url = "nil" ]; then
-		log $FUNCNAME "no source file"
-		return 0
-	fi
-	_pushd $sources
-	if [ ! -f $file ]; then
-		log $FUNCNAME $url
-		curl -L -# -O $url
-		#wget -c $url
-	fi	
-	_popd
+
+    local url="$1"
+    local file="$(basename $url)"
+
+    if [ "$url" = "nil" ]; then
+        log "$FUNCNAME" "no source file"
+        return 0
+    fi
+    _pushd "$sources"
+    if [ ! -f "$file" ]; then
+        log "$FUNCNAME" "$url"
+        curl -L -# -O "$url"
+    fi	
+    _popd
+
 }
 
 # TODO: rework staging to be more flexiable
 via_stage() {
-	source_plan $1
-	local file=$(basename $source)
-	local btype=$(echo $build)
+    source_plan "$1"
+    local file="$(basename $source)"
+    local btype="$(echo $build)"
 
-	log $FUNCNAME $name
+    log "$FUNCNAME" "$name"
 
-	if [ $file = "nil" ]; then
-		log $FUNCNAME "no source file"
-		[ ! -d $builds/$build_name ] && mkdir $builds/$build_name
-		return 0
-	fi
-	_pushd $stages
-		if [ ! -d $build_name ]; then
-			tar xf $sources/$file
-			if [ -d $plans/*/$name/patches ]; then
-				_pushd $build_name
-				for i in $plans/*/$name/patches/*; do
-					patch -Np1 -i $i
-				done
-				_popd
-			fi
-		fi
-	_popd
-	if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
-		mkdir $builds/$build_name
-	fi
-	if [ ! "$btype" = "gnu_build" ]; then
-		cp -af $stages/$build_name $builds 
-	fi
+    if [ "$file" = "nil" ]; then
+        log "$FUNCNAME" "no source file"
+        [ ! -d "$builds/$build_name" ] && mkdir "$builds/$build_name"
+        return 0
+    fi
+    _pushd "$stages"
+    if [ ! -d "$build_name" ]; then
+        tar xf "$sources/$file"
+        if [ -d "$plans/*/$name/patches" ]; then
+            _pushd "$build_name"
+            for i in "$plans/*/$name/patches/*"; do
+                patch -Np1 -i "$i"
+            done
+            _popd
+        fi
+    fi
+    _popd
+    if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
+        mkdir "$builds/$build_name"
+    fi
+    if [ ! "$btype" = "gnu_build" ]; then
+        cp -af "$stages/$build_name" "$builds"
+    fi
 }
 
 via_build_core() {
-	local db=$ROOT/var/db/via
-	for i in $plans/core/*; do
-		source_plan "$(basename $i)"
-		if [ ! -d "$db/$name-$version" ] ; then
-			#via build "$name"
-			via -r $ROOT install "$name"
-		else
-			log skipping $name
-		fi
-	done
+    local db=$ROOT/var/db/via
+    for i in $plans/core/*; do
+        source_plan "$(basename $i)"
+        if [ ! -d "$db/$name-$version" ] ; then
+            #via build "$name"
+            via -r $ROOT install "$name"
+        else
+            log skipping $name
+        fi
+    done
 }
 
 via_build_install() {
-	via_build $1
-	sudo via install "$1"
+    via_build $1
+    sudo via install "$1"
 }
 
 source_plan() {
-	DESTDIR=
-	source $plans/*/$1/plan
-	plan_dir=$plans/*/$1
-	if [ -z $build_name ]; then
-		build_name=$name-$version
-	fi
-	export DESTDIR="$packages/$name-$version"
-	source $plans/*/$1/plan
-	if [ -z $build_name ]; then
-		build_name=$name-$version
-	fi
+    DESTDIR=
+    source $plans/*/$1/plan
+    plan_dir=$plans/*/$1
+    if [ -z $build_name ]; then
+        build_name=$name-$version
+    fi
+    export DESTDIR="$packages/$name-$version"
+    source $plans/*/$1/plan
+    if [ -z $build_name ]; then
+        build_name=$name-$version
+    fi
 }
 
 via_build() {
-	source_plan $1
-	log starting $name
-	download $source
-	$verify $source
-	via_stage $name
-	_pushd $builds/$build_name
-		build_type=$(echo $build)
-		log $build_type $name
-		$build #&> $log
-		if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
-			make check
-		fi
-		via_package $name
-	_popd
-	log done "$name-$version"
+    source_plan $1
+    log starting $name
+    download $source
+    $verify $source
+    via_stage $name
+    _pushd $builds/$build_name
+    build_type=$(echo $build)
+    log $build_type $name
+    $build #&> $log
+    if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
+        make check
+    fi
+    via_package $name
+    _popd
+    log done "$name-$version"
 }
 
 via_package() {
-	source_plan "$1"
-	local pkgfile=$repo/$name-$version-via.tar.gz
-	log $FUNCNAME "$name"
-	if [ -d $DESTDIR ]; then
-		log "cleaning" "$DESTDIR"
-		rm -rf $DESTDIR
-	fi
-	log $(echo $install) $name
-	_pushd $builds/$build_name
-		$install
-	_popd
-	if [ ! -d $DESTDIR ]; then
-		mkdir $DESTDIR
-	fi
-	_pushd $DESTDIR
-		if [ "$(type -t post_hook)" = "function" ]; then
-			post_hook
-		fi
-		find . > MANIFEST
-		log "compressing" $pkgfile
-		fakeroot tar cfz $pkgfile *
-	_popd
-	_pushd $repo
-		pkgfile=$name-$version-via.tar.gz
-		log "signing" $pkgfile
-		[ -f $pkgfile.sig ] && rm $pkgfile.sig
-		gpg -u $GPG_USER --detach-sign $pkgfile
-		log $pkgfile $(green "OK")
-		gpg --verify $pkgfile.sig 
-	_popd
+    source_plan "$1"
+    local pkgfile=$repo/$name-$version-via.tar.gz
+    log $FUNCNAME "$name"
+    if [ -d $DESTDIR ]; then
+        log "cleaning" "$DESTDIR"
+        rm -rf $DESTDIR
+    fi
+    log $(echo $install) $name
+    _pushd $builds/$build_name
+    $install
+    _popd
+    if [ ! -d $DESTDIR ]; then
+        mkdir $DESTDIR
+    fi
+    _pushd $DESTDIR
+    if [ "$(type -t post_hook)" = "function" ]; then
+        post_hook
+    fi
+    find . > MANIFEST
+    log "compressing" $pkgfile
+    fakeroot tar cfz $pkgfile *
+    _popd
+    _pushd $repo
+    pkgfile=$name-$version-via.tar.gz
+    log "signing" $pkgfile
+    [ -f $pkgfile.sig ] && rm $pkgfile.sig
+    gpg -u $GPG_USER --detach-sign $pkgfile
+    log $pkgfile $(green "OK")
+    gpg --verify $pkgfile.sig 
+    _popd
 }
 
 install_core() {
-	_pushd $ROOT
-		$VIAHOME/mkrootfs
-	_popd
-	for i in $plans/core/*; do
-		via_install "$(basename $i)"
-	done
-	cp /etc/ld.so.conf $ROOT/etc
-	cp /etc/nsswitch.conf $ROOT/etc
-	chroot $ROOT ldconfig
-	chroot $ROOT groupadd -g 81 dbus
-	chroot $ROOT useradd -u 81 -g dbus -d / -s /bin/false dbus
-	chroot $ROOT passwd -l dbus
-	chroot $ROOT dbus-uuidgen --ensure
-	chroot $ROOT groupadd -g 54 lock
-	chroot $ROOT systemd-machine-id-setup
-	log "core" "installed"
+    _pushd $ROOT
+    $VIAHOME/mkrootfs
+    _popd
+    for i in $plans/core/*; do
+        via_install "$(basename $i)"
+    done
+    cp /etc/ld.so.conf $ROOT/etc
+    cp /etc/nsswitch.conf $ROOT/etc
+    chroot $ROOT ldconfig
+    chroot $ROOT groupadd -g 81 dbus
+    chroot $ROOT useradd -u 81 -g dbus -d / -s /bin/false dbus
+    chroot $ROOT passwd -l dbus
+    chroot $ROOT dbus-uuidgen --ensure
+    chroot $ROOT groupadd -g 54 lock
+    chroot $ROOT systemd-machine-id-setup
+    log "core" "installed"
 }
 
 via_install() {
-	source_plan $1
-	local fullname=$name-$version
-	local pkgfile=$repo/$fullname-via.tar.gz
-	local db=var/db/via
+    source_plan $1
+    local fullname=$name-$version
+    local pkgfile=$repo/$fullname-via.tar.gz
+    local db=var/db/via
 
-	[ -d $ROOT ] || mkdir -p $ROOT
+    [ -d $ROOT ] || mkdir -p $ROOT
 
-	gpg --verify $pkgfile.sig  &> /dev/null
-	_pushd $ROOT
-		[ -d $db ] || mkdir -p $db
-		if [ -f MANIFEST ]; then
-			log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
-			return 1
-		fi
-		if [ -d "$db/$fullname" ]; then
-			diff /$db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST) || true
-			log $(yellow "WARNING") "$fullname is already installed"
-			echo -n "reinstall ? y/n "
-			read ok
-			if [ "$ok" = "N" ] || [ -z "$ok" ] || [ "$ok" != "y" ]; then
-				echo "not installing"
-				return 0
-			fi
-			via_remove $1
-		fi
-		log "installing" $(basename $pkgfile)
-		mkdir -p "$db/$fullname"
-		tar -xf $pkgfile | true
-		mv MANIFEST $db/$fullname/MANIFEST
-	_popd
-	if [[ $EUID = 0 ]]; then
-		ldconfig &> /dev/null
-	fi
+    gpg --verify $pkgfile.sig  &> /dev/null
+    _pushd $ROOT
+    [ -d $db ] || mkdir -p $db
+    if [ -f MANIFEST ]; then
+        log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
+        return 1
+    fi
+    if [ -d "$db/$fullname" ]; then
+        diff /$db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST) || true
+        log $(yellow "WARNING") "$fullname is already installed"
+        echo -n "reinstall ? y/n "
+        read ok
+        if [ "$ok" = "N" ] || [ -z "$ok" ] || [ "$ok" != "y" ]; then
+            echo "not installing"
+            return 0
+        fi
+        via_remove $1
+    fi
+    log "installing" $(basename $pkgfile)
+    mkdir -p "$db/$fullname"
+    tar -xf $pkgfile | true
+    mv MANIFEST $db/$fullname/MANIFEST
+    _popd
+    if [[ $EUID = 0 ]]; then
+        ldconfig &> /dev/null
+    fi
 }
 
 via_remove() {
-	source $plans/*/$1/plan
-	local fullname=$name-$version
-	local pkgfile=$repo/$fullname-via.tar.gz
-	local db=var/db/via
-	log "removing" $fullname
-	_pushd $ROOT
-		local manifest=$db/$fullname/MANIFEST	
-		# remove files
-		while read file; do
-			if [ -f $file ]; then
-				#printf "< %s\n" "${file:2}"
-				rm $file
-			fi
-		done < $manifest
-		rm -r $db/$fullname
-	_popd
-	log $fullname "removed"
+    source $plans/*/$1/plan
+    local fullname=$name-$version
+    local pkgfile=$repo/$fullname-via.tar.gz
+    local db=var/db/via
+    log "removing" $fullname
+    _pushd $ROOT
+    local manifest=$db/$fullname/MANIFEST	
+    # remove files
+    while read file; do
+        if [ -f $file ]; then
+            #printf "< %s\n" "${file:2}"
+            rm $file
+        fi
+    done < $manifest
+    rm -r $db/$fullname
+    _popd
+    log $fullname "removed"
 }
 
 # <action> <details>
 log() {
-	local blue=$(tput setaf 4)
-	local reset=$(tput sgr0)
-	printf "${blue}via: ${reset}%-20.20s %s\n" "$1" "$2"
+    local blue=$(tput setaf 4)
+    local reset=$(tput sgr0)
+    printf "${blue}via: ${reset}%-20.20s %s\n" "$1" "$2"
 }
 
 _pushd() {
-	builtin pushd "$@" > /dev/null
+    builtin pushd "$@" > /dev/null
 }
 
 _popd() {
-	builtin popd &> /dev/null
+    builtin popd &> /dev/null
 }
 
 # BUILD HOOKS
 confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared --localstatedir=/var"
 
 relocate_build() {
-	gnu_build
+    gnu_build
 }
 
 gnu_build() {
-	$stages/$build_name/configure $confargs $build_args
-	make
+    $stages/$build_name/configure $confargs $build_args
+    make
 }
 
 no_build() {
-	log $FUNCNAME "$name"
+    log $FUNCNAME "$name"
 }
 
 gnu_install() {
-	fakeroot make $install_args DESTDIR=$DESTDIR install
+    fakeroot make $install_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
-	log $FUNCNAME "$name"
+    log $FUNCNAME "$name"
 }
 
 gnu_make() {
-	make $build_args
+    make $build_args
 }
 
 
 no_verify() {
-	log $FUNCNAME "no file to verify"
+    log $FUNCNAME "no file to verify"
 }
 
 python_build() {
-	python setup.py build
+    python setup.py build
 }
 
 python_install() {
-	python setup.py install --root="$DESTDIR/" --optimize=2
+    python setup.py install --root="$DESTDIR/" --optimize=2
 }
 
 # VERIFY HOOKS
 gnu_verify() {
-	local url=$1
-	local file=$(basename $url)
-	log $FUNCNAME $name
-	_pushd $sources
-		if [ ! -f $file.sig ]; then
-			download $url.sig
-		fi
-		if ! gpg --verify $file.sig; then
-			log $FUNCNAME $(red FAILED)
-			return 1
-		fi	
-		log $FUNCNAME $(green PASS)
-	_popd
+    local url=$1
+    local file=$(basename $url)
+    log $FUNCNAME $name
+    _pushd $sources
+    if [ ! -f $file.sig ]; then
+        download $url.sig
+    fi
+    if ! gpg --verify $file.sig; then
+        log $FUNCNAME $(red FAILED)
+        return 1
+    fi	
+    log $FUNCNAME $(green PASS)
+    _popd
 }
 
 sha_verify() {
-	local url=$1
-	local file=$(basename $url)
-	log $FUNCNAME $name
-	_pushd $sources
-		sha=$(sha256sum $file | awk '{print $1}')
-		if [ ! "$sha" = "$verify_args" ]; then
-			log $FUNCNAME $(red FAILED)
-			echo $sha
-			return 1
-		fi	
-		log $FUNCNAME $(green PASS)
-	_popd
+    local url=$1
+    local file=$(basename $url)
+    log $FUNCNAME $name
+    _pushd $sources
+    sha=$(sha256sum $file | awk '{print $1}')
+    if [ ! "$sha" = "$verify_args" ]; then
+        log $FUNCNAME $(red FAILED)
+        echo $sha
+        return 1
+    fi	
+    log $FUNCNAME $(green PASS)
+    _popd
 }
 # END HOOKS
 
 
 red() {
-	local red=$(tput setaf 1)
-	local reset= #$(tput sgr0)
-	echo ${red}$1${reset}
+    local red=$(tput setaf 1)
+    local reset= #$(tput sgr0)
+    echo ${red}$1${reset}
 }
 
 green() {
-	local green=$(tput setaf 2)
-	local reset=$(tput sgr0)
-	echo ${green}$1${reset}
+    local green=$(tput setaf 2)
+    local reset=$(tput sgr0)
+    echo ${green}$1${reset}
 }
 
 yellow() {
-	local yellow=$(tput setaf 3)
-	local reset=$(tput sgr0)
-	echo "${yellow}${1}${reset}"
+    local yellow=$(tput setaf 3)
+    local reset=$(tput sgr0)
+    echo "${yellow}${1}${reset}"
 }
 
 blue() {
-	local blue=$(tput setaf 4)
-	local reset=$(tput sgr0)
-	echo ${blue}$1${reset}
+    local blue=$(tput setaf 4)
+    local reset=$(tput sgr0)
+    echo ${blue}$1${reset}
 }
 
 via_edit() {
-	local name=$1
-	$EDITOR $plans/*/$name/plan
+    local name=$1
+    $EDITOR $plans/*/$name/plan
 }
 
 via_mkvirt() {
-	local image=./vanilla.img
-	local target=./vanilla
-	trap "umount $target" ERR
-	[ ! -d $target ] && mkdir $target
-	ROOT=$target
-	qemu-img create -f raw $image 700M
-	mkfs.ext4 -F $image
-	mount -o loop $image $target
-	install_core
-	echo "/dev/sda / ext4 defaults 1 2" > $ROOT/etc/fstab
-	echo "vanvirt" > $ROOT/etc/hostname
-	mount -o bind /dev $target/dev
-	chroot $target passwd
-	umount $target/dev
-	umount $target
-	log $FUNCNAME "completed"
+    local image=./vanilla.img
+    local target=./vanilla
+    trap "umount $target" ERR
+    [ ! -d $target ] && mkdir $target
+    ROOT=$target
+    qemu-img create -f raw $image 700M
+    mkfs.ext4 -F $image
+    mount -o loop $image $target
+    install_core
+    echo "/dev/sda / ext4 defaults 1 2" > $ROOT/etc/fstab
+    echo "vanvirt" > $ROOT/etc/hostname
+    mount -o bind /dev $target/dev
+    chroot $target passwd
+    umount $target/dev
+    umount $target
+    log $FUNCNAME "completed"
 }
 
 via_virt() {
-	local kernel=/boot/vmlinuz-*
-	local initrd=/boot/initrd-*.img
-	echo "starting emulator"
-	qemu-system-x86_64 -hda ./vanilla.img \
-		-initrd $initrd \
-		-kernel $kernel \
-		-nographic -append "console=ttyS0 root=/dev/sda init=/bin/systemd"
-		#-append "root=/dev/sda"
+    local kernel=/boot/vmlinuz-*
+    local initrd=/boot/initrd-*.img
+    echo "starting emulator"
+    qemu-system-x86_64 -hda ./vanilla.img \
+        -initrd $initrd \
+        -kernel $kernel \
+        -nographic -append "console=ttyS0 root=/dev/sda init=/bin/systemd"
+    #-append "root=/dev/sda"
 }
 
 via_import() {
-	local abs=/var/abs/
-	local target=$1
-	local path=$(find $abs -type d -name $target)
-	if [ -d $plans/*/$target ]; then
-		log $FUNCNAME "$target already exists"
-		return 1
-	fi
-	if [ -z $path ]; then
-		log $FUNCNAME "$1 abs not found"
-		return
-	fi
-	source $path/PKGBUILD
-	local t=$plans/x11/$target/plan
-	mkdir -p $plans/x11/$target
-	cp -v $plans/plan.proto $t
-	sed -i "s,NAME,$pkgname," $t
-	sed -i "s,VERSION,$pkgver," $t
-	sed -i "s,SOURCE,$source," $t
-	via_gen_hash $target
-	cat $path/PKGBUILD
-	log $FUNCNAME "$target imported"
+    local abs=/var/abs/
+    local target=$1
+    local path=$(find $abs -type d -name $target)
+    if [ -d $plans/*/$target ]; then
+        log $FUNCNAME "$target already exists"
+        return 1
+    fi
+    if [ -z $path ]; then
+        log $FUNCNAME "$1 abs not found"
+        return
+    fi
+    source $path/PKGBUILD
+    local t=$plans/x11/$target/plan
+    mkdir -p $plans/x11/$target
+    cp -v $plans/plan.proto $t
+    sed -i "s,NAME,$pkgname," $t
+    sed -i "s,VERSION,$pkgver," $t
+    sed -i "s,SOURCE,$source," $t
+    via_gen_hash $target
+    cat $path/PKGBUILD
+    log $FUNCNAME "$target imported"
 }
 
 via_list() {
-	local db=/var/db/via
-	cat $db/$1-*/MANIFEST
+    local db=/var/db/via
+    cat $db/$1-*/MANIFEST
 }
 
 via_gen_hash() {
-	source $plans/*/$1/plan
-	download $source
-	local plan=$plans/*/$1/plan
-	local file=$(basename $source)
-	sed -i "s,gnu_verify,sha_verify," $plan
-	sha=$(sha256sum $sources/$file | awk '{print $1}')
-	echo verify_args=\"$sha\" >> $plan
+    source $plans/*/$1/plan
+    download $source
+    local plan=$plans/*/$1/plan
+    local file=$(basename $source)
+    sed -i "s,gnu_verify,sha_verify," $plan
+    sha=$(sha256sum $sources/$file | awk '{print $1}')
+    echo verify_args=\"$sha\" >> $plan
 }
 
 back_trace() {
-	log $FUNCNAME "$(red "ERROR $?")"
+    log $FUNCNAME "$(red "ERROR $?")"
 }
 
 while getopts ":r:" opt; do
-	case $opt in
-		r)
-			ROOT=$OPTARG
-			shift 2
-			;;
-		\?)
-			;;
-		:)
-			;;
-	esac
+    case $opt in
+        r)
+            ROOT=$OPTARG
+            shift 2
+            ;;
+        \?)
+            ;;
+        :)
+            ;;
+    esac
 done
 
 init
