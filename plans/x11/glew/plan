@@ -1,0 +1,15 @@
+name="glew"
+version="1.6.0"
+source="http://downloads.sourceforge.net/glew/glew-1.6.0.tgz"
+build_name=""
+build="custom_build"
+build_args=""
+install="gnu_install"
+install_args="GLEW_DEST=$DESTDIR/usr"
+verify="sha_verify"
+verify_args="bea2a7e9bb97a7a5054d4a65d16aaeedeaa091719359ad3fcd9bfdb0fe8eb7fa"
+
+custom_build() {
+  sed -i 's|lib64|lib|' config/Makefile.linux
+  gnu_make
+}
