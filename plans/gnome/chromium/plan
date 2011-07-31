@@ -1,0 +1,75 @@
+name="chromium"
+version="12.0.742.124"
+source="http://build.chromium.org/official/chromium-$version.tar.bz2"
+build_name=""
+build="custom_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="468a4945c78afd3f4063212a51ee26ae8004636fbaac86837d2828675bf3827a"
+
+custom_build() {
+	build/gyp_chromium -f make build/all.gyp --depth=. \
+		-Dgcc_version=45 \
+		-Dno_strict_aliasing=1 \
+		-Dwerror= \
+		-Dlinux_sandbox_path=/usr/lib/chromium/chromium-sandbox \
+		-Dlinux_strip_binary=1 \
+		-Drelease_extra_cflags="$CFLAGS" \
+		-Dffmpeg_branding=Chrome \
+		-Dproprietary_codecs=1 \
+		-Duse_system_libjpeg=1 \
+		-Duse_system_libxslt=0 \
+		-Duse_system_libxml=0 \
+		-Duse_system_bzip2=1 \
+		-Duse_system_zlib=1 \
+		-Duse_system_libpng=1 \
+		-Duse_system_ffmpeg=0 \
+		-Duse_system_yasm=1 \
+		-Duse_system_libevent=1 \
+		-Duse_system_ssl=0 \
+		-Duse_gconf=0 \
+		-Duse_cups=0
+
+	make chrome chrome_sandbox BUILDTYPE=Release
+}
+
+custom_install() {
+
+	install -D out/Release/chrome ${DESTDIR}/usr/lib/chromium/chromium
+
+	fakeroot install -Dm4755 -o root -g root out/Release/chrome_sandbox \
+		"$DESTDIR/usr/lib/chromium/chromium-sandbox"
+
+	install -Dm644 out/Release/chrome.pak "$DESTDIR/usr/lib/chromium/chrome.pak"
+
+	install -Dm644 out/Release/resources.pak \
+		"$DESTDIR/usr/lib/chromium/resources.pak"
+
+	install -D out/Release/libffmpegsumo.so \
+		"$DESTDIR/usr/lib/chromium/libffmpegsumo.so"
+
+	# These links are only needed when building with system ffmpeg
+	#ln -s /usr/lib/libavcodec.so.52 ${DESTDIR}/usr/lib/chromium/
+	#ln -s /usr/lib/libavformat.so.52 ${DESTDIR}/usr/lib/chromium/
+	#ln -s /usr/lib/libavutil.so.50 ${DESTDIR}/usr/lib/chromium/
+
+	cp -a out/Release/locales out/Release/resources "$DESTDIR/usr/lib/chromium/"
+
+	find "$DESTDIR/usr/lib/chromium/" -name '*.d' -type f -delete
+
+	install -Dm644 out/Release/chrome.1 "$DESTDIR/usr/share/man/man1/chromium.1"
+
+	install -Dm644 "$plan_dir/chromium.desktop" \
+		"$DESTDIR/usr/share/applications/chromium.desktop"
+
+	for size in 16 22 24 32 48 64 128 256; do
+		install -Dm644 "chrome/app/theme/chromium/product_logo_$size.png" \
+			"$DESTDIR/usr/share/icons/hicolor/${size}x${size}/apps/chromium.png"
+	done
+
+	install -D "$plan_dir/chromium.sh" "$DESTDIR/usr/bin/chromium"
+
+	install -Dm644 LICENSE "$DESTDIR/usr/share/licenses/chromium/LICENSE"
+}

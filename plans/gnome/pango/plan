@@ -1,0 +1,11 @@
+name="pango"
+version="1.28.4"
+source="http://ftp.gnome.org/pub/gnome/sources/pango/1.28/pango-1.28.4.tar.bz2"
+build_name=""
+build="gnu_build"
+build_args="--with-included-modules=basic-fc"
+install="gnu_install"
+install_args=""
+verify="sha_verify"
+verify_args="7eb035bcc10dd01569a214d5e2bc3437de95d9ac1cfa9f50035a687c45f05a9f"
+# ex: ts=8 sw=4 sts=4 et filetype=sh

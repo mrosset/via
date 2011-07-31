@@ -1,0 +1,11 @@
+name="alsa-lib"
+version="1.0.24.1"
+source="ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.24.1.tar.bz2"
+build_name=""
+build="gnu_build"
+build_args=""
+install="gnu_install"
+install_args=""
+verify="sha_verify"
+# ex: ts=8 sw=4 sts=4 et filetype=sh
+verify_args="a32f7c21015b6c71f9a80ff70a2b6a50e4ff4d5c77c744ff0793dea7ba7a2517"

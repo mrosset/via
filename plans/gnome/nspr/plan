@@ -1,0 +1,53 @@
+name="nspr"
+version="4.8.8"
+source="ftp://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v4.8.8/src/nspr-4.8.8.tar.gz"
+build_name=""
+build="custom_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="92f3f4ded2ee313e396c180d5445cc3c718ff347d86c06b7bf14a1b5e049d4c9"
+# ex: ts=8 sw=4 sts=4 et filetype=sh
+
+custom_build() {
+  if [ "$CARCH" = "x86_64" ]; then
+    confflags="--enable-64bit"
+  else
+    confflags=""
+  fi
+  unset CFLAGS
+  unset CXXFLAGS
+  ./mozilla/nsprpub/configure \
+      --prefix=/usr \
+      --libdir=/usr/lib \
+      --includedir=/usr/include/nspr \
+      --enable-optimize \
+      --disable-debug ${confflags}
+  make
+}
+
+custom_install() {
+    gnu_install
+
+  NSPR_LIBS=`./config/nspr-config --libs`
+  NSPR_CFLAGS=`./config/nspr-config --cflags`
+  NSPR_VERSION=`./config/nspr-config --version`
+  install -m755 -d "${DESTDIR}/usr/lib/pkgconfig"
+  sed "${plan_dir}/nspr.pc.in" -e "s,%libdir%,/usr/lib," \
+  	-e "s,%prefix%,/usr," \
+	-e "s,%exec_prefix%,/usr/bin," \
+	-e "s,%includedir%,/usr/include/nspr," \
+	-e "s,%NSPR_VERSION%,${NSPR_VERSION}," \
+	-e "s,%FULL_NSPR_LIBS%,${NSPR_LIBS}," \
+	-e "s,%FULL_NSPR_CFLAGS%,${NSPR_CFLAGS}," > "${DESTDIR}/usr/lib/pkgconfig/nspr.pc"
+  chmod 644 "${DESTDIR}/usr/lib/pkgconfig/nspr.pc"
+  ln -sf nspr.pc "${DESTDIR}/usr/lib/pkgconfig/mozilla-nspr.pc"
+
+  chmod 644 ${DESTDIR}/usr/lib/*.a
+
+  rm -rf "${DESTDIR}/usr/bin/compile-et.pl" \
+	"${DESTDIR}/usr/bin/prerr.properties" \
+	"${DESTDIR}/usr/share/aclocal/nspr.m4" \
+	"${DESTDIR}/usr/include/nspr/md"
+}

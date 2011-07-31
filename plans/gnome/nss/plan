@@ -1,0 +1,77 @@
+name="nss"
+version="3.12.10"
+source="ftp://ftp.mozilla.org/pub/security/nss/releases/NSS_3_12_10_RTM/src/nss-$version.tar.gz"
+build_name=""
+build="custom_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="634f294507de6da93a5c3e08006156a469ff8d8af9ac9153f608800f4d20206e"
+# ex: ts=8 sw=4 sts=4 et filetype=sh
+
+custom_build() {
+  _pushd mozilla/security/nss/lib/ckfw/builtins
+    make generate
+  _popd
+  unset CFLAGS
+  unset CXXFLAGS
+  export BUILD_OPT=1
+  export PKG_CONFIG_ALLOW_SYSTEM_LIBS=1
+  export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1
+  export NSS_USE_SYSTEM_SQLITE=1
+  export NSPR_INCLUDE_DIR=/usr/include/nspr
+  export NSPR_LIB_DIR=/usr/lib
+
+  [ "$CARCH" = "x86_64" ] && export USE_64=1
+
+  make -j 1 -C mozilla/security/coreconf
+  make -j 1 -C mozilla/security/dbm
+  make -j 1 -C mozilla/security/nss
+
+}
+
+custom_install() {
+  install -m755 -d "${DESTDIR}/usr/lib/pkgconfig"
+  install -m755 -d "${DESTDIR}/usr/bin"
+  install -m755 -d "${DESTDIR}/usr/include/nss"
+
+  NSS_VMAJOR=`grep "#define.*NSS_VMAJOR" mozilla/security/nss/lib/nss/nss.h | awk '{print $3}'`
+  NSS_VMINOR=`grep "#define.*NSS_VMINOR" mozilla/security/nss/lib/nss/nss.h | awk '{print $3}'`
+  NSS_VPATCH=`grep "#define.*NSS_VPATCH" mozilla/security/nss/lib/nss/nss.h | awk '{print $3}'`
+
+  sed "${plan_dir}/nss.pc.in" -e "s,%libdir%,/usr/lib,g" \
+  				-e "s,%prefix%,/usr,g" \
+				-e "s,%exec_prefix%,/usr/bin,g" \
+				-e "s,%includedir%,/usr/include/nss,g" \
+				-e "s,%NSPR_VERSION%,${version},g" \
+				-e "s,%NSS_VERSION%,${version},g" > \
+			"${DESTDIR}/usr/lib/pkgconfig/nss.pc"
+  ln -sf nss.pc "${DESTDIR}/usr/lib/pkgconfig/mozilla-nss.pc"
+  chmod 644 ${DESTDIR}/usr/lib/pkgconfig/*.pc
+
+  sed "${plan_dir}/nss-config.in" -e "s,@libdir@,/usr/lib,g" \
+  				    -e "s,@prefix@,/usr/bin,g" \
+				    -e "s,@exec_prefix@,/usr/bin,g" \
+				    -e "s,@includedir@,/usr/include/nss,g" \
+				    -e "s,@MOD_MAJOR_VERSION@,${NSS_VMAJOR},g" \
+				    -e "s,@MOD_MINOR_VERSION@,${NSS_VMINOR},g" \
+				    -e "s,@MOD_PATCH_VERSION@,${NSS_VPATCH},g" \
+			    > "${DESTDIR}/usr/bin/nss-config"
+  chmod 755 "${DESTDIR}/usr/bin/nss-config"
+
+  for file in libsoftokn3.so libfreebl3.so libnss3.so libnssutil3.so \
+              libssl3.so libsmime3.so libnssckbi.so libnssdbm3.so
+  do
+    install -m755 mozilla/dist/*.OBJ/lib/${file} "${DESTDIR}/usr/lib/"
+  done
+
+  install -m644 mozilla/dist/*.OBJ/lib/libcrmf.a "${DESTDIR}/usr/lib/"
+  install -m644 mozilla/dist/*.OBJ/lib/*.chk "${DESTDIR}/usr/lib/"
+
+  for file in certutil cmsutil crlutil modutil pk12util shlibsign signtool signver ssltap; do
+    install -m755 mozilla/dist/*.OBJ/bin/${file} "${DESTDIR}/usr/bin/"
+  done
+
+  install -m644 mozilla/dist/public/nss/*.h "${DESTDIR}/usr/include/nss/"
+}

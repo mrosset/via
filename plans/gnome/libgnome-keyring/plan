@@ -1,0 +1,11 @@
+name="libgnome-keyring"
+version="3.0.3"
+source="http://ftp.gnome.org/pub/gnome/sources/libgnome-keyring/3.0/libgnome-keyring-3.0.3.tar.bz2"
+build_name=""
+build="gnu_build"
+build_args=""
+install="gnu_install"
+install_args=""
+verify="sha_verify"
+# ex: ts=8 sw=4 sts=4 et filetype=sh
+verify_args="a0cc08bcd431070d3f01c2741903c2bd8b0231ee73de709d28e722e28575fdf8"

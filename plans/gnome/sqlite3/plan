@@ -1,0 +1,11 @@
+name="sqlite3"
+version="3.7.7.1"
+source="http://www.sqlite.org/sqlite-autoconf-3070701.tar.gz"
+build_name="sqlite-autoconf-3070701"
+build="gnu_build"
+build_args=""
+install="gnu_install"
+install_args=""
+verify="sha_verify"
+verify_args="7dcc36b25f7bcbe2938d0ea2baea5b706f0af93473d02a3f612d7ab39e386edf"
+# ex: ts=8 sw=4 sts=4 et filetype=sh
