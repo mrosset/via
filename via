@@ -97,9 +97,10 @@ via_stage() {
     _pushd "$stages"
     if [ ! -d "$build_name" ]; then
         tar xf "$sources/$file"
-        if [ -d "$plans/*/$name/patches" ]; then
+        if [ -d "$plan_dir/patches" ]; then
             _pushd "$build_name"
-            for i in "$plans/*/$name/patches/*"; do
+            for i in $plan_dir/patches/*; do
+                log "applying" "$(basename $i)"
                 patch -Np1 -i "$i"
             done
             _popd
@@ -109,7 +110,7 @@ via_stage() {
     if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
         mkdir "$builds/$build_name"
     fi
-    if [ ! "$btype" = "gnu_build" ]; then
+    if [ ! "$btype" = "gnu_build" ] && [ ! -d "$builds/$build_name" ]; then
         cp -af "$stages/$build_name" "$builds"
     fi
 }
@@ -129,13 +130,13 @@ via_build_core() {
 
 via_build_install() {
     via_build $1
-    sudo via install "$1"
+    sudo -E via install "$1"
 }
 
 source_plan() {
     DESTDIR=
     source $plans/*/$1/plan
-    plan_dir=$plans/*/$1
+    plan_dir=$(echo $plans/*/$1)
     if [ -z $build_name ]; then
         build_name=$name-$version
     fi
@@ -232,7 +233,7 @@ via_install() {
         return 1
     fi
     if [ -d "$db/$fullname" ]; then
-        diff /$db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST) || true
+        diff $db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST) || true
         log $(yellow "WARNING") "$fullname is already installed"
         echo -n "reinstall ? y/n "
         read ok
@@ -288,7 +289,8 @@ _popd() {
 }
 
 # BUILD HOOKS
-confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared --localstatedir=/var"
+confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
+--localstatedir=/var"
 
 relocate_build() {
     gnu_build
@@ -434,8 +436,8 @@ via_import() {
         return
     fi
     source $path/PKGBUILD
-    local t=$plans/x11/$target/plan
-    mkdir -p $plans/x11/$target
+    local t=$plans/gnome/$target/plan
+    mkdir -p $plans/gnome/$target
     cp -v $plans/plan.proto $t
     sed -i "s,NAME,$pkgname," $t
     sed -i "s,VERSION,$pkgver," $t
