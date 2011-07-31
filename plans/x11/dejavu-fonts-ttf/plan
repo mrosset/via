@@ -1,0 +1,21 @@
+name="dejavu-fonts-ttf"
+version="2.33"
+source="http://downloads.sourceforge.net/project/dejavu/dejavu/2.33/dejavu-fonts-ttf-$version.tar.bz2"
+build_name=""
+build="no_build"
+build_args=""
+install="custom_install"
+install_args=""
+verify="sha_verify"
+verify_args="82a5823a270715913af51915cc20594568f57afb7450abb989695d8808a4194d"
+# ex: ts=8 sw=4 sts=4 et filetype=sh
+
+custom_install() {
+    install -dm755 "$DESTDIR"/etc/fonts/conf.avail
+    install -dm755 "$DESTDIR"/usr/share/fonts/TTF
+  
+    for i in dejavu-{,lgc-}fonts-ttf; do
+        install -m644 ttf/*.ttf "$DESTDIR"/usr/share/fonts/TTF/
+        install -m644 fontconfig/*.conf "$DESTDIR"/etc/fonts/conf.avail/
+    done
+}
