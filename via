@@ -189,19 +189,6 @@ get_install_type() {
     fi
 }
 
-via_fix_plans() {
-    for i in $plans/*/*/plan; do
-        local name=$(basename $(dirname $i))
-        if [ "$name" = "wget" ]; then
-            cat $i
-            echo "********************"
-            sed -i '/install_args=""/d' $i
-            cat $i
-            echo $name
-        fi
-    done
-}
-
 via_build() {
     source_plan $1
     log starting $name
