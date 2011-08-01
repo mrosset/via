@@ -254,7 +254,7 @@ via_install() {
 }
 
 via_remove() {
-    source $plans/*/$1/plan
+    source_plan $1
     local fullname=$name-$version
     local pkgfile=$repo/$fullname-via.tar.gz
     local db=var/db/via
@@ -445,6 +445,7 @@ via_import() {
     via_gen_hash $target
     cat $path/PKGBUILD
     log $FUNCNAME "$target imported"
+    via build_install $target
 }
 
 via_list() {
@@ -453,7 +454,7 @@ via_list() {
 }
 
 via_gen_hash() {
-    source $plans/*/$1/plan
+    source_plan $1
     download $source
     local plan=$plans/*/$1/plan
     local file=$(basename $source)
