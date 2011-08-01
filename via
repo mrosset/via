@@ -116,11 +116,16 @@ via_stage() {
 }
 
 via_build_core() {
+    if [ "$ROOT" = "/" ]; then
+        log "ERROR" "ROOT is set to / this is wrong!"
+        log "ERROR" "specify target dir with -r"
+        exit 1
+    fi
     local db=$ROOT/var/db/via
     for i in $plans/core/*; do
         source_plan "$(basename $i)"
         if [ ! -d "$db/$name-$version" ] ; then
-            #via build "$name"
+            via build "$name"
             via -r $ROOT install "$name"
         else
             log skipping $name
@@ -163,7 +168,7 @@ get_build_type() {
         return 0
     fi
     # check for configure if it exists set gnu_build
-    if [ -f "configure" ]; then 
+    if [ -f "configure" ]; then
         printf "gnu_build"
         return 0
     fi
@@ -177,16 +182,25 @@ get_build_type() {
     exit 1
 }
 
-get_install_type() {
-    # if install is set use it.
+get_package_type() {
+    # if packager is set use it.
     if [ "$packager" != "NIL" ]; then
         printf "$packager"
         return 0
     fi
-    if [ "$builder" = "gnu_build" ] || [ "$builder" = "gnu_make" ]; then
+    # check for configure if it exists set gnu_build
+    if [ -f "configure" ]; then
         printf "gnu_package"
         return 0
     fi
+
+    if [ -f "Makefile" ]; then
+        printf "gnu_package"
+        return 0
+    fi
+
+    log "ERROR" "could not determine packager type"
+    exit 1
 }
 
 via_build() {
@@ -206,7 +220,7 @@ via_build() {
     _pushd "$stages/$build_name"
         builder=$(get_build_type)
         build_type=$(echo $builder)
-        packager=$(get_install_type)
+        packager=$(get_package_type)
     _popd
 
     _pushd $builds/$build_name
@@ -516,10 +530,6 @@ via_gen_hash() {
     sed -i "s,gnu_verify,sha_verify," $plan
     sha=$(sha256sum $sources/$file | awk '{print $1}')
     echo verify_args=\"$sha\" >> $plan
-}
-
-back_trace() {
-    log $FUNCNAME "$(red "ERROR $?")"
 }
 
 while getopts ":r:" opt; do
