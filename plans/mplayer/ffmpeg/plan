@@ -1,0 +1,32 @@
+name="ffmpeg"
+version="20110622"
+source="ftp://ftp.archlinux.org/other/ffmpeg/$name-$version.tar.xz"
+build_name="ffmpeg"
+build="custom_build"
+build_args="--prefix=/usr \
+--enable-libmp3lame \
+--enable-libvorbis \
+--enable-libxvid \
+--enable-libx264 \
+--enable-libvpx \
+--enable-libtheora \
+--enable-postproc \
+--enable-shared \
+--enable-x11grab \
+--enable-libopencore_amrnb \
+--enable-libopencore_amrwb \
+--enable-libschroedinger \
+--enable-libopenjpeg \
+--enable-librtmp \
+--enable-gpl \
+--enable-version3 \
+--enable-runtime-cpudetect"
+install="gnu_install"
+install_args=""
+verify="sha_verify"
+verify_args="fd7f9cb901a7bf6e51a8851f992f5f94cb0a8a06970d760ed3eddd844fead4b8"
+
+custom_build() {
+	confargs=""
+	gnu_build
+}
