@@ -81,9 +81,8 @@ download() {
 
 }
 
-# TODO: rework staging to be more flexible
-via_stage() {
-    source_plan "$1"
+# FIXME: this whole function is a mess rework it properly
+stage() {
     local file="$(basename $source)"
     local btype="$(echo $builder)"
 
@@ -107,9 +106,13 @@ via_stage() {
         fi
     fi
     _popd
+    _pushd $stages/$build_name
+        btype=$(get_build_type)
+    _popd $stages/$build_name
     if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
         mkdir "$builds/$build_name"
     fi
+
     if [ ! "$btype" = "gnu_build" ] && [ ! -d "$builds/$build_name" ]; then
         cp -af "$stages/$build_name" "$builds"
     fi
@@ -215,7 +218,7 @@ via_build() {
             sha_verify $source
             ;;
     esac
-    via_stage $name
+    stage $name
 
     _pushd "$stages/$build_name"
         builder=$(get_build_type)
