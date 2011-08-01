@@ -1,20 +1,13 @@
 name="udev"
 version="172"
 source="http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev-$version.tar.bz2"
-build_name=""
-build="gnu_build"
 build_args="-sysconfdir=/etc --sbindir=/sbin \
 --with-rootlibdir=/lib --libexecdir=/lib/udev \
 --disable-hwdb --disable-udev_acl --disable-introspection \
 --disable-keymap --with-systemdsystemunitdir=/lib/systemd/system"
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="b8959cc951ff69ff13305aad6836eac1ff672d98d5a11435c38c4608f77bbd6a"
+verify="b8959cc951ff69ff13305aad6836eac1ff672d98d5a11435c38c4608f77bbd6a"
 
-custom_install() {
-	gnu_install
-	cd $DESTDIR
+post_hook() {
 	install -dv lib/{firmware,udev/devices/pts}
 	fakeroot mknod -m0666 lib/udev/devices/null c 1 3
 }

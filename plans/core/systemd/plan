@@ -1,8 +1,6 @@
 name="systemd"
 version="30"
 source="http://www.freedesktop.org/software/systemd/systemd-$version.tar.bz2"
-build_name=""
-build="gnu_build"
 build_args="--with-rootdir=/ \
 --sysconfdir=/etc \
 --libexecdir=/usr/lib \
@@ -11,7 +9,4 @@ build_args="--with-rootdir=/ \
 --disable-tcpwrap \
 --disable-gtk \
 --with-distro=other"
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-verify_args="10f6fffe45fab4c2985267fad25781eb51aa07a216541443806cf7da7f616bb7"
+verify="10f6fffe45fab4c2985267fad25781eb51aa07a216541443806cf7da7f616bb7"

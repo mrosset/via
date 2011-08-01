@@ -1,11 +1,7 @@
 name="bison"
 version="2.5"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_name=""
-build="custom_build"
-build_args=""
-install="gnu_install"
-install_args=""
+builder="custom_build"
 verify="gnu_verify"
 
 custom_build() {

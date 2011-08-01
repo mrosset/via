@@ -1,13 +1,11 @@
 name="readline"
 version="6.2"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_name=""
-build="gnu_build"
 build_args="--libdir=/lib"
-install="gnu_install"
-install_args=""
 verify="gnu_verify"
 
+echo "FIX READLINE EXPORT VARS"
+exit 127
 export SHLIB_LIBS=-lncurses
 
 post_hook() {

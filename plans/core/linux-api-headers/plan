@@ -2,16 +2,15 @@ name="linux-api-headers"
 version="2.6.39.3"
 source="http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.3.tar.bz2"
 build_name="linux-2.6.39.3"
-build="custom_build"
-install="custom_install"
-verify="sha_verify"
-verify_args="324bd8bde3929be5d9c33e262d8ca197a45e7e2587b7c5703a7004d78901a8d3"
+builder="custom_build"
+packager="custom_package"
+verify="324bd8bde3929be5d9c33e262d8ca197a45e7e2587b7c5703a7004d78901a8d3"
 
 custom_build() {
 	make mrproper
 	make headers_check
 }
 
-custom_install() {
+custom_package() {
 	make INSTALL_HDR_PATH=$DESTDIR/usr headers_install
 }

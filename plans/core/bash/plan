@@ -1,11 +1,7 @@
 name="bash"
 version="4.2"
 source="http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
-build_name=""
-build="gnu_build"
 build_args="--bindir=/bin --without-bash-malloc \
 --htmldir=/usr/share/doc/bash-4.2 \
 --with-installed-readline"
-install="gnu_install"
-install_args=""
 verify="gnu_verify"

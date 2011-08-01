@@ -1,13 +1,9 @@
 name="procps"
 version="3.2.8"
 source="http://procps.sf.net/procps-$version.tar.gz"
-build_name=""
 build="custom_build"
-build_args=""
-install="gnu_install"
-install_args="ldconfig=/bin/true"
-verify="sha_verify"
-verify_args="11ed68d8a4433b91cd833deb714a3aa849c02aea738c42e6b4557982419c1535"
+package_args="ldconfig=/bin/true"
+verify="11ed68d8a4433b91cd833deb714a3aa849c02aea738c42e6b4557982419c1535"
 
 custom_build() {
 	sed -i -e 's@\*/module.mk@proc/module.mk ps/module.mk@' Makefile

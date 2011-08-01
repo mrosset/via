@@ -1,13 +1,8 @@
 name="shadow"
 version="4.1.4.3"
 source="http://pkg-shadow.alioth.debian.org/releases/shadow-$version.tar.bz2"
-build_name=""
 build="custom_build"
-build_args=""
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-verify_args="633f5bb4ea0c88c55f3642c97f9d25cbef74f82e0b4cf8d54e7ad6f9f9caa778"
+verify="633f5bb4ea0c88c55f3642c97f9d25cbef74f82e0b4cf8d54e7ad6f9f9caa778"
 
 custom_build() {
 	sed -i 's/groups$(EXEEXT) //' src/Makefile.in
@@ -18,7 +13,5 @@ custom_build() {
 	sed -i -e 's@#ENCRYPT_METHOD DES@ENCRYPT_METHOD SHA512@' \
 		       -e 's@/var/spool/mail@/var/mail@' etc/login.defs
 
-	./configure --sysconfdir=/etc
-
-	make
+	gnu_build
 }

@@ -1,16 +1,10 @@
 name="binutils"
-fullname="binutils-2.21.1"
 version="2.21.1"
 source="http://mirrors.kernel.org/gnu/binutils/binutils-2.21.1.tar.bz2"
-build_name=""
-build="gnu_build"
 build_args="--enable-shared"
-install="custom_install"
-install_args="tooldir=/usr"
+package_args="tooldir=/usr"
 verify="gnu_verify"
 
-custom_install() {
-	#FIXME: 
-	gnu_install
+post_hook() {
 	cp -v $stages/$name-$version/include/libiberty.h $DESTDIR/usr/include
 }

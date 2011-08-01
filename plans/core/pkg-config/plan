@@ -1,13 +1,10 @@
 name="pkg-config"
 version="0.26"
 source="http://pkgconfig.freedesktop.org/releases/pkg-config-$version.tar.gz"
-build_name=""
-build="gnu_build"
-build_args=""
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-verify_args="94c1936a797c930fb3e4e5a154165b6268caba22b32d24083dd4c492a533c8af"
+verify="94c1936a797c930fb3e4e5a154165b6268caba22b32d24083dd4c492a533c8af"
+
+echo "FIX pkg-config EXPORT VARS"
+exit 127
 
 export GLIB_LIBS="-L/usr/lib -lglib-2.0"
 export GLIB_CFLAGS="-I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include"

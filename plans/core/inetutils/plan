@@ -1,14 +1,10 @@
 name="inetutils"
 version="1.8"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_name=""
-build="gnu_build"
 build_args="--libexecdir=/usr/sbin \
 --localstatedir=/var --disable-ifconfig \
 --disable-logger --disable-syslogd --disable-whois \
 --disable-servers --with-pam"
-install="gnu_install"
-install_args=""
 verify="gnu_verify"
 
 post_hook() {
