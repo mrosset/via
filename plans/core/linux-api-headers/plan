@@ -1,10 +1,10 @@
 name="linux-api-headers"
-version="2.6.39.3"
-source="http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.3.tar.bz2"
-build_name="linux-2.6.39.3"
+version="3.0"
+source="http://www.kernel.org/pub/linux/kernel/v2.6/linux-$version.tar.bz2"
+build_name="linux-3.0"
 builder="custom_build"
 packager="custom_package"
-verify="324bd8bde3929be5d9c33e262d8ca197a45e7e2587b7c5703a7004d78901a8d3"
+verify="sign_verify"
 
 custom_build() {
 	make mrproper

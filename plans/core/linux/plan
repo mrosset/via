@@ -1,0 +1,18 @@
+name="linux"
+version="3.0"
+source="http://www.kernel.org/pub/linux/kernel/v3.0/linux-$version.tar.bz2"
+builder="custom_build"
+packager="custom_package"
+verify="sign_verify"
+
+custom_build() {
+	cp $plan_dir/config .config
+	make
+}
+
+custom_package() {
+	mkdir -p $DESTDIR/boot
+	cp arch/x86_64/boot/bzImage $DESTDIR/boot/vmlinuz-$version-vanilla
+	cp System.map $DESTDIR/boot/System.map-$version
+	make INSTALL_MOD_PATH=$DESTDIR modules_install || true
+}
