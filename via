@@ -81,11 +81,11 @@ download() {
 
 }
 
-# TODO: rework staging to be more flexiable
+# TODO: rework staging to be more flexible
 via_stage() {
     source_plan "$1"
     local file="$(basename $source)"
-    local btype="$(echo $build)"
+    local btype="$(echo $builder)"
 
     log "$FUNCNAME" "$name"
 
@@ -134,34 +134,103 @@ via_build_install() {
 }
 
 source_plan() {
-    DESTDIR=
     source $plans/*/$1/plan
+
+    builder="${builder:-NIL}"
+    packager="${packager:-NIL}"
+
     plan_dir=$(echo $plans/*/$1)
-    if [ -z $build_name ]; then
+
+    if [ "${build_name:-NIL}" = "NIL" ]; then
         build_name=$name-$version
     fi
+
+    if [ "${build_args:-NIL}" = "NIL" ]; then
+        build_args=""
+    fi
+
     export DESTDIR="$packages/$name-$version"
-    source $plans/*/$1/plan
-    if [ -z $build_name ]; then
-        build_name=$name-$version
+
+    if [ "${package_args:-NIL}" = "NIL" ]; then
+        package_args=""
     fi
+}
+
+get_build_type() {
+    # if builder is set use it.
+    if [ "$builder" != "NIL" ]; then
+        printf "$builder"
+        return 0
+    fi
+    # check for configure if it exists set gnu_build
+    if [ -f "configure" ]; then 
+        printf "gnu_build"
+        return 0
+    fi
+
+    if [ -f "Makefile" ]; then
+        printf "gnu_make"
+        return 0
+    fi
+
+    log "ERROR" "could not determine builder type"
+    exit 1
+}
+
+get_install_type() {
+    # if install is set use it.
+    if [ "$packager" != "NIL" ]; then
+        printf "$packager"
+        return 0
+    fi
+    if [ "$builder" = "gnu_build" ] || [ "$builder" = "gnu_make" ]; then
+        printf "gnu_package"
+        return 0
+    fi
+}
+
+via_fix_plans() {
+    for i in $plans/*/*/plan; do
+        local name=$(basename $(dirname $i))
+        if [ "$name" = "wget" ]; then
+            cat $i
+            echo "********************"
+            sed -i '/install_args=""/d' $i
+            cat $i
+            echo $name
+        fi
+    done
 }
 
 via_build() {
     source_plan $1
     log starting $name
     download $source
-    $verify $source
+    case $verify in
+        gnu_verify)
+            gnu_verify $source
+            ;;
+        *)
+            sha_verify $source
+            ;;
+    esac
     via_stage $name
-    _pushd $builds/$build_name
-    build_type=$(echo $build)
-    log $build_type $name
-    $build #&> $log
-    if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
-        make check
-    fi
-    via_package $name
+
+    _pushd "$stages/$build_name"
+        builder=$(get_build_type)
+        build_type=$(echo $builder)
+        packager=$(get_install_type)
     _popd
+
+    _pushd $builds/$build_name
+        log "$build_type" "$name"
+        $builder #&> $log
+        if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
+            make check
+        fi
+        via_package $name
+    _popd
+
     log done "$name-$version"
 }
 
@@ -173,9 +242,9 @@ via_package() {
         log "cleaning" "$DESTDIR"
         rm -rf $DESTDIR
     fi
-    log $(echo $install) $name
+    log $(echo $packager) $name
     _pushd $builds/$build_name
-    $install
+        $packager
     _popd
     if [ ! -d $DESTDIR ]; then
         mkdir $DESTDIR
@@ -264,7 +333,6 @@ via_remove() {
     # remove files
     while read file; do
         if [ -f $file ]; then
-            #printf "< %s\n" "${file:2}"
             rm $file
         fi
     done < $manifest
@@ -305,8 +373,8 @@ no_build() {
     log $FUNCNAME "$name"
 }
 
-gnu_install() {
-    fakeroot make $install_args DESTDIR=$DESTDIR install
+gnu_package() {
+    fakeroot make $package_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
@@ -353,7 +421,7 @@ sha_verify() {
     log $FUNCNAME $name
     _pushd $sources
     sha=$(sha256sum $file | awk '{print $1}')
-    if [ ! "$sha" = "$verify_args" ]; then
+    if [ ! "$sha" = "$verify" ]; then
         log $FUNCNAME $(red FAILED)
         echo $sha
         return 1
