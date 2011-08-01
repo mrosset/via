@@ -2,7 +2,8 @@ name="vim"
 version="7.3"
 source="ftp://ftp.vim.org/pub/vim/unix/$name-$version.tar.bz2"
 build_name="vim73"
-build_args="--prefix=/usr --localstatedir=/var/lib/vim \
+builder="relocate_build"
+build_args="--localstatedir=/var/lib/vim \
 --mandir=/usr/share/man --with-compiledby=vanilla \
 --with-features=big --enable-gpm --enable-acl --with-x=no \
 --disable-gui --enable-multibyte --enable-cscope \

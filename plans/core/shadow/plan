@@ -1,7 +1,7 @@
 name="shadow"
 version="4.1.4.3"
 source="http://pkg-shadow.alioth.debian.org/releases/shadow-$version.tar.bz2"
-build="custom_build"
+builder="custom_build"
 verify="633f5bb4ea0c88c55f3642c97f9d25cbef74f82e0b4cf8d54e7ad6f9f9caa778"
 
 custom_build() {

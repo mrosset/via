@@ -4,9 +4,7 @@ source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
 build_args="--libdir=/lib"
 verify="gnu_verify"
 
-echo "FIX READLINE EXPORT VARS"
-exit 127
-export SHLIB_LIBS=-lncurses
+#export SHLIB_LIBS=-lncurses
 
 post_hook() {
 	mkdir -p usr/lib

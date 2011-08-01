@@ -3,6 +3,3 @@ version="1.26"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
 build_args="--bindir=/bin --libexecdir=/usr/sbin"
 verify="gnu_verify"
-echo "FIX TAR EXPORT VARS"
-exit 127
-export FORCE_UNSAFE_CONFIGURE=1

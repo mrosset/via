@@ -1,7 +1,7 @@
 name="procps"
 version="3.2.8"
 source="http://procps.sf.net/procps-$version.tar.gz"
-build="custom_build"
+builder="custom_build"
 package_args="ldconfig=/bin/true"
 verify="11ed68d8a4433b91cd833deb714a3aa849c02aea738c42e6b4557982419c1535"
 
