@@ -82,7 +82,8 @@ download() {
 }
 
 # FIXME: this whole function is a mess rework it properly
-stage() {
+via_stage() {
+    source_plan $1
     local file="$(basename $source)"
     local btype="$(echo $builder)"
 
@@ -214,11 +215,14 @@ via_build() {
         gnu_verify)
             gnu_verify $source
             ;;
+        sign_verify)
+            sign_verify $source
+            ;;
         *)
             sha_verify $source
             ;;
     esac
-    stage $name
+    via_stage $name
 
     _pushd "$stages/$build_name"
         builder=$(get_build_type)
@@ -276,11 +280,11 @@ install_core() {
     $VIAHOME/mkrootfs
     _popd
     for i in $plans/core/*; do
-        via_install "$(basename $i)"
+        via -r $ROOT install "$(basename $i)"
     done
     cp /etc/ld.so.conf $ROOT/etc
     cp /etc/nsswitch.conf $ROOT/etc
-    chroot $ROOT ldconfig
+    ldconfig -r $ROOT
     chroot $ROOT groupadd -g 81 dbus
     chroot $ROOT useradd -u 81 -g dbus -d / -s /bin/false dbus
     chroot $ROOT passwd -l dbus
@@ -327,22 +331,20 @@ via_install() {
 }
 
 via_remove() {
-    source_plan $1
-    local fullname=$name-$version
-    local pkgfile=$repo/$fullname-via.tar.gz
     local db=var/db/via
-    log "removing" $fullname
     _pushd $ROOT
-    local manifest=$db/$fullname/MANIFEST	
+    local package=$(basename $db/$1-[0-9]*/)
+    log "removing" $package
+    local manifest=$db/$package/MANIFEST
     # remove files
     while read file; do
         if [ -f $file ]; then
             rm $file
         fi
     done < $manifest
-    rm -r $db/$fullname
+    rm -r $db/$package
     _popd
-    log $fullname "removed"
+    log $package "removed"
 }
 
 # <action> <details>
@@ -362,7 +364,7 @@ _popd() {
 
 # BUILD HOOKS
 confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
---localstatedir=/var"
+--localstatedir=/var --with-shared"
 
 relocate_build() {
     gnu_build
@@ -405,18 +407,23 @@ python_install() {
 # VERIFY HOOKS
 gnu_verify() {
     local url=$1
+    local ext=${2:-.sig}
     local file=$(basename $url)
     log $FUNCNAME $name
     _pushd $sources
-    if [ ! -f $file.sig ]; then
-        download $url.sig
+    if [ ! -f $file.$ext ]; then
+        download $url.$ext
     fi
-    if ! gpg --verify $file.sig; then
+    if ! gpg --verify $file.$ext; then
         log $FUNCNAME $(red FAILED)
         return 1
     fi	
     log $FUNCNAME $(green PASS)
     _popd
+}
+
+sign_verify() {
+    gnu_verify $1 sign
 }
 
 sha_verify() {
@@ -486,7 +493,7 @@ via_mkvirt() {
 
 via_virt() {
     local kernel=/boot/vmlinuz-*
-    local initrd=/boot/initrd-*.img
+    local initrd=/boot/initramfs-*.img
     echo "starting emulator"
     qemu-system-x86_64 -hda ./vanilla.img \
         -initrd $initrd \
