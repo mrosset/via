@@ -1,6 +1,10 @@
 #! /bin/bash
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
+if [ -n "$DEBUG" ]; then
+    set -x
+fi
+
 set -e
 set -h
 set -u
@@ -325,6 +329,24 @@ install_core() {
     log "core" "installed"
 }
 
+diff_manifest() {
+    local fullname=$name-$version
+    local pkgfile=$repo/$fullname-via.tar.gz
+    local db=var/db/via
+    while read line; do
+        case "${line::1}" in
+            "<")
+                echo $(red "$line")
+                ;;
+            ">")
+                echo $(green "$line")
+                ;;
+            *)
+                echo "$line"
+        esac
+    done < <(diff $db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST))
+}
+
 via_install() {
     source_plan $1
     local fullname=$name-$version
@@ -333,7 +355,7 @@ via_install() {
 
     [ -d $ROOT ] || mkdir -p $ROOT
 
-    gpg --verify $pkgfile.sig  &> /dev/null
+    gpg --verify $pkgfile.sig
     _pushd $ROOT
     [ -d $db ] || mkdir -p $db
     if [ -f MANIFEST ]; then
@@ -341,7 +363,7 @@ via_install() {
         return 1
     fi
     if [ -d "$db/$fullname" ]; then
-        diff $db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST) || true
+        diff_manifest
         log $(yellow WARNING) "$fullname is already installed"
         echo -n "reinstall ? y/n "
         read ok
@@ -546,8 +568,8 @@ via_import() {
     fi
     source $path/PKGBUILD
     source=${source/$pkgver/\$version}
-    local t=$plans/gnome/$target/plan
-    mkdir -p $plans/gnome/$target
+    local t=$plans/incoming/$target/plan
+    mkdir -p $plans/incoming/$target
     cp -v $plans/plan.proto $t
     sed -i "s,NAME,$pkgname," $t
     sed -i "s,VERSION,$pkgver," $t
