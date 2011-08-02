@@ -64,6 +64,10 @@ init() {
 # example:
 # download http://www.foo.org/foo.tar.gz
 download() {
+    if [ "$source" == "NIL" ]; then
+        echo "RETURN"
+        return
+    fi
 
     local url="$1"
     local file="$(basename $url)"
@@ -89,9 +93,10 @@ via_stage() {
 
     log "$FUNCNAME" "$name"
 
-    if [ "$file" = "nil" ]; then
+    if [ "$file" = "NIL" ]; then
         log "$FUNCNAME" "no source file"
         [ ! -d "$builds/$build_name" ] && mkdir "$builds/$build_name"
+        [ ! -d "$stages/$build_name" ] && mkdir $stages/$build_name
         return 0
     fi
     _pushd "$stages"
@@ -145,10 +150,12 @@ via_build_install() {
 source_plan() {
     source $plans/*/$1/plan
 
+    source="${source:-NIL}"
     builder="${builder:-NIL}"
     packager="${packager:-NIL}"
 
     plan_dir=$(echo $plans/*/$1)
+    files_dir="$plan_dir/files"
 
     if [ "${build_name:-NIL}" = "NIL" ]; then
         build_name=$name-$version
@@ -182,6 +189,11 @@ get_build_type() {
         return 0
     fi
 
+    if [ -f "setup.py" ]; then
+        printf "python_build"
+        return 0
+    fi
+
     log "ERROR" "could not determine builder type"
     exit 1
 }
@@ -203,6 +215,11 @@ get_package_type() {
         return 0
     fi
 
+    if [ -f "setup.py" ]; then
+        printf "python_package"
+        return 0
+    fi
+
     log "ERROR" "could not determine packager type"
     exit 1
 }
@@ -218,10 +235,13 @@ via_build() {
         sign_verify)
             sign_verify $source
             ;;
+        no_verify)
+            ;;
         *)
             sha_verify $source
             ;;
     esac
+
     via_stage $name
 
     _pushd "$stages/$build_name"
@@ -232,7 +252,7 @@ via_build() {
 
     _pushd $builds/$build_name
         log "$build_type" "$name"
-        $builder #&> $log
+        $builder &>> $log
         if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
             make check
         fi
@@ -252,8 +272,9 @@ via_package() {
     fi
     log $(echo $packager) $name
     _pushd $builds/$build_name
-        $packager
+        $packager &>> $log
     _popd
+    package_files_dir
     if [ ! -d $DESTDIR ]; then
         mkdir $DESTDIR
     fi
@@ -275,10 +296,20 @@ via_package() {
     _popd
 }
 
+package_files_dir() {
+    if [ ! -d $files_dir ]; then
+        return
+    fi
+    for f in $files_dir/*; do
+        local file=$(head -1 < $f | awk '{print $2}')
+        local mode=$(head -1 < $f | awk '{print $3}')
+        log "installing" "$file"
+        fakeroot install -Dm $mode $f $DESTDIR/$file
+    done
+}
+
 install_core() {
-    _pushd $ROOT
-    $VIAHOME/mkrootfs
-    _popd
+    via -r $ROOT install filesystem
     for i in $plans/core/*; do
         via -r $ROOT install "$(basename $i)"
     done
@@ -311,7 +342,7 @@ via_install() {
     fi
     if [ -d "$db/$fullname" ]; then
         diff $db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST) || true
-        log $(yellow "WARNING") "$fullname is already installed"
+        log $(yellow WARNING) "$fullname is already installed"
         echo -n "reinstall ? y/n "
         read ok
         if [ "$ok" = "N" ] || [ -z "$ok" ] || [ "$ok" != "y" ]; then
@@ -391,7 +422,6 @@ gnu_make() {
     make $build_args
 }
 
-
 no_verify() {
     log $FUNCNAME "no file to verify"
 }
@@ -400,14 +430,14 @@ python_build() {
     python setup.py build
 }
 
-python_install() {
+python_package() {
     python setup.py install --root="$DESTDIR/" --optimize=2
 }
 
 # VERIFY HOOKS
 gnu_verify() {
     local url=$1
-    local ext=${2:-.sig}
+    local ext=${2:-sig}
     local file=$(basename $url)
     log $FUNCNAME $name
     _pushd $sources
@@ -515,6 +545,7 @@ via_import() {
         return
     fi
     source $path/PKGBUILD
+    source=${source/$pkgver/\$version}
     local t=$plans/gnome/$target/plan
     mkdir -p $plans/gnome/$target
     cp -v $plans/plan.proto $t
@@ -537,9 +568,8 @@ via_gen_hash() {
     download $source
     local plan=$plans/*/$1/plan
     local file=$(basename $source)
-    sed -i "s,gnu_verify,sha_verify," $plan
     sha=$(sha256sum $sources/$file | awk '{print $1}')
-    echo verify_args=\"$sha\" >> $plan
+    echo verify=\"$sha\" >> $plan
 }
 
 while getopts ":r:" opt; do
