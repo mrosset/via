@@ -868,3 +868,4 @@ export STRIP="${CLFS_TARGET}-strip"
 #texinfo_tools texinfo
 #vim_tools vim
 #generic_tools xz
+#generic_tools util-linux
