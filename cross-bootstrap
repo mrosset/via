@@ -20,12 +20,20 @@ export PWD=$pwd
 export USER=$user
 export TERM=$term
 
-export CLFS=/mnt/clfs
-export TOOLS=/tools
-export CROSS_TOOLS=/cross-tools
+CLFS=/mnt/clfs
+TOOLS=/tools
+CROSS_TOOLS=/cross-tools
 export PATH=/usr/lib/ccache/bin:$CROSS_TOOLS/bin:/bin:/usr/bin
-export CLFS_HOST=$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')
-export CLFS_TARGET="${TARCH}-pc-linux-gnu"
+CLFS_HOST=$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')
+CLFS_TARGET="${TARCH}-pc-linux-gnu"
+
+TOOLS_CONFIGURE="\
+	--prefix=$TOOLS \
+	--build=${CLFS_HOST} \
+	--host=${CLFS_TARGET} \
+	--cache-file=config.cache"
+
+GNU_MIRROR="http://mirrors.kernel.org/gnu"
 
 cache=$PWD/cache
 plans=$PWD/plans
@@ -35,15 +43,20 @@ stages=$cache/stages
 logs=$PWD/logs
 log=$PWD/logs/bootstrap.log
 
-GNU_MIRROR="http://mirrors.kernel.org/gnu"
 
-create() {
+init() {
 	for d in $logs $builds $sources $stages ; do
 		if [ ! -d $d ]; then
 			log $FUNCNAME $d
 			mkdir -p $d
 		fi
 	done
+}
+
+
+source_plan() {
+	unset name version build_name source 
+	source $plans/*/$1/plan
 }
 
 log() {
@@ -70,9 +83,13 @@ stage() {
 	local name=$2
 	local version=$3
 
-	log $FUNCNAME $name-$version
+	if [ -z "${build_name:-}" ]; then 
+		build_name=$name-$version
+	fi
+
+	log $FUNCNAME $build_name
 	_pushd $stages
-		if [ ! -d $name-$version ]; then
+		if [ ! -d $build_name ]; then
 			log decompressing $name-$version
 			tar xf $sources/$file
 		fi
@@ -80,9 +97,9 @@ stage() {
 
 	if [ "${4:-NIL}" != "NIL" ]; then
 		log "copying" "not a gnu_build"
-		cp -a $stages/$name-$version $builds
+		cp -a $stages/$build_name $builds
 	else
-		mkdir $builds/$name-$version || true
+		mkdir $builds/$build_name || true
 	fi
 }
 
@@ -428,8 +445,380 @@ cross_gcc_final() {
 	log $FUNCNAME finished
 }
 
+gmp_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+	HOST_CC=gcc CPPFLAGS=-fexceptions \
+		$stages/$build_name/configure $TOOLS_CONFIGURE \
+			--enable-cxx
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
 
-create
+mpfr_tools() {
+	source_plan $1
+	source $plans/*/$1/plan
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		$stages/$build_name/configure $TOOLS_CONFIGURE \
+				--enable-shared --with-gmp=$TOOLS
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+
+zlib_tools() {
+	source_plan $1
+	source $plans/*/$1/plan
+	download $source
+	stage "$source" "$name" "$version" "true"
+	_pushd $builds/$build_name
+		$stages/$build_name/configure --prefix=$TOOLS
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+binutils_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		$stages/$build_name/configure $TOOLS_CONFIGURE \
+			--target=$CLFS_TARGET --with-lib-path=$TOOLS/lib \
+			--disable-nls --enable-shared \
+			    --disable-multilib
+		make configure-host
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+gcc_tools() {
+	source_plan $1
+	download $source
+
+	download http://patches.cross-lfs.org/dev/gcc-4.6.0-branch_update-1.patch
+	download http://patches.cross-lfs.org/dev/gcc-4.6.0-specs-1.patch
+
+	stage "$source" "$name" "$version"
+
+	_pushd  $stages/$build_name
+
+	#patch -Np1 -i $sources/gcc-4.6.0-branch_update-1.patch
+	patch -Np1 -i $sources/gcc-4.6.0-specs-1.patch
+
+	echo -en '#undef STANDARD_INCLUDE_DIR\n#define STANDARD_INCLUDE_DIR "/tools/include/"\n\n' >> gcc/config/linux.h
+	echo -en '\n#undef STANDARD_STARTFILE_PREFIX_1\n#define STANDARD_STARTFILE_PREFIX_1 "/tools/lib/"\n' >> gcc/config/linux.h
+	echo -en '\n#undef STANDARD_STARTFILE_PREFIX_2\n#define STANDARD_STARTFILE_PREFIX_2 ""\n' >> gcc/config/linux.h
+
+	cp -v gcc/Makefile.in{,.orig}
+	sed -e 's@\(^NATIVE_SYSTEM_HEADER_DIR =\).*@\1 /tools/include@g' \
+		gcc/Makefile.in.orig > gcc/Makefile.in
+
+	_popd
+
+	_pushd $builds/$build_name
+		$stages/$build_name/configure $TOOLS_CONFIGURE --target=${CLFS_TARGET} \
+			--with-local-prefix=$TOOLS --enable-long-long --enable-c99 \
+			--enable-shared --enable-threads=posix --enable-__cxa_atexit \
+			--disable-nls --enable-languages=c,c++ --disable-libstdcxx-pch \
+			--disable-multilib
+
+		cp -v Makefile{,.orig}
+		sed "/^HOST_\(GMP\|PPL\|CLOOG\)\(LIBS\|INC\)/s:-[IL]/\(lib\|include\)::" \
+			Makefile.orig > Makefile
+
+		make AS_FOR_TARGET="${AS}" \
+			LD_FOR_TARGET="${LD}"
+		make install
+
+	_popd
+
+	log $FUNCNAME finished
+}
+
+ncurses_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		$stages/$build_name/configure $TOOLS_CONFIGURE \
+			--without-debug --without-ada \
+			--enable-overwrite --with-build-cc=gcc \
+			--with-shared
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+bash_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+
+cat > config.cache << "EOF"
+ac_cv_func_mmap_fixed_mapped=yes
+ac_cv_func_strcoll_works=yes
+ac_cv_func_working_mktime=yes
+bash_cv_func_sigsetjmp=present
+bash_cv_getcwd_malloc=yes
+bash_cv_job_control_missing=present
+bash_cv_printf_a_format=yes
+bash_cv_sys_named_pipes=present
+bash_cv_ulimit_maxfds=yes
+bash_cv_under_sys_siglist=yes
+bash_cv_unusable_rtsigs=no
+gt_cv_int_divbyzero_sigfpe=yes
+EOF
+
+		$stages/$build_name/configure $TOOLS_CONFIGURE \
+			--without-bash-malloc --cache-file=config.cache
+
+		make
+		make install
+		ln -sfv bash $TOOLS/bin/sh
+	_popd
+	log $FUNCNAME finished
+}
+
+bzip2_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version" "true"
+	_pushd $builds/$build_name
+		cp -v Makefile{,.orig}
+		sed -e 's@^\(all:.*\) test@\1@g' Makefile.orig > Makefile
+
+		make CC="${CC}" AR="${AR}" RANLIB="${RANLIB}"
+		make PREFIX=$TOOLS install
+	_popd
+	log $FUNCNAME finished
+}
+
+coreutils_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		mkdir man || true
+		touch man/uname.1 man/hostname.1
+
+cat > config.cache << EOF
+fu_cv_sys_stat_statfs2_bsize=yes
+gl_cv_func_working_mkstemp=yes
+EOF
+		$stages/$build_name/configure $TOOLS_CONFIGURE \
+			--enable-install-program=hostname --cache-file=config.cache
+
+		make 
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+findutils_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		echo "gl_cv_func_wcwidth_works=yes" > config.cache
+		echo "ac_cv_func_fnmatch_gnu=yes" >> config.cache
+
+		$stages/$build_name/configure $TOOLS_CONFIGURE --cache-file=config.cache
+
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+flex_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+
+cat > config.cache << EOF
+ac_cv_func_malloc_0_nonnull=yes
+ac_cv_func_realloc_0_nonnull=yes
+EOF
+		$stages/$build_name/configure $TOOLS_CONFIGURE
+
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+gettext_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version" "true"
+	_pushd $builds/$build_name
+		_pushd gettext-tools
+			echo "gl_cv_func_wcwidth_works=yes" > config.cache
+
+			./configure $TOOLS_CONFIGURE \
+				--disable-shared
+			make -C gnulib-lib
+			make -C src msgfmt
+			cp -v src/msgfmt $TOOLS/bin
+		_popd
+	_popd
+	log $FUNCNAME finished
+}
+
+grep_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version" "true"
+	_pushd $builds/$build_name
+
+cat > config.cache << EOF
+ac_cv_func_malloc_0_nonnull=yes
+ac_cv_func_realloc_0_nonnull=yes
+EOF
+		$stages/$build_name/configure $TOOLS_CONFIGURE \
+			--disable-perl-regexp --without-included-regexp 
+
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+m4_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+
+cat > config.cache << EOF
+gl_cv_func_btowc_eof=yes
+gl_cv_func_mbrtowc_incomplete_state=yes
+gl_cv_func_mbrtowc_sanitycheck=yes
+gl_cv_func_mbrtowc_null_arg=yes
+gl_cv_func_mbrtowc_retval=yes
+gl_cv_func_mbrtowc_nul_retval=yes
+gl_cv_func_wcrtomb_retval=yes
+gl_cv_func_wctob_works=yes
+EOF
+		$stages/$build_name/configure $TOOLS_CONFIGURE
+
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+generic_tools() {
+	source_plan $1
+	log $name-$version started
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+
+		$stages/$build_name/configure $TOOLS_CONFIGURE
+
+		make
+		make install
+	_popd
+	log $name-$version finished
+}
+
+patch_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+
+		echo "ac_cv_func_strnlen_working=yes" > config.cache
+
+		$stages/$build_name/configure $TOOLS_CONFIGURE
+
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+texinfo_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+
+		$stages/$build_name/configure $TOOLS_CONFIGURE
+
+		make -C tools/gnulib/lib
+		make -C tools
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
+vim_tools() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version" "true"
+
+	_pushd $builds/$build_name
+
+	sed -i "/using uint32_t/s/as_fn_error/#&/" src/auto/configure
+
+cat > src/auto/config.cache << "EOF"
+vim_cv_getcwd_broken=no
+vim_cv_memmove_handles_overlap=yes
+vim_cv_stat_ignores_slash=no
+vim_cv_terminfo=yes
+vim_cv_tgent=zero
+vim_cv_toupper_broken=no
+vim_cv_tty_group=world
+ac_cv_sizeof_int=4
+ac_cv_sizeof_long=4
+ac_cv_sizeof_time_t=4
+ac_cv_sizeof_off_t=4
+EOF
+
+		./configure $TOOLS_CONFIGURE \
+			--enable-multibyte --enable-gui=no \
+			--disable-gtktest --disable-xim --with-features=normal \
+			--disable-gpm --without-x --disable-netbeans \
+			--with-tlib=ncurses
+
+		make
+		make install
+		ln -sfv vim $TOOLS/bin/vi
+
+cat > $TOOLS/etc/vimrc << "EOF"
+" Begin /etc/vimrc
+
+set nocompatible
+set backspace=2
+set ruler
+syntax on
+
+" End /etc/vimrc
+EOF
+
+	_popd
+	log $FUNCNAME finished
+}
+
+init
 #linux_api_headers
 #file_build
 #m4_build
@@ -442,4 +831,40 @@ create
 #cross_binutils
 #cross_gcc
 #eglibc
-cross_gcc_final
+#cross_gcc_final
+
+export CC="${CLFS_TARGET}-gcc"
+export CXX="${CLFS_TARGET}-g++"
+export AR="${CLFS_TARGET}-ar"
+export AS="${CLFS_TARGET}-as"
+export RANLIB="${CLFS_TARGET}-ranlib"
+export LD="${CLFS_TARGET}-ld"
+export STRIP="${CLFS_TARGET}-strip"
+
+#gmp_tools gmp
+#mpfr_tools mpfr
+#generic_tools mpc
+#zlib_tools zlib
+#binutils_tools binutils
+#gcc_tools gcc
+#ncurses_tools ncurses
+#bash_tools bash
+#generic_tools bison
+#bzip2_tools bzip2
+#coreutils_tools coreutils
+#generic_tools diffutils
+#findutils_tools findutils
+#generic_tools file
+#flex_tools flex
+#generic_tools gawk
+#gettext_tools gettext
+#grep_tools grep
+#generic_tools gzip
+#m4_tools m4
+#generic_tools make
+#patch_tools patch
+#generic_tools sed
+#generic_tools tar
+#texinfo_tools texinfo
+#vim_tools vim
+#generic_tools xz
