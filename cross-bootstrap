@@ -13,8 +13,17 @@ user=$USER
 term=$TERM
 unset `env | awk -F= '/^\w/ {print $1}' | xargs`
 
+TARGET_ARCH="i686"
 
-export TARCH="i686"
+case $TARGET_ARCH in
+	i686)
+		KARCH=i386
+		;;
+	x86_64)
+		BUILD64="-m64"
+		KARCH=$TARGET_ARCH
+		;;
+esac
 
 export PWD=$pwd
 export USER=$user
@@ -25,7 +34,7 @@ TOOLS=/tools
 CROSS_TOOLS=/cross-tools
 export PATH=/usr/lib/ccache/bin:$CROSS_TOOLS/bin:/bin:/usr/bin
 CLFS_HOST=$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')
-CLFS_TARGET="${TARCH}-pc-linux-gnu"
+CLFS_TARGET="${TARGET_ARCH}-unknown-linux-gnu"
 
 TOOLS_CONFIGURE="\
 	--prefix=$TOOLS \
@@ -57,6 +66,7 @@ init() {
 source_plan() {
 	unset name version build_name source 
 	source $plans/*/$1/plan
+	log "starting" $name-$version
 }
 
 log() {
@@ -111,67 +121,55 @@ _popd() {
     builtin popd &> /dev/null
 }
 
-linux_api_headers() {
-	log $FUNCNAME started
-	local name=linux
-	local version=3.0
-	local url="http://www.kernel.org/pub/linux/kernel/v3.0/$name-$version.tar.bz2"
-	download $url
-	stage "$url" "$name" "$version" "true"
-	_pushd $builds/$name-$version
+linux_api_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version" "true"
+	_pushd $builds/$build_name
 		install -dv $TOOLS/include
 		make mrproper
 		# FIXME: do not hardcode arch
-		make ARCH=i386 headers_check
-		make ARCH=i386 INSTALL_HDR_PATH=dest headers_install
+		make ARCH=$KARCH headers_check
+		make ARCH=$KARCH INSTALL_HDR_PATH=dest headers_install
 		cp -rv dest/include/* $TOOLS/include
 	_popd
 	log $FUNCNAME finished
 }
 
-file_build() {
-	log $FUNCNAME started
-	local name=file
-	local version=5.07
-	local url="ftp://ftp.astron.com/pub/file/$name-$version.tar.gz"
-	download $url
-	stage "$url" "$name" "$version"
-	_pushd $builds/$name-$version
-		$stages/$name-$version/configure --prefix=$CROSS_TOOLS
+file_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		$stages/$build_name/configure --prefix=$CROSS_TOOLS
 		make
 		make install
 	_popd
 	log $FUNCNAME finished
 }
 
-m4_build() {
-	log $FUNCNAME started
-	local name=m4
-	local version=1.4.16
-	local url=$GNU_MIRROR/$name/$name-$version.tar.gz
-	download $url
-	stage "$url" "$name" "$version"
-	_pushd $builds/$name-$version
-		$stages/$name-$version/configure --prefix=$CROSS_TOOLS
+m4_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		$stages/$build_name/configure --prefix=$CROSS_TOOLS
 		make
 		make install
 	_popd
 	log $FUNCNAME finished
 }
 
-ncurses() {
-	log $FUNCNAME started
-	local name=ncurses
-	local version=5.9
-	local url=$GNU_MIRROR/$name/$name-$version.tar.gz
-	download $url
-	download http://patches.cross-lfs.org/dev/ncurses-5.9-bash_fix-1.patch
-	stage "$url" "$name" "$version"
-	_pushd $stages/$name-$version
+ncurses_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $stages/$build_name
+		download http://patches.cross-lfs.org/dev/ncurses-5.9-bash_fix-1.patch
 		patch -Np1 -i $sources/ncurses-5.9-bash_fix-1.patch
 	_popd
-	_pushd $builds/$name-$version
-		$stages/$name-$version/configure --prefix=$CROSS_TOOLS \
+	_pushd $builds/$build_name
+		$stages/$build_name/configure --prefix=$CROSS_TOOLS \
 			--without-debug --without-shared
 
 		make -C include
@@ -181,15 +179,12 @@ ncurses() {
 	log $FUNCNAME finished
 }
 
-gmp() {
-	log $FUNCNAME started
-	local name=gmp
-	local version=5.0.2
-	local url=$GNU_MIRROR/$name/$name-$version.tar.gz
-	download $url
-	stage "$url" "$name" "$version"
-	_pushd $builds/$name-$version
-		CPPFLAGS=-fexceptions $stages/$name-$version/configure \
+gmp_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
+		CPPFLAGS=-fexceptions $stages/$build_name/configure \
 			--prefix=$CROSS_TOOLS \
 			--enable-cxx
 		make
@@ -198,16 +193,13 @@ gmp() {
 	log $FUNCNAME finished
 }
 
-mpfr() {
-	log $FUNCNAME started
-	local name=mpfr
-	local version=3.0.1
-	local url=$GNU_MIRROR/$name/$name-$version.tar.gz
-	download $url
-	stage "$url" "$name" "$version"
-	_pushd $builds/$name-$version
+mpfr_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
 	LDFLAGS="-Wl,-rpath,$CROSS_TOOLS/lib" \
-		$stages/$name-$version/configure \
+		$stages/$build_name/configure \
 		--prefix=$CROSS_TOOLS \
 		--enable-shared \
 		--with-gmp=$CROSS_TOOLS
@@ -217,16 +209,13 @@ mpfr() {
 	log $FUNCNAME finished
 }
 
-mpc() {
-	log $FUNCNAME started
-	local name=mpc
-	local version=0.9
-	local url="http://www.multiprecision.org/mpc/download/mpc-$version.tar.gz"
-	download $url
-	stage "$url" "$name" "$version"
-	_pushd $builds/$name-$version
+mpc_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
 	LDFLAGS="-Wl,-rpath,$CROSS_TOOLS/lib" \
-		$stages/$name-$version/configure --prefix=$CROSS_TOOLS \
+		$stages/$build_name/configure --prefix=$CROSS_TOOLS \
 		--with-gmp=$CROSS_TOOLS \
 		--with-mpfr=$CROSS_TOOLS
 	make
@@ -235,17 +224,14 @@ mpc() {
 	log $FUNCNAME finished
 }
 
-ppl() {
-	log $FUNCNAME started
-	local name=ppl
-	local version=0.11.2
-	local url=http://www.cs.unipr.it/ppl/Download/ftp/releases/$version/ppl-$version.tar.bz2
-	download $url
-	stage "$url" "$name" "$version"
-	_pushd $builds/$name-$version
+ppl_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
 	CPPFLAGS="-I$CROSS_TOOLS/include" \
 		LDFLAGS="-Wl,-rpath,$CROSS_TOOLS/lib" \
-		$stages/$name-$version/configure --prefix=$CROSS_TOOLS \
+		$stages/$build_name/configure --prefix=$CROSS_TOOLS \
 		--enable-shared \
 		--enable-interfaces="c,cxx" \
 		--disable-optimization \
@@ -257,23 +243,20 @@ ppl() {
 	log $FUNCNAME finished
 }
 
-cloog_ppl() {
-	log $FUNCNAME started
-	local name=cloog-ppl
-	local version=0.15.11
-	local url=ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-ppl-$version.tar.gz
-	download $url
-	stage "$url" "$name" "$version"
+cloog_ppl_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
 
-	_pushd $stages/$name-$version
+	_pushd $stages/$build_name
 		cp -v configure{,.orig}
 		sed -e "/LD_LIBRARY_PATH=/d" \
 			configure.orig > configure
 	_popd
 
-	_pushd $builds/$name-$version
+	_pushd $builds/$build_name
 		LDFLAGS="-Wl,-rpath,$CROSS_TOOLS/lib" \
-			$stages/$name-$version/configure \
+			$stages/$build_name/configure \
 			--prefix=$CROSS_TOOLS \
 			--enable-shared \
 			--with-bits=gmp \
@@ -286,16 +269,13 @@ cloog_ppl() {
 	log $FUNCNAME finished
 }
 
-cross_binutils() {
-	log $FUNCNAME started
-	local name=binutils
-	local version=2.21
-	local url=$GNU_MIRROR/$name/$name-$version.tar.gz
-	download $url
-	stage "$url" "$name" "$version"
-	_pushd $builds/$name-$version
+binutils_cross() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+	_pushd $builds/$build_name
 	AR=ar AS=as \
-		$stages/$name-$version/configure \
+		$stages/$build_name/configure \
 		--prefix=$CROSS_TOOLS \
 		--host=${CLFS_HOST} \
 		--target=${CLFS_TARGET} \
@@ -308,28 +288,17 @@ cross_binutils() {
 	make configure-host
 	make
 	make install
-	cp -v $stages/$name-$version/include/libiberty.h /tools/include
+	cp -v $stages/$build_name/include/libiberty.h /tools/include
 	_popd
 	log $FUNCNAME finished
 }
 
-cross_gcc() {
-	log $FUNCNAME started
-	local name=gcc
-	local version=4.6.0
-	local url=$GNU_MIRROR/$name/$name-$version/$name-$version.tar.bz2
-	local patch_url=http://patches.cross-lfs.org/dev/gcc-4.6.0-branch_update-1.patch
-	local patch_url=http://patches.cross-lfs.org/dev/gcc-4.6.0-specs-1.patch
-
-	download $url
-	download http://patches.cross-lfs.org/dev/gcc-4.6.0-branch_update-1.patch
+gcc_cross() {
+	source_plan $1
+	download $source
 	download http://patches.cross-lfs.org/dev/gcc-4.6.0-specs-1.patch
-	if [ -d $stages/$name-$version ]; then
-		rm -r $stages/$name-$version
-	fi
-	stage "$url" "$name" "$version"
-	_pushd $stages/$name-$version
-		patch -Np1 -i $sources/gcc-4.6.0-branch_update-1.patch
+	stage "$source" "$name" "$version"
+	_pushd $stages/$build_name
 		patch -Np1 -i $sources/gcc-4.6.0-specs-1.patch
 
 		echo -en '#undef STANDARD_INCLUDE_DIR\n#define STANDARD_INCLUDE_DIR "/tools/include/"\n\n' >> gcc/config/linux.h
@@ -343,17 +312,17 @@ cross_gcc() {
 		touch /tools/include/limits.h
 	_popd
 
-	_pushd $builds/$name-$version
+	_pushd $builds/$build_name
 	AR=ar LDFLAGS="-Wl,-rpath,$CROSS_TOOLS/lib" \
-		$stages/$name-$version/configure --prefix=$CROSS_TOOLS \
+		$stages/$build_name/configure --prefix=$CROSS_TOOLS \
 		--build=${CLFS_HOST} --host=${CLFS_HOST} --target=${CLFS_TARGET} \
 		--with-sysroot=$CLFS --with-local-prefix=$TOOLS --disable-nls \
 		--disable-shared --with-mpfr=$CROSS_TOOLS --with-gmp=$CROSS_TOOLS \
-		--with-ppl=$CROSS_TOOLS --with-cloog=$CROSS_TOOLS \
 		--without-headers --with-newlib --disable-decimal-float \
 		--disable-libgomp --disable-libmudflap --disable-libssp \
 		--disable-threads --enable-languages=c --disable-multilib
-
+		#--with-ppl=$CROSS_TOOLS \
+		#--with-cloog=$CROSS_TOOLS \
 		make all-gcc all-target-libgcc
 		make install-gcc install-target-libgcc
 	_popd
@@ -363,19 +332,19 @@ cross_gcc() {
 
 eglibc() {
 	log $FUNCNAME started
-	local name=eglibc
-	local version=2.13
-	local url=http://cross-lfs.org/files/packages/git/eglibc-$version-r13356.tar.bz2
-	download $url
+	name=eglibc
+	version=2.13
+	build_name=$name-$version
+	source=http://cross-lfs.org/files/packages/git/eglibc-$version-r13356.tar.bz2
+	download $source
+	stage "$source" "$name" "$version"
 
-	stage "$url" "$name" "$version"
-
-	_pushd $stages/$name-$version
+	_pushd $stages/$build_name
 		cp -v Makeconfig{,.orig}
 			sed -e 's/-lgcc_eh//g' Makeconfig.orig > Makeconfig
 	_popd
 
-	_pushd $builds/$name-$version
+	_pushd $builds/$build_name
 
 cat > config.cache << "EOF"
 libc_cv_forced_unwind=yes
@@ -401,23 +370,13 @@ EOF
 	log $FUNCNAME finished
 }
 
-cross_gcc_final() {
-	log $FUNCNAME started
-	local name=gcc
-	local version=4.6.0
-	local url=$GNU_MIRROR/$name/$name-$version/$name-$version.tar.bz2
-	download $url
-
-	download http://patches.cross-lfs.org/dev/gcc-4.6.0-branch_update-1.patch
+gcc_cross_final() {
+	source_plan $1
+	download $source
 	download http://patches.cross-lfs.org/dev/gcc-4.6.0-specs-1.patch
+	stage "$source" "$name" "$version"
 
-	if [ -d $stages/$name-$version ]; then
-		rm -r $stages/$name-$version
-	fi
-
-	stage "$url" "$name" "$version"
-	_pushd  $stages/$name-$version
-		patch -Np1 -i $sources/gcc-4.6.0-branch_update-1.patch
+	_pushd  $stages/$build_name
 		patch -Np1 -i $sources/gcc-4.6.0-specs-1.patch
 
 		echo -en '#undef STANDARD_INCLUDE_DIR\n#define STANDARD_INCLUDE_DIR "/tools/include/"\n\n' >> gcc/config/linux.h
@@ -428,23 +387,28 @@ cross_gcc_final() {
 		sed -e "s@\(^CROSS_SYSTEM_HEADER_DIR =\).*@\1 /tools/include@g" \
 			gcc/Makefile.in.orig > gcc/Makefile.in
 	_popd
-	_pushd $builds/$name-$version
+
+	_pushd $builds/$build_name
 	AR=ar LDFLAGS="-Wl,-rpath,$CROSS_TOOLS/lib" \
-		$stages/$name-$version/configure --prefix=$CROSS_TOOLS \
+		$stages/$build_name/configure --prefix=$CROSS_TOOLS \
 		--build=${CLFS_HOST} --target=${CLFS_TARGET} --host=${CLFS_HOST} \
 		--with-sysroot=${CLFS} --with-local-prefix=$TOOLS --disable-nls \
 		--enable-shared --enable-languages=c,c++ --enable-__cxa_atexit \
 		--with-mpfr=$CROSS_TOOLS --with-gmp=/cross-tools --enable-c99 \
-		--with-ppl=$CROSS_TOOLS --with-cloog=$CROSS_TOOLS \
 		--enable-long-long --enable-threads=posix --disable-multilib
+		#--with-ppl=$CROSS_TOOLS --with-cloog=$CROSS_TOOLS \
 
 		make AS_FOR_TARGET="${CLFS_TARGET}-as" \
 			LD_FOR_TARGET="${CLFS_TARGET}-ld"
 		make install
 	_popd
+
 	log $FUNCNAME finished
 }
 
+
+
+# TOOLS
 gmp_tools() {
 	source_plan $1
 	download $source
@@ -730,7 +694,7 @@ generic_tools() {
 	stage "$source" "$name" "$version"
 	_pushd $builds/$build_name
 
-		$stages/$build_name/configure $TOOLS_CONFIGURE
+		$stages/$build_name/configure $TOOLS_CONFIGURE ${2:-}
 
 		make
 		make install
@@ -818,21 +782,23 @@ EOF
 	log $FUNCNAME finished
 }
 
-init
-#linux_api_headers
-#file_build
-#m4_build
-#ncurses
-#gmp
-#mpfr
-#mpc
-#ppl
-#cloog_ppl
-#cross_binutils
-#cross_gcc
-#eglibc
-#cross_gcc_final
+#init
+#linux_api_cross linux
+#file_cross file
+#m4_cross m4
+#ncurses_cross ncurses
+#gmp_cross gmp
+#mpfr_cross mpfr
+#mpc_cross mpc
+#binutils_cross binutils
+#gcc_cross gcc
+#eglibc 
+#make clean
+#init
+#gcc_cross_final gcc
 
+#make clean
+#init
 export CC="${CLFS_TARGET}-gcc"
 export CXX="${CLFS_TARGET}-g++"
 export AR="${CLFS_TARGET}-ar"
@@ -868,4 +834,4 @@ export STRIP="${CLFS_TARGET}-strip"
 #texinfo_tools texinfo
 #vim_tools vim
 #generic_tools xz
-#generic_tools util-linux
+generic_tools util-linux "--enable-arch"
