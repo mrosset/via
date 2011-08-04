@@ -13,7 +13,7 @@ user=$USER
 term=$TERM
 unset `env | awk -F= '/^\w/ {print $1}' | xargs`
 
-TARGET_ARCH="x86_64"
+TARGET_ARCH="i686"
 
 case $TARGET_ARCH in
 	i686)
@@ -365,7 +365,7 @@ libc_cv_gnu89_inline=yes
 libc_cv_ssp=no
 EOF
 
-		BUILD_CC="gcc" CC="${CLFS_TARGET}-gcc ${BUILD64}" \
+		BUILD_CC="gcc" CC="${CLFS_TARGET}-gcc ${BUILD64:-}" \
 			AR="${CLFS_TARGET}-ar" RANLIB="${CLFS_TARGET}-ranlib" \
 			$stages/$build_name/configure --prefix=$TOOLS \
 			--host=${CLFS_TARGET} --build=${CLFS_HOST} \
@@ -479,11 +479,11 @@ binutils_tools() {
 			x86_64) extra_flags="--enable-64-bit-bfd" ;;
 		esac
 
-		CC="${CC} ${BUILD64}" \
+		CC="${CC} ${BUILD64:-}" \
 			$stages/$build_name/configure $TOOLS_CONFIGURE \
 			--target=$CLFS_TARGET --with-lib-path=$TOOLS/lib \
 			--disable-nls --enable-shared \
-			--disable-multilib $extra_flags
+			--disable-multilib ${extra_flags:-}
 		make configure-host
 		make
 		make install
@@ -516,7 +516,7 @@ gcc_tools() {
 	_popd
 
 	_pushd $builds/$build_name
-		CC="${CC} ${BUILD64}" CXX="${CXX} ${BUILD64}"  \
+		CC="${CC} ${BUILD64:-}" CXX="${CXX} ${BUILD64:-}"  \
 			$stages/$build_name/configure $TOOLS_CONFIGURE --target=${CLFS_TARGET} \
 			--with-local-prefix=$TOOLS --enable-long-long --enable-c99 \
 			--enable-shared --enable-threads=posix --enable-__cxa_atexit \
@@ -808,22 +808,22 @@ EOF
 }
 
 init
-linux_api_cross linux
-file_cross file
-m4_cross m4
-ncurses_cross ncurses
-gmp_cross gmp
-mpfr_cross mpfr
-mpc_cross mpc
-binutils_cross binutils
-gcc_cross gcc
-eglibc 
-make clean
-init
-gcc_cross_final gcc
+#linux_api_cross linux
+#file_cross file
+#m4_cross m4
+#ncurses_cross ncurses
+#gmp_cross gmp
+#mpfr_cross mpfr
+#mpc_cross mpc
+#binutils_cross binutils
+#gcc_cross gcc
+#eglibc 
+#make clean
+#init
+#gcc_cross_final gcc
 
-make clean
-init
+#make clean
+#init
 export CC="${CLFS_TARGET}-gcc"
 export CXX="${CLFS_TARGET}-g++"
 export AR="${CLFS_TARGET}-ar"
@@ -832,31 +832,32 @@ export RANLIB="${CLFS_TARGET}-ranlib"
 export LD="${CLFS_TARGET}-ld"
 export STRIP="${CLFS_TARGET}-strip"
 
-gmp_tools gmp
-mpfr_tools mpfr
-generic_tools mpc
-zlib_tools zlib
-binutils_tools binutils
-gcc_tools gcc
-ncurses_tools ncurses
-bash_tools bash
-generic_tools bison
-bzip2_tools bzip2
-coreutils_tools coreutils
-generic_tools diffutils
-findutils_tools findutils
-generic_tools file
-flex_tools flex
-generic_tools gawk
-gettext_tools gettext
-grep_tools grep
-generic_tools gzip
-m4_tools m4
-generic_tools make
-patch_tools patch
-generic_tools sed
-generic_tools tar
-texinfo_tools texinfo
-vim_tools vim
-generic_tools xz
-generic_tools util-linux "--enable-arch"
+# gmp_tools gmp
+# mpfr_tools mpfr
+# generic_tools mpc
+# zlib_tools zlib
+# binutils_tools binutils
+# gcc_tools gcc
+# ncurses_tools ncurses
+# bash_tools bash
+# generic_tools bison
+# bzip2_tools bzip2
+# coreutils_tools coreutils
+# generic_tools diffutils
+# findutils_tools findutils
+# generic_tools file
+# flex_tools flex
+# generic_tools gawk
+# gettext_tools gettext
+# grep_tools grep
+# generic_tools gzip
+# m4_tools m4
+# generic_tools make
+# patch_tools patch
+# generic_tools sed
+# generic_tools tar
+# texinfo_tools texinfo
+# vim_tools vim
+# generic_tools xz
+# generic_tools util-linux "--enable-arch"
+ln -svf . /tools/tools
