@@ -27,8 +27,8 @@ CHOST="x86_64-unknown-linux-gnu"
 # -mtune : generic optimization for -march
 # -O2    : optimization level for code
 # -pipe  : use pipes instead of tmp files for compiler communication
-CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
-CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+CFLAGS="-march=native -mtune=native -O2 -pipe"
+CXXFLAGS="-march=native -mtune=native -O2 -pipe"
 
 # --hash-style : use gnu hash tables
 # --as-needed  : only add libraries to DT_NEEDED that resolve 
@@ -105,6 +105,10 @@ via_stage() {
     fi
     _pushd "$stages"
     if [ ! -d "$build_name" ]; then
+        tar_dir=$(tar tf "$sources/$file" | head -1)
+        if [ "$tar_dir" != "$build_name" ]; then
+            build_name=$tar_dir
+        fi
         tar xf "$sources/$file"
         if [ -d "$plan_dir/patches" ]; then
             _pushd "$build_name"
@@ -256,7 +260,7 @@ via_build() {
 
     _pushd $builds/$build_name
         log "$build_type" "$name"
-        $builder &>> $log
+        $builder #&>> $log
         if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
             make check
         fi
@@ -276,7 +280,7 @@ via_package() {
     fi
     log $(echo $packager) $name
     _pushd $builds/$build_name
-        $packager &>> $log
+        $packager #&>> $log
     _popd
     package_files_dir
     if [ ! -d $DESTDIR ]; then
@@ -592,6 +596,10 @@ via_gen_hash() {
     local file=$(basename $source)
     sha=$(sha256sum $sources/$file | awk '{print $1}')
     echo verify=\"$sha\" >> $plan
+}
+
+via_remove_plan() {
+    rm -rv $(find $plans -name $1)
 }
 
 while getopts ":r:" opt; do
