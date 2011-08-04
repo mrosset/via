@@ -13,15 +13,25 @@ user=$USER
 term=$TERM
 unset `env | awk -F= '/^\w/ {print $1}' | xargs`
 
-TARGET_ARCH="i686"
+TARGET_ARCH="arm"
 
 case $TARGET_ARCH in
 	i686)
 		KARCH=i386
+		ABI="gnu"
 		;;
 	x86_64)
 		KARCH=$TARGET_ARCH
 		BUILD64="-m64"
+		ABI="gnu"
+		;;
+	arm)
+		KARCH=$TARGET_ARCH
+		ABI="gnueabi"
+		;;
+	*)
+		KARCH=$TARGET_ARCH
+		ABI="gnu"
 		;;
 esac
 
@@ -33,8 +43,8 @@ CLFS=/mnt/clfs
 TOOLS=/tools
 CROSS_TOOLS=/cross-tools
 export PATH=/usr/lib/ccache/bin:$CROSS_TOOLS/bin:/bin:/usr/bin
-CLFS_HOST=$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')
-CLFS_TARGET="${TARGET_ARCH}-unknown-linux-gnu"
+CLFS_HOST="$(arch)-cross-linux-gnu"
+CLFS_TARGET="${TARGET_ARCH}-via-linux-${ABI}"
 
 export MAKFLAGS="-j3"
 
@@ -54,7 +64,6 @@ stages=$cache/stages
 logs=$PWD/logs
 log=$PWD/logs/bootstrap.log
 
-
 init() {
 	for d in $logs $builds $sources $stages ; do
 		if [ ! -d $d ]; then
@@ -63,7 +72,6 @@ init() {
 		fi
 	done
 }
-
 
 source_plan() {
 	unset name version build_name source 
@@ -123,7 +131,7 @@ _popd() {
     builtin popd &> /dev/null
 }
 
-linux_api_cross() {
+cross_linux_api() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version" "true"
@@ -138,7 +146,7 @@ linux_api_cross() {
 	log $FUNCNAME finished
 }
 
-file_cross() {
+cross_file() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -150,7 +158,7 @@ file_cross() {
 	log $FUNCNAME finished
 }
 
-m4_cross() {
+cross_m4() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -162,7 +170,7 @@ m4_cross() {
 	log $FUNCNAME finished
 }
 
-ncurses_cross() {
+cross_ncurses() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -181,7 +189,7 @@ ncurses_cross() {
 	log $FUNCNAME finished
 }
 
-gmp_cross() {
+cross_gmp() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -195,7 +203,7 @@ gmp_cross() {
 	log $FUNCNAME finished
 }
 
-mpfr_cross() {
+cross_mpfr() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -211,7 +219,7 @@ mpfr_cross() {
 	log $FUNCNAME finished
 }
 
-mpc_cross() {
+cross_mpc() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -226,7 +234,7 @@ mpc_cross() {
 	log $FUNCNAME finished
 }
 
-ppl_cross() {
+cross_ppl() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -245,7 +253,7 @@ ppl_cross() {
 	log $FUNCNAME finished
 }
 
-cloog_ppl_cross() {
+cross_cloog_ppl() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -271,7 +279,7 @@ cloog_ppl_cross() {
 	log $FUNCNAME finished
 }
 
-binutils_cross() {
+cross_binutils() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -300,7 +308,7 @@ binutils_cross() {
 	log $FUNCNAME finished
 }
 
-gcc_cross() {
+cross_gcc() {
 	source_plan $1
 	download $source
 	download http://patches.cross-lfs.org/dev/gcc-4.6.0-specs-1.patch
@@ -347,11 +355,14 @@ eglibc() {
 	name=eglibc
 	version=2.13
 	build_name=$name-$version
-	source=http://cross-lfs.org/files/packages/git/eglibc-$version-r13356.tar.bz2
-	download $source
-	stage "$source" "$name" "$version"
+	#source=http://cross-lfs.org/files/packages/git/eglibc-$version-r13356.tar.bz2
+	#download $source
+	#stage "$source" "$name" "$version"
+	[ ! -d $stages/$build_name ] && cp -af $sources/$build_name $stages/
+	[ ! -d $builds/$build_name ] && mkdir -p $builds/$build_name
+	ln -sf ../ports $stages/$build_name/libc/ports
 
-	_pushd $stages/$build_name
+	_pushd $stages/$build_name/libc
 		cp -v Makeconfig{,.orig}
 			sed -e 's/-lgcc_eh//g' Makeconfig.orig > Makeconfig
 	_popd
@@ -367,7 +378,7 @@ EOF
 
 		BUILD_CC="gcc" CC="${CLFS_TARGET}-gcc ${BUILD64:-}" \
 			AR="${CLFS_TARGET}-ar" RANLIB="${CLFS_TARGET}-ranlib" \
-			$stages/$build_name/configure --prefix=$TOOLS \
+			$stages/$build_name/libc/configure --prefix=$TOOLS \
 			--host=${CLFS_TARGET} --build=${CLFS_HOST} \
 			--disable-profile --enable-add-ons \
 			--with-tls --enable-kernel=2.6.0 --with-__thread \
@@ -382,7 +393,7 @@ EOF
 	log $FUNCNAME finished
 }
 
-gcc_cross_final() {
+cross_gcc_final() {
 	source_plan $1
 	download $source
 	download http://patches.cross-lfs.org/dev/gcc-4.6.0-specs-1.patch
@@ -427,7 +438,7 @@ gcc_cross_final() {
 
 
 # TOOLS
-gmp_tools() {
+tools_gmp() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -441,7 +452,7 @@ gmp_tools() {
 	log $FUNCNAME finished
 }
 
-mpfr_tools() {
+tools_mpfr() {
 	source_plan $1
 	source $plans/*/$1/plan
 	download $source
@@ -456,7 +467,7 @@ mpfr_tools() {
 }
 
 
-zlib_tools() {
+tools_zlib() {
 	source_plan $1
 	source $plans/*/$1/plan
 	download $source
@@ -469,7 +480,7 @@ zlib_tools() {
 	log $FUNCNAME finished
 }
 
-binutils_tools() {
+tools_binutils() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -491,7 +502,24 @@ binutils_tools() {
 	log $FUNCNAME finished
 }
 
-gcc_tools() {
+tools_libgcc() {
+	source_plan $1
+	download $source
+	stage "$source" "$name" "$version"
+
+	_pushd $builds/$build_name
+		CC="${CC} ${BUILD64:-}" CXX="${CXX} ${BUILD64:-}"  \
+			$stages/$build_name/configure $TOOLS_CONFIGURE --target=${CLFS_TARGET} \
+			--with-local-prefix=$TOOLS --enable-long-long --enable-c99 \
+			--enable-shared --enable-threads=posix --enable-__cxa_atexit \
+			--disable-nls --enable-languages=c --disable-libstdcxx-pch \
+			--disable-multilib --disable-bootstrap
+
+		make AS_FOR_TARGET="${AS}" LD_FOR_TARGET="${LD}" all-target-libgcc
+		make install-target-libgcc
+}
+
+tools_gcc() {
 	source_plan $1
 	download $source
 
@@ -536,7 +564,7 @@ gcc_tools() {
 	log $FUNCNAME finished
 }
 
-ncurses_tools() {
+tools_ncurses() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -551,7 +579,9 @@ ncurses_tools() {
 	log $FUNCNAME finished
 }
 
-bash_tools() {
+
+
+tools_bash() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -582,7 +612,7 @@ EOF
 	log $FUNCNAME finished
 }
 
-bzip2_tools() {
+tools_bzip2() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version" "true"
@@ -596,7 +626,7 @@ bzip2_tools() {
 	log $FUNCNAME finished
 }
 
-coreutils_tools() {
+tools_coreutils() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -617,7 +647,7 @@ EOF
 	log $FUNCNAME finished
 }
 
-findutils_tools() {
+tools_findutils() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -633,7 +663,7 @@ findutils_tools() {
 	log $FUNCNAME finished
 }
 
-flex_tools() {
+tools_flex() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -651,7 +681,7 @@ EOF
 	log $FUNCNAME finished
 }
 
-gettext_tools() {
+tools_gettext() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version" "true"
@@ -669,7 +699,7 @@ gettext_tools() {
 	log $FUNCNAME finished
 }
 
-grep_tools() {
+tools_grep() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version" "true"
@@ -688,7 +718,7 @@ EOF
 	log $FUNCNAME finished
 }
 
-m4_tools() {
+tools_m4() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -712,7 +742,7 @@ EOF
 	log $FUNCNAME finished
 }
 
-generic_tools() {
+tools_generic() {
 	source_plan $1
 	log $name-$version started
 	download $source
@@ -727,7 +757,7 @@ generic_tools() {
 	log $name-$version finished
 }
 
-patch_tools() {
+tools_patch() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -743,7 +773,7 @@ patch_tools() {
 	log $FUNCNAME finished
 }
 
-texinfo_tools() {
+tools_texinfo() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version"
@@ -759,7 +789,7 @@ texinfo_tools() {
 	log $FUNCNAME finished
 }
 
-vim_tools() {
+tools_vim() {
 	source_plan $1
 	download $source
 	stage "$source" "$name" "$version" "true"
@@ -807,57 +837,66 @@ EOF
 	log $FUNCNAME finished
 }
 
-init
-#linux_api_cross linux
-#file_cross file
-#m4_cross m4
-#ncurses_cross ncurses
-#gmp_cross gmp
-#mpfr_cross mpfr
-#mpc_cross mpc
-#binutils_cross binutils
-#gcc_cross gcc
-#eglibc 
-#make clean
-#init
-#gcc_cross_final gcc
+cross_phase() {
+	init
+	cross_linux_api linux
+	cross_file file
+	cross_m4 m4
+	cross_ncurses ncurses
+	cross_gmp gmp
+	cross_mpfr mpfr
+	cross_mpc mpc
+	cross_binutils binutils
+	cross_gcc gcc
+	eglibc 
+	make clean
+	init
+	cross_gcc_final gcc
+	make clean
+}
 
-#make clean
-#init
-export CC="${CLFS_TARGET}-gcc"
-export CXX="${CLFS_TARGET}-g++"
-export AR="${CLFS_TARGET}-ar"
-export AS="${CLFS_TARGET}-as"
-export RANLIB="${CLFS_TARGET}-ranlib"
-export LD="${CLFS_TARGET}-ld"
-export STRIP="${CLFS_TARGET}-strip"
+tools_phase() {
+	init
+	export CC="${CLFS_TARGET}-gcc"
+	export CXX="${CLFS_TARGET}-g++"
+	export AR="${CLFS_TARGET}-ar"
+	export AS="${CLFS_TARGET}-as"
+	export RANLIB="${CLFS_TARGET}-ranlib"
+	export LD="${CLFS_TARGET}-ld"
+	export STRIP="${CLFS_TARGET}-strip"
 
-# gmp_tools gmp
-# mpfr_tools mpfr
-# generic_tools mpc
-# zlib_tools zlib
-# binutils_tools binutils
-# gcc_tools gcc
-# ncurses_tools ncurses
-# bash_tools bash
-# generic_tools bison
-# bzip2_tools bzip2
-# coreutils_tools coreutils
-# generic_tools diffutils
-# findutils_tools findutils
-# generic_tools file
-# flex_tools flex
-# generic_tools gawk
-# gettext_tools gettext
-# grep_tools grep
-# generic_tools gzip
-# m4_tools m4
-# generic_tools make
-# patch_tools patch
-# generic_tools sed
-# generic_tools tar
-# texinfo_tools texinfo
-# vim_tools vim
-# generic_tools xz
-# generic_tools util-linux "--enable-arch"
-ln -svf . /tools/tools
+	#tools_libgcc gcc
+
+	tools_gmp gmp
+	tools_mpfr mpfr
+	tools_generic mpc
+	tools_zlib zlib
+	tools_binutils binutils
+	tools_gcc gcc
+	tools_ncurses ncurses
+	tools_bash bash
+	tools_generic bison
+	tools_bzip2 bzip2
+	tools_coreutils coreutils
+	tools_generic diffutils
+	tools_findutils findutils
+	tools_generic file
+	tools_flex flex
+	tools_generic gawk
+	tools_gettext gettext
+	tools_grep grep
+	tools_generic gzip
+	tools_m4 m4
+	tools_generic make
+	tools_patch patch
+	tools_generic sed
+	tools_generic tar
+	tools_texinfo texinfo
+	tools_vim vim
+	tools_generic xz
+	tools_generic util-linux "--enable-arch"
+	ln -svf . /tools/tools
+}
+
+cross_phase
+tools_phase
