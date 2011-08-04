@@ -44,7 +44,7 @@ TOOLS=/tools
 CROSS_TOOLS=/cross-tools
 export PATH=/usr/lib/ccache/bin:$CROSS_TOOLS/bin:/bin:/usr/bin
 CLFS_HOST="$(arch)-cross-linux-gnu"
-CLFS_TARGET="${TARGET_ARCH}-via-linux-${ABI}"
+CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
 
 export MAKFLAGS="-j3"
 
@@ -898,5 +898,6 @@ tools_phase() {
 	ln -svf . /tools/tools
 }
 
+init
 cross_phase
 tools_phase
