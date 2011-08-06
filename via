@@ -282,7 +282,11 @@ via_package() {
     if [ ! -d $DESTDIR ]; then
         mkdir $DESTDIR
     fi
-    _pushd $DESTDIR
+    if [ -n "${CLFS_TARGET:-}" ]; then
+        _pushd $DESTDIR/tools
+    else
+        _pushd $DESTDIR/tools
+    fi
     if [ "$(type -t post_hook)" = "function" ]; then
         post_hook
     fi
@@ -601,8 +605,7 @@ via_remove_plan() {
 via_cross_build() {
     TARGET_ARCH="arm"
     ABI="gnueabi"
-    unset CHOST
-    unset CARCH
+    unset CHOST CARCH CFLAGS CXXFLAGS
     CLFS_HOST="$(arch)-cross-linux-gnu"
     CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
     PREFIX=/tools
