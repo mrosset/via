@@ -105,10 +105,6 @@ via_stage() {
     fi
     _pushd "$stages"
     if [ ! -d "$build_name" ]; then
-        tar_dir=$(tar tf "$sources/$file" | head -1)
-        if [ "$tar_dir" != "$build_name" ]; then
-            build_name=$tar_dir
-        fi
         tar xf "$sources/$file"
         if [ -d "$plan_dir/patches" ]; then
             _pushd "$build_name"
@@ -202,7 +198,7 @@ get_build_type() {
         return 0
     fi
 
-    log "ERROR" "could not determine builder type"
+    echo "ERROR" "could not determine builder type"
     exit 1
 }
 
@@ -600,6 +596,32 @@ via_gen_hash() {
 
 via_remove_plan() {
     rm -rv $(find $plans -name $1)
+}
+
+via_cross_build() {
+    TARGET_ARCH="arm"
+    ABI="gnueabi"
+    unset CHOST
+    unset CARCH
+    CLFS_HOST="$(arch)-cross-linux-gnu"
+    CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
+    PREFIX=/tools
+    export PATH=/usr/lib/ccache/bin:/cross-tools/bin:/bin:/usr/bin
+
+    export CC="${CLFS_TARGET}-gcc"
+    export CXX="${CLFS_TARGET}-g++"
+    export AR="${CLFS_TARGET}-ar"
+    export AS="${CLFS_TARGET}-as"
+    export RANLIB="${CLFS_TARGET}-ranlib"
+    export LD="${CLFS_TARGET}-ld"
+    export STRIP="${CLFS_TARGET}-strip"
+
+   confargs+="\
+	--prefix=$PREFIX \
+	--build=${CLFS_HOST} \
+	--host=${CLFS_TARGET} \
+	--cache-file=config.cache"
+    via_build $1
 }
 
 while getopts ":r:" opt; do

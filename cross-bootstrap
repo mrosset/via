@@ -666,7 +666,13 @@ tools_findutils() {
 tools_flex() {
 	source_plan $1
 	download $source
+	download http://patches.cross-lfs.org/dev/flex-2.5.35-gcc44-1.patch
 	stage "$source" "$name" "$version"
+
+	_pushd $stages/$build_name
+		patch -Np1 -i $sources/flex-2.5.35-gcc44-1.patch
+	_popd
+
 	_pushd $builds/$build_name
 
 cat > config.cache << EOF
@@ -837,6 +843,28 @@ EOF
 	log $FUNCNAME finished
 }
 
+tools_perl() {
+	source_plan $1
+	download $source
+	download http://patches.cross-lfs.org/dev/perl-5.14.0-libc-1.patch
+	stage "$source" "$name" "$version"
+	
+	_pushd $stages/$build_name
+		patch -Np1 -i $sources/perl-5.14.0-libc-1.patch
+		sed -i 's@/usr/include@/tools/include@g' ext/Errno/Errno_pm.PL
+
+	_popd
+
+	_pushd $builds/$build_name
+
+		$stages/$build_name/configure.gnu $TOOLS_CONFIGURE -Dcc="gcc"
+
+		make
+		make install
+	_popd
+	log $FUNCNAME finished
+}
+
 cross_phase() {
 	init
 	cross_linux_api linux
@@ -895,9 +923,26 @@ tools_phase() {
 	tools_vim vim
 	tools_generic xz
 	tools_generic util-linux "--enable-arch"
+	tools_generic which
+	tools_generic less
+	tools_generic tmux
+	tools_generic which
+	tools_generic less
+	tools_generic curl
+	tools_generic htop
+
 	ln -svf . /tools/tools
 }
 
 init
-cross_phase
-tools_phase
+#cross_phase
+#tools_phase
+#tools_generic which
+#tools_generic less
+#tools_generic curl
+#tools_generic htop
+#tools_generic gnupg
+tools_generic openssl
+tools_generic openssh
+tools_generic nmap
+#tools_generic bison
