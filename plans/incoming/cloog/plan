@@ -1,0 +1,4 @@
+name="cloog"
+version="0.16.2"
+source="http://www.bastoul.net/cloog/pages/download/cloog-$version.tar.gz"
+verify="bd9a9aca06aa324e61071cef19f828e08444df847b2dcebd2b66a280354d36f1"

@@ -1,0 +1,4 @@
+name="nmap"
+version="5.51"
+source="http://nmap.org/dist/nmap-$version.tar.bz2"
+verify="15b3e134a74fa9b54aba2c3a53d6701c7ad221dc4051657ef95465a5a5a8687e"

@@ -1,0 +1,5 @@
+name="apr-util"
+version="1.3.12"
+source="http://www.apache.org/dist/apr/apr-util-$version.tar.bz2"
+verify="93976dc2f40d8622c4e9c355f419bb20f2c0dd843ee21a295a092d1c1b950d9c"
+build_args="--with-apr=/usr"

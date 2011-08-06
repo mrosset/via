@@ -1,0 +1,4 @@
+name="tightvnc"
+version="1.3.10"
+source="http://downloads.sf.net/sourceforge/vnc-tight/tightvnc-${version}_unixsrc.tar.bz2"
+verify="f48c70fea08d03744ae18df6b1499976362f16934eda3275cead87baad585c0d"

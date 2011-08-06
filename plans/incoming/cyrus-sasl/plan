@@ -1,0 +1,4 @@
+name="cyrus-sasl"
+version="2.1.23"
+source="ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-$version.tar.gz"
+verify="20efcc4040cbab6e89a636a07dcf5720ee07b5c62359a4e7bf2500ef6020b136"

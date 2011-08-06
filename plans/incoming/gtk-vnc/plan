@@ -1,0 +1,5 @@
+name="gtk-vnc"
+version="0.4.3"
+source="http://ftp.gnome.org/pub/gnome/sources/gtk-vnc/0.4/gtk-vnc-$version.tar.bz2"
+verify="b9870d923d636d2e7547267d01c8cafdc06ad5b5b4987003ea3cd567bfbb6377"
+build_args="--without-sasl"

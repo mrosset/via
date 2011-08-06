@@ -1,20 +1,17 @@
 name="openssl"
 version="1.0.0d"
 source="https://www.openssl.org/source/openssl-$version.tar.gz"
-build_name=""
-build="custom_build"
-build_args=""
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="92511d1f0caaa298dba250426f8e7d5d00b271847886d1adc62422778d6320db"
+builder="custom_build"
+packager="custom_package"
+verify="92511d1f0caaa298dba250426f8e7d5d00b271847886d1adc62422778d6320db"
 
 custom_build() {
-	./config --prefix=/usr --openssldir=/etc/ssl --libdir=lib \
-		shared zlib enable-md2 -Wa,--noexecstack
+	./Configure linux-armv4 --prefix=$PREFIX --libdir=$PREFIX/lib
+	#./config --prefix=$PREFIX --openssldir=$PREFIX/etc/ssl --libdir=lib \
+		#shared zlib enable-md2 -Wa,--noexecstack 
 	MAKEFLAGS="-j1" make
 }
 
-custom_install() {
-	MAKEFLAGS="-j1" make INSTALL_PREFIX=$DESTDIR MANDIR=/usr/share/man install
+custom_package() {
+	MAKEFLAGS="-j1" make INSTALL_PREFIX=$DESTDIR MANDIR=$PREFIX/share/man install
 }

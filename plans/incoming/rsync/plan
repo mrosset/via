@@ -1,0 +1,4 @@
+name="rsync"
+version="3.0.8"
+source="http://rsync.samba.org/ftp/rsync/rsync-$version.tar.gz"
+verify="4b3fc271f4c96036b4c73fb019be078e4d8cce2defe1e7ae7cde1117859a2114"

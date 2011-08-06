@@ -1,0 +1,5 @@
+name="inkscape"
+version="0.48.2"
+source="http://downloads.sourceforge.net/sourceforge/inkscape/inkscape-$version.tar.gz"
+verify="3f01e74d123e9128f08f480148b2479fbafcff930b6b6b8c974f6d674ab6641a"
+build_args="--disable-lcms"
