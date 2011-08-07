@@ -1,0 +1,13 @@
+name="wireless_tools"
+version="29"
+build_name="wireless_tools.$version"
+source="http://www.hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.$version.tar.gz"
+verify="6fb80935fe208538131ce2c4178221bab1078a1656306bce8909c19887e2e5a1"
+packager="custom_package"
+
+custom_package() {
+	make INSTALL_DIR="${DESTDIR}/$PREFIX/sbin" \
+		INSTALL_LIB="${DESTDIR}/$PREFIX/lib" \
+		INSTALL_INC="${DESTDIR}/$PREFIX/include" \
+		INSTALL_MAN="${DESTDIR}/$PREFIX/share/man" install
+}
