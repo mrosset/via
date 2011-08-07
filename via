@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /tools/bin/bash
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 if [ -n "$DEBUG" ]; then
@@ -9,13 +9,13 @@ set -e
 set -h
 set -u
 
-VIAHOME=/home/strings/github/via
+VIAHOME=/tools/via
 
 ROOT=/
 
 TEST=""
 
-PREFIX="/usr"
+PREFIX="/tools"
 
 CARCH="x86_64"
 CHOST="x86_64-unknown-linux-gnu"
@@ -25,8 +25,8 @@ CHOST="x86_64-unknown-linux-gnu"
 # -mtune : generic optimization for -march
 # -O2    : optimization level for code
 # -pipe  : use pipes instead of tmp files for compiler communication
-CFLAGS="-march=native -mtune=native -O2 -pipe"
-CXXFLAGS="-march=native -mtune=native -O2 -pipe"
+#CFLAGS="-mtune=native -O2 -pipe"
+#CXXFLAGS="-mtune=native -O2 -pipe"
 
 # --hash-style : use gnu hash tables
 # --as-needed  : only add libraries to DT_NEEDED that resolve 
@@ -249,7 +249,6 @@ via_build() {
     _pushd "$stages/$build_name"
         builder=$(get_build_type)
         build_type=$(echo $builder)
-        packager=$(get_package_type)
     _popd
 
     _pushd $builds/$build_name
@@ -275,6 +274,7 @@ via_package() {
         rm -rf $DESTDIR
     fi
     log $(echo $packager) $name
+        packager=$(get_package_type)
     _pushd $builds/$build_name
         $packager #&>> $log
     _popd
@@ -282,7 +282,7 @@ via_package() {
     if [ ! -d $DESTDIR ]; then
         mkdir $DESTDIR
     fi
-    if [ -n "${CLFS_TARGET:-}" ]; then
+    if [ -n "${CLFS_TARGET:-}" ] || [ "$PREFIX" = "/tools" ]; then
         _pushd $DESTDIR/tools
     else
         _pushd $DESTDIR
@@ -292,7 +292,7 @@ via_package() {
     fi
     find . > MANIFEST
     log "compressing" $pkgfile
-    fakeroot tar cfz $pkgfile *
+    tar cfz $pkgfile *
     _popd
     _pushd $repo
     log "signing" $pkgfile
@@ -311,7 +311,7 @@ package_files_dir() {
         local file=$(head -1 < $f | awk '{print $2}')
         local mode=$(head -1 < $f | awk '{print $3}')
         log "installing" "$file"
-        fakeroot install -Dm $mode $f $DESTDIR/$file
+        install -Dm $mode $f $DESTDIR/$file
     done
 }
 
@@ -442,7 +442,7 @@ no_build() {
 }
 
 gnu_package() {
-    fakeroot make $package_args DESTDIR=$DESTDIR install
+    make $package_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
