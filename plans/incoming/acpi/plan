@@ -1,0 +1,4 @@
+name="acpi"
+version="1.5"
+source="http://downloads.sourceforge.net/acpiclient/acpi-$version.tar.gz"
+verify="57ff91cb5bef9e6d158c5b231a553a3a77c9ccfd0e4fad42958d1e61241060dd"
