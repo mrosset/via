@@ -1,0 +1,5 @@
+name="rtorrent"
+version="0.8.9"
+source="http://libtorrent.rakshasa.no/downloads/rtorrent-$version.tar.gz"
+verify="cca70eb36a0c176bbd6fdb3afe2bc9f163fa4c9377fc33bc29689dec60cf6d84"
+build_args="--enable-aligned"

@@ -6,9 +6,7 @@ packager="custom_package"
 verify="92511d1f0caaa298dba250426f8e7d5d00b271847886d1adc62422778d6320db"
 
 custom_build() {
-	./Configure linux-armv4 --prefix=$PREFIX --libdir=$PREFIX/lib
-	#./config --prefix=$PREFIX --openssldir=$PREFIX/etc/ssl --libdir=lib \
-		#shared zlib enable-md2 -Wa,--noexecstack 
+	./Configure linux-armv4 --prefix=$PREFIX shared shared zlib enable-md2 -Wa,--noexecstack
 	MAKEFLAGS="-j1" make
 }
 

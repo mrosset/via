@@ -1,0 +1,5 @@
+name="libtorrent"
+version="0.12.9"
+source="http://libtorrent.rakshasa.no/downloads/libtorrent-$version.tar.gz"
+verify="15dc9e8dd45d070f447e599bef08ef0ca421bac6e7f55e608dcd19360594af64"
+build_args="--enable-aligned"

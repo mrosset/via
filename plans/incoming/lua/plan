@@ -1,0 +1,56 @@
+name="lua"
+version="5.1.4"
+source="http://www.lua.org/ftp/lua-$version.tar.gz"
+verify="b038e225eaf2a5b57c9bcc35cd13aa8c6c8288ef493d52970c9545074098af3a"
+builder="custom_build"
+packager="custom_package"
+
+custom_build() { 
+	:
+}
+
+custom_package() {
+	make INSTALL_TOP="$DESTDIR/tools/" INSTALL_MAN="$DESTDIR/tools/usr/share/man/man1" \
+		linux install  || return 1
+}
+# $Id$
+# Maintainer: Angel Velasquez <angvp@archlinux.org>
+# Contributor: Hugo Doria <hugo@archlinux.org>
+
+pkgname=nmap
+pkgver=5.51
+pkgrel=1
+pkgdesc="A network exploration tool and security/port scanner"
+arch=('i686' 'x86_64')
+url="http://nmap.org"
+license=('GPL')
+depends=('pcre' 'openssl' 'libpcap' 'lua')
+# python is needed for zenmap
+makedepends=('python2')
+optdepends=('pygtk: gui for nmap')
+options=('!makeflags')
+source=(http://nmap.org/dist/${pkgname}-${pkgver}.tar.bz2)
+
+build() {
+  cd ${srcdir}/${pkgname}-${pkgver}
+
+  echo "TryExec=/usr/bin/pygtk-demo" >> zenmap/install_scripts/unix/zenmap.desktop 
+  echo "TryExec=/usr/bin/pygtk-demo" >> zenmap/install_scripts/unix/zenmap-root.desktop 
+
+  ./configure --prefix=/usr --mandir=/usr/share/man \
+    --libexecdir=/usr/lib
+  make
+}
+
+package() {
+  cd ${srcdir}/${pkgname}-${pkgver}
+  make DESTDIR="${pkgdir}" install
+
+  # remove zenmap uninstall script
+  rm "${pkgdir}/usr/bin/uninstall_zenmap"
+
+  # install custom GPL2 license
+  install -D -m644 COPYING ${pkgdir}/usr/share/licenses/${pkgname}/LICENSE
+}
+md5sums=('0b80d2cb92ace5ebba8095a4c2850275')
+/var/abs/extra/nmap

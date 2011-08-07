@@ -1,0 +1,4 @@
+name="cppunit"
+version="1.12.1"
+source="http://downloads.sourceforge.net/cppunit/cppunit-$version.tar.gz"
+verify="ac28a04c8e6c9217d910b0ae7122832d28d9917fa668bcc9e0b8b09acb4ea44a"
