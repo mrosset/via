@@ -638,7 +638,7 @@ via_cross_build() {
 }
 
 via_repo_sync() {
-    scp -r $VIAHOME/repo android:/tools/via/
+    rsync -augzv $VIAHOME/repo/arm -e ssh android:/tools/via/repo/
 }
 
 while getopts ":r:" opt; do
