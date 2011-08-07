@@ -1,6 +1,12 @@
 name="curl"
 version="7.21.7"
 source="http://curl.haxx.se/download/curl-$version.tar.bz2"
-build_args="--with-gnutls --without-ssl"
+build_args="--with-gnutls \
+	--with-ca-bundle=$ROOT/etc/ssl/certs/ca-certificates.crt"
 package_args="ca-bundle"
 verify="1a50dd17400c042090203eef347e946f29c342c32b6c4843c740c80975e8215a"
+
+post_hook() {
+	install -Dm 644 $builds/$build_name/lib/ca-bundle.crt \
+		$DESTDIR/$ROOT/etc/ssl/certs/ca-certificates.crt
+}
