@@ -274,7 +274,7 @@ via_package() {
         rm -rf $DESTDIR
     fi
     log $(echo $packager) $name
-        packager=$(get_package_type)
+    packager=$(get_package_type)
     _pushd $builds/$build_name
         $packager #&>> $log
     _popd
@@ -624,6 +624,7 @@ via_cross_build() {
     export STRIP="${CLFS_TARGET}-strip"
 
     PREFIX=/tools
+    ROOT=/tools
     confargs+="\
         --prefix=$PREFIX \
         --sysconfdir=/tools/etc \
