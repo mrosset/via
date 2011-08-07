@@ -11,8 +11,6 @@ set -u
 
 VIAHOME=/home/strings/github/via
 
-#ROOT=$VIAHOME/test
-#ROOT=$VIAHOME/root
 ROOT=/
 
 TEST=""
@@ -268,7 +266,9 @@ via_build() {
 
 via_package() {
     source_plan "$1"
-    local pkgfile=$repo/$name-$version-via.tar.gz
+    local arch="${TARGET_ARCH:-$(arch)}"
+    local pkgfile="$repo/$arch/$name-$version-via.tar.gz"
+    [ ! -d "$(dirname $pkgfile)" ] && mkdir $(dirname $pkgfile)
     log $FUNCNAME "$name"
     if [ -d $DESTDIR ]; then
         log "cleaning" "$DESTDIR"
@@ -285,7 +285,7 @@ via_package() {
     if [ -n "${CLFS_TARGET:-}" ]; then
         _pushd $DESTDIR/tools
     else
-        _pushd $DESTDIR/tools
+        _pushd $DESTDIR
     fi
     if [ "$(type -t post_hook)" = "function" ]; then
         post_hook
@@ -295,7 +295,6 @@ via_package() {
     fakeroot tar cfz $pkgfile *
     _popd
     _pushd $repo
-    pkgfile=$name-$version-via.tar.gz
     log "signing" $pkgfile
     [ -f $pkgfile.sig ] && rm $pkgfile.sig
     gpg -u $GPG_USER --detach-sign $pkgfile
@@ -335,7 +334,7 @@ install_core() {
 
 diff_manifest() {
     local fullname=$name-$version
-    local pkgfile=$repo/$fullname-via.tar.gz
+    local pkgfile="$repo/${TARGET_ARCH:-$(arch)}/$fullname-via.tar.gz"
     local db=var/db/via
     while read line; do
         case "${line::1}" in
@@ -351,10 +350,16 @@ diff_manifest() {
     done < <(diff $db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST))
 }
 
+via_cross_install() {
+    TARGET_ARCH=arm
+    ROOT=/tools
+    via_install $1
+}
+
 via_install() {
     source_plan $1
     local fullname=$name-$version
-    local pkgfile=$repo/$fullname-via.tar.gz
+    local pkgfile="$repo/${TARGET_ARCH:-$(arch)}/$fullname-via.tar.gz"
     local db=var/db/via
 
     [ -d $ROOT ] || mkdir -p $ROOT
@@ -421,7 +426,7 @@ _popd() {
 
 # BUILD HOOKS
 confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
---localstatedir=/var --with-shared"
+--localstatedir=/var --with-shared --config-cache"
 
 relocate_build() {
     gnu_build
@@ -581,11 +586,11 @@ via_import() {
     via_gen_hash $target
     cat $path/PKGBUILD
     log $FUNCNAME "$target imported"
-    via build_install $target
+    #via build_install $target
 }
 
 via_list() {
-    local db=/var/db/via
+    local db=/tools/var/db/via
     cat $db/$1-*/MANIFEST
 }
 
@@ -605,10 +610,9 @@ via_remove_plan() {
 via_cross_build() {
     TARGET_ARCH="arm"
     ABI="gnueabi"
-    unset CHOST CARCH CFLAGS CXXFLAGS
+    unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
     CLFS_HOST="$(arch)-cross-linux-gnu"
     CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
-    PREFIX=/tools
     export PATH=/usr/lib/ccache/bin:/cross-tools/bin:/bin:/usr/bin
 
     export CC="${CLFS_TARGET}-gcc"
@@ -619,12 +623,22 @@ via_cross_build() {
     export LD="${CLFS_TARGET}-ld"
     export STRIP="${CLFS_TARGET}-strip"
 
-   confargs+="\
-	--prefix=$PREFIX \
+    PREFIX=/tools
+    confargs+="\
+        --prefix=$PREFIX \
+        --sysconfdir=/tools/etc \
+        --localstatedir=$PREFIX/var \
+        --with-shared \
 	--build=${CLFS_HOST} \
 	--host=${CLFS_TARGET} \
-	--cache-file=config.cache"
+        --config-cache"
+
     via_build $1
+    via_cross_install $1
+}
+
+via_repo_sync() {
+    scp -r $VIAHOME/repo android:/tools/via/
 }
 
 while getopts ":r:" opt; do
