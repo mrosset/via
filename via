@@ -9,13 +9,13 @@ set -e
 set -h
 set -u
 
-VIAHOME=/tools/via
+VIAHOME=$HOME/github/via
 
 ROOT=/
 
 TEST=""
 
-PREFIX="/tools"
+PREFIX="/usr"
 
 CARCH="x86_64"
 CHOST="x86_64-unknown-linux-gnu"
@@ -25,8 +25,8 @@ CHOST="x86_64-unknown-linux-gnu"
 # -mtune : generic optimization for -march
 # -O2    : optimization level for code
 # -pipe  : use pipes instead of tmp files for compiler communication
-#CFLAGS="-mtune=native -O2 -pipe"
-#CXXFLAGS="-mtune=native -O2 -pipe"
+CFLAGS="-march=native -mtune=native -O2 -pipe"
+CXXFLAGS="-march=native -mtune=native -O2 -pipe"
 
 # --hash-style : use gnu hash tables
 # --as-needed  : only add libraries to DT_NEEDED that resolve 
