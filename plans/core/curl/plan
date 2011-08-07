@@ -1,11 +1,6 @@
 name="curl"
 version="7.21.7"
 source="http://curl.haxx.se/download/curl-$version.tar.bz2"
-echo "CURL FIX CA BUNDLE"
-build_args="--with-ca-bundle=/etc/ca-bundle.crt --with-gnutls --without-ssl"
+build_args="--with-gnutls --without-ssl"
 package_args="ca-bundle"
 verify="1a50dd17400c042090203eef347e946f29c342c32b6c4843c740c80975e8215a"
-
-post_hook() {
-	install -D $builds/$name-$version/lib/ca-bundle.crt etc/ca-bundle.crt
-}
