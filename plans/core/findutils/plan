@@ -4,3 +4,10 @@ source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
 build_args="--libexecdir=/usr/lib/findutils \
 --localstatedir=/var/lib/locate"
 verify="gnu_verify"
+
+cross_build() {
+cat > config.cache << "EOF"
+gl_cv_func_wcwidth_works=yes
+ac_cv_func_fnmatch_gnu=yes
+EOF
+}

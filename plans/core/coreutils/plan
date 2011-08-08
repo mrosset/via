@@ -4,8 +4,7 @@ source="http://mirrors.kernel.org/gnu/coreutils/coreutils-$version.tar.gz"
 build_args="--enable-no-install-program=kill,uptime"
 verify="gnu_verify"
 
-post_hook() {
-	mkdir bin
+post_broke_hook() {
 	mv -v usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo} bin/
 	mv -v usr/bin/{false,ln,ls,mkdir,mknod,mv,pwd,rm} bin/
 	mv -v usr/bin/{rmdir,stty,sync,true,uname} bin/

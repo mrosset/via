@@ -2,3 +2,9 @@ name="ncurses"
 version="5.9"
 source="http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz"
 verify="gnu_verify"
+
+cross_build() {
+	build_args="--without-debug --without-ada \
+		--enable-overwrite --with-build-cc=gcc \
+		--with-shared"
+}

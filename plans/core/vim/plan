@@ -1,8 +1,8 @@
 name="vim"
 version="7.3"
 source="ftp://ftp.vim.org/pub/vim/unix/$name-$version.tar.bz2"
-build_name="vim73"
 builder="relocate_build"
+build_name="vim73"
 build_args="--localstatedir=/var/lib/vim \
 --mandir=/usr/share/man --with-compiledby=vanilla \
 --with-features=big --enable-gpm --enable-acl --with-x=no \
@@ -10,3 +10,27 @@ build_args="--localstatedir=/var/lib/vim \
 --disable-netbeans --enable-perlinterp --disable-pythoninterp \
 --disable-rubyinterp"
 verify="5c5d5d6e07f1bbc49b6fe3906ff8a7e39b049928b68195b38e3e3d347100221d"
+
+cross_build() {
+	mkdir -p src/auto/
+	sed -i "/using uint32_t/s/as_fn_error/#&/" src/auto/configure
+	build_args="--enable-multibyte --enable-gui=no \
+			--disable-gtktest --disable-xim --with-features=normal \
+			--disable-gpm --without-x --disable-netbeans \
+			--with-tlib=ncurses"
+
+
+cat > src/auto/config.cache << "EOF"
+vim_cv_getcwd_broken=no
+vim_cv_memmove_handles_overlap=yes
+vim_cv_stat_ignores_slash=no
+vim_cv_terminfo=yes
+vim_cv_tgent=zero
+vim_cv_toupper_broken=no
+vim_cv_tty_group=world
+ac_cv_sizeof_int=4
+ac_cv_sizeof_long=4
+ac_cv_sizeof_time_t=4
+ac_cv_sizeof_off_t=4
+EOF
+}
