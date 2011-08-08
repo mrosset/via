@@ -227,6 +227,14 @@ get_package_type() {
     exit 1
 }
 
+is_cross_build() {
+    if [ -n "${CLFS_TARGET:-}" ]; then
+        true
+    else
+        false
+    fi
+}
+
 is_func_defined() {
     if [ "$(type -t $1)" = "function" ]; then
         true
@@ -263,7 +271,7 @@ via_build() {
     _pushd $builds/$build_name
     log "$build_type" "$name"
 
-    if is_func_defined 'cross_build'; then
+    if is_func_defined 'cross_build' && is_cross_build; then
         cross_build
     fi
 
