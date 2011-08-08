@@ -1,8 +1,10 @@
-#! /tools/bin/bash
+#! /bin/bash
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 
 if [ -n "$DEBUG" ]; then
     set -x
+    export PS4='+$BASH_SOURCE:$LINENO: ' #$FUNCNAME: '
+    trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 fi
 
 set -e
@@ -19,7 +21,6 @@ PREFIX="/usr"
 
 CARCH="x86_64"
 CHOST="x86_64-unknown-linux-gnu"
-
 
 # -march : cpu to build for
 # -mtune : generic optimization for -march
@@ -115,7 +116,7 @@ via_stage() {
     fi
     _popd
     _pushd $stages/$build_name
-        btype=$(get_build_type)
+    btype=$(get_build_type)
     _popd $stages/$build_name
     if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
         mkdir "$builds/$build_name"
@@ -247,17 +248,17 @@ via_build() {
     via_stage $name
 
     _pushd "$stages/$build_name"
-        builder=$(get_build_type)
-        build_type=$(echo $builder)
+    builder=$(get_build_type)
+    build_type=$(echo $builder)
     _popd
 
     _pushd $builds/$build_name
-        log "$build_type" "$name"
-        $builder #&>> $log
-        if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
-            make check
-        fi
-        via_package $name
+    log "$build_type" "$name"
+    $builder #&>> $log
+    if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
+        make check
+    fi
+    via_package $name
     _popd
 
     log done "$name-$version"
@@ -276,7 +277,7 @@ via_package() {
     log $(echo $packager) $name
     packager=$(get_package_type)
     _pushd $builds/$build_name
-        $packager #&>> $log
+    $packager #&>> $log
     _popd
     package_files_dir
     if [ ! -d $DESTDIR ]; then
@@ -426,7 +427,7 @@ _popd() {
 
 # BUILD HOOKS
 confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
---localstatedir=/var --with-shared --config-cache"
+    --localstatedir=/var --with-shared --config-cache"
 
 relocate_build() {
     gnu_build
@@ -590,7 +591,7 @@ via_import() {
 }
 
 via_list() {
-    local db=/tools/var/db/via
+    local db=$ROOT/var/db/via
     cat $db/$1-*/MANIFEST
 }
 
@@ -630,8 +631,8 @@ via_cross_build() {
         --sysconfdir=/tools/etc \
         --localstatedir=$PREFIX/var \
         --with-shared \
-	--build=${CLFS_HOST} \
-	--host=${CLFS_TARGET} \
+        --build=${CLFS_HOST} \
+        --host=${CLFS_TARGET} \
         --config-cache"
 
     via_build $1
