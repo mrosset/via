@@ -52,7 +52,7 @@ init() {
     # setup cache dir end log dir
     for d in $logs $repo $builds $sources $stages $packages; do
         if [ ! -d $d ]; then
-            log $FUNCNAME $d
+            #log $FUNCNAME $d
             mkdir -p $d
         fi
     done
@@ -227,6 +227,14 @@ get_package_type() {
     exit 1
 }
 
+is_func_defined() {
+    if [ "$(type -t $1)" = "function" ]; then
+        true
+    else
+        false
+    fi
+}
+
 via_build() {
     source_plan $1
     log starting $name
@@ -254,6 +262,11 @@ via_build() {
 
     _pushd $builds/$build_name
     log "$build_type" "$name"
+
+    if is_func_defined 'cross_build'; then
+        cross_build
+    fi
+
     $builder #&>> $log
     if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
         make check
@@ -632,8 +645,7 @@ via_cross_build() {
         --localstatedir=$PREFIX/var \
         --with-shared \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET} \
-        --config-cache"
+        --host=${CLFS_TARGET}"
 
     via_build $1
     via_cross_install $1
@@ -641,6 +653,11 @@ via_cross_build() {
 
 via_repo_sync() {
     rsync -augzv $VIAHOME/repo/arm -e ssh android:/tools/via/repo/
+}
+
+via_get_version() {
+    source_plan $1
+    echo $name-$version
 }
 
 while getopts ":r:" opt; do
