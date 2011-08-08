@@ -870,9 +870,6 @@ tools_perl() {
 cross_phase() {
 	init
 	cross_linux_api linux
-	#cross_file file
-	#cross_m4 m4
-	#cross_ncurses ncurses
 	cross_gmp gmp
 	cross_mpfr mpfr
 	cross_mpc mpc
@@ -909,5 +906,5 @@ tools_phase() {
 	ln -svf . /tools/tools
 }
 init
-#cross_phase
+cross_phase
 tools_phase
