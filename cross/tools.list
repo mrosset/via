@@ -1,35 +1,34 @@
-gmp
-mpfr
-mpc
+# core
 zlib
-binutils
-gcc
+readline
 ncurses
 bash
-bison
 bzip2
 coreutils
-diffutils
 findutils
 file
-flex
 gawk
-gettext
 grep
 gzip
-m4
-make
-patch
-sed
 tar
-texinfo
 vim
 xz
 util-linux
 which
 less
-tmux
-which
-less
+openssl
 curl
-htop
+
+# devel
+gmp
+mpfr
+mpc
+# binutils
+# gcc
+# bison
+# diffutils
+# flex
+# m4
+# make
+# patch
+# sed

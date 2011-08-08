@@ -11,6 +11,7 @@ set -o nounset
 pwd=$PWD
 user=$USER
 term=$TERM
+home=$HOME
 unset `env | awk -F= '/^\w/ {print $1}' | xargs`
 
 TARGET_ARCH="arm"
@@ -38,6 +39,7 @@ esac
 export PWD=$pwd
 export USER=$user
 export TERM=$term
+export HOME=$home
 
 CLFS=/mnt/clfs
 TOOLS=/tools
@@ -340,7 +342,7 @@ cross_gcc() {
 		--disable-shared --with-mpfr=$CROSS_TOOLS --with-gmp=$CROSS_TOOLS \
 		--without-headers --with-newlib --disable-decimal-float \
 		--disable-libgomp --disable-libmudflap --disable-libssp \
-		--disable-threads --enable-languages=c --disable-multilib
+		--disable-threads --enable-languages=c --disable-multilib --disable-bootstrap
 		#--with-ppl=$CROSS_TOOLS \
 		#--with-cloog=$CROSS_TOOLS \
 		make all-gcc all-target-libgcc
@@ -424,7 +426,7 @@ cross_gcc_final() {
 		--with-sysroot=${CLFS} --with-local-prefix=$TOOLS --disable-nls \
 		--enable-shared --enable-languages=c,c++ --enable-__cxa_atexit \
 		--with-mpfr=$CROSS_TOOLS --with-gmp=/cross-tools --enable-c99 \
-		--enable-long-long --enable-threads=posix --disable-multilib
+		--enable-long-long --enable-threads=posix --disable-multilib --disable-bootstrap
 		#--with-ppl=$CROSS_TOOLS --with-cloog=$CROSS_TOOLS \
 
 		make AS_FOR_TARGET="${CLFS_TARGET}-as" \
@@ -549,15 +551,15 @@ tools_gcc() {
 			--with-local-prefix=$TOOLS --enable-long-long --enable-c99 \
 			--enable-shared --enable-threads=posix --enable-__cxa_atexit \
 			--disable-nls --enable-languages=c,c++ --disable-libstdcxx-pch \
-			--disable-multilib
+			--disable-multilib --disable-bootstrap
 
 		cp -v Makefile{,.orig}
 		sed "/^HOST_\(GMP\|PPL\|CLOOG\)\(LIBS\|INC\)/s:-[IL]/\(lib\|include\)::" \
 			Makefile.orig > Makefile
 
 		make AS_FOR_TARGET="${AS}" \
-			LD_FOR_TARGET="${LD}"
-		make install
+			LD_FOR_TARGET="${LD}" all-target-libgcc
+		make install-target-libgcc
 
 	_popd
 
@@ -868,9 +870,9 @@ tools_perl() {
 cross_phase() {
 	init
 	cross_linux_api linux
-	cross_file file
-	cross_m4 m4
-	cross_ncurses ncurses
+	#cross_file file
+	#cross_m4 m4
+	#cross_ncurses ncurses
 	cross_gmp gmp
 	cross_mpfr mpfr
 	cross_mpc mpc
@@ -892,57 +894,20 @@ tools_phase() {
 	export RANLIB="${CLFS_TARGET}-ranlib"
 	export LD="${CLFS_TARGET}-ld"
 	export STRIP="${CLFS_TARGET}-strip"
-
-	#tools_libgcc gcc
-
-	tools_gmp gmp
-	tools_mpfr mpfr
-	tools_generic mpc
-	tools_zlib zlib
-	tools_binutils binutils
+	
+	while read line; do
+		if [[ ${line::1} == "#" ]] || [[ ${line::1} == "" ]]; then
+			continue
+		fi
+		name_version="$(./via get_version $line)"
+		if [[ -d /tools/var/db/via/$name_version ]]; then
+			continue
+		fi
+		./via cross_build $line
+	done < "cross/tools.list"
 	tools_gcc gcc
-	tools_ncurses ncurses
-	tools_bash bash
-	tools_generic bison
-	tools_bzip2 bzip2
-	tools_coreutils coreutils
-	tools_generic diffutils
-	tools_findutils findutils
-	tools_generic file
-	tools_flex flex
-	tools_generic gawk
-	tools_gettext gettext
-	tools_grep grep
-	tools_generic gzip
-	tools_m4 m4
-	tools_generic make
-	tools_patch patch
-	tools_generic sed
-	tools_generic tar
-	tools_texinfo texinfo
-	tools_vim vim
-	tools_generic xz
-	tools_generic util-linux "--enable-arch"
-	tools_generic which
-	tools_generic less
-	tools_generic tmux
-	tools_generic which
-	tools_generic less
-	tools_generic curl
-	tools_generic htop
-
 	ln -svf . /tools/tools
 }
-
 init
 #cross_phase
-#tools_phase
-#tools_generic which
-#tools_generic less
-#tools_generic curl
-#tools_generic htop
-#tools_generic gnupg
-tools_generic openssl
-tools_generic openssh
-tools_generic nmap
-#tools_generic bison
+tools_phase
