@@ -1,15 +1,12 @@
 name="pulseaudio"
 version="0.9.23"
 source="http://freedesktop.org/software/pulseaudio/releases/pulseaudio-0.9.23.tar.gz"
-build_name=""
 build="gnu_build"
 build_args="--disable-rpath --disable-default-build-tests"
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="af3e84c614cb632fd1f57105489fcd5f93f906da1ce5aa9019492212031fba4e"
+packager="custom_package"
+verify="af3e84c614cb632fd1f57105489fcd5f93f906da1ce5aa9019492212031fba4e"
 
-custom_install() {
+custom_package() {
 	MAKEFLAGS=""
-	gnu_install
+	gnu_package
 }
