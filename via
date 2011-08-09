@@ -82,7 +82,7 @@ download() {
     _pushd "$sources"
     if [ ! -f "$file" ]; then
         log "$FUNCNAME" "$url"
-        curl -L -# -O "$url"
+        curl -f -L -# -O "$url"
     fi	
     _popd
 
@@ -275,7 +275,7 @@ via_build() {
         cross_build
     fi
 
-    $builder #&>> $log
+    $builder &>> $log
     if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
         make check
     fi
@@ -285,6 +285,30 @@ via_build() {
     log done "$name-$version"
 }
 
+strip_package() {
+    STRIP_SHARED="--strip-unneeded"
+    STRIP_BINARIES="--strip-all"
+    STRIP_STATIC="--strip-debug"
+    if is_cross_build; then
+        STRIP_CMD="${CLFS_TARGET}-strip"
+    else
+        STRIP_CMD="strip"
+    fi
+    find . -type f -perm -u+w 2>/dev/null | while read binary ; do
+        case "$(file -bi "$binary")" in
+            *application/x-sharedlib*)  # Libraries (.so)
+                log "strip shared" "$binary"
+                $STRIP_CMD $STRIP_SHARED "$binary";;
+            *application/x-archive*)    # Libraries (.a)
+                log "strip static" "$binary"
+                $STRIP_CMD $STRIP_STATIC "$binary";;
+            *application/x-executable*) # Binaries
+                log "strip binary" "$binary"
+                $STRIP_CMD $STRIP_BINARIES "$binary"
+        esac
+    done
+}
+
 via_package() {
     source_plan "$1"
     local arch="${TARGET_ARCH:-$(arch)}"
@@ -292,13 +316,13 @@ via_package() {
     [ ! -d "$(dirname $pkgfile)" ] && mkdir $(dirname $pkgfile)
     log $FUNCNAME "$name"
     if [ -d $DESTDIR ]; then
-        log "cleaning" "$DESTDIR"
+        log "cleaning" "$(basename "$DESTDIR")"
         rm -rf $DESTDIR
     fi
     log $(echo $packager) $name
     packager=$(get_package_type)
     _pushd $builds/$build_name
-    $packager #&>> $log
+    $packager &>> $log
     _popd
     package_files_dir
     if [ ! -d $DESTDIR ]; then
@@ -312,16 +336,19 @@ via_package() {
     if [ "$(type -t post_hook)" = "function" ]; then
         post_hook
     fi
+    strip_package
     find . > MANIFEST
-    log "compressing" $pkgfile
+    log "compressing" "$(basename $pkgfile)"
     tar cfz $pkgfile *
     _popd
     _pushd $repo
-    log "signing" $pkgfile
+    log "signing" "$(basename $pkgfile)"
     [ -f $pkgfile.sig ] && rm $pkgfile.sig
     gpg -u $GPG_USER --detach-sign $pkgfile
     log $pkgfile $(green "OK")
-    gpg --verify $pkgfile.sig 
+    if ! gpg --verify $pkgfile.sig &> /dev/null; then
+        gpg --verify $pkgfile.sig 
+    fi
     _popd
 }
 
@@ -386,7 +413,10 @@ via_install() {
 
     [ -d $ROOT ] || mkdir -p $ROOT
 
-    gpg --verify $pkgfile.sig
+    if ! gpg --verify $pkgfile.sig &> /dev/null;then
+        gpg --verify $pkgfile.sig
+        exit 1
+    fi
     _pushd $ROOT
     [ -d $db ] || mkdir -p $db
     if [ -f MANIFEST ]; then
@@ -497,8 +527,9 @@ gnu_verify() {
     if [ ! -f $file.$ext ]; then
         download $url.$ext
     fi
-    if ! gpg --verify $file.$ext; then
+    if ! gpg --verify $file.$ext &> /dev/null; then
         log $FUNCNAME $(red FAILED)
+        gpg --verify $file.$ext
         return 1
     fi	
     log $FUNCNAME $(green PASS)
