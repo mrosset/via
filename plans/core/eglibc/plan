@@ -1,0 +1,36 @@
+name="eglibc"
+version="2.14"
+source="nil"
+verify="no_verify"
+build_args="--disable-profile --enable-add-ons \
+--with-tls --enable-kernel=2.6.0 --with-__thread \
+--with-headers=$PREFIX/include"
+
+custom_stage() {
+	_pushd $sources
+		[[ ! -d $build_name ]] && svn co http://www.eglibc.org/svn/branches/eglibc-2_14 eglibc-2.14
+	_popd
+
+	[[ -d $stages/$build_name ]] && rmdir $stages/$build_name || true
+	svn export $sources/$build_name $stages/$build_name || true
+}
+
+cross_build() {
+	custom_stage
+	_pushd $stages/$build_name/libc
+		cp -v Makeconfig{,.orig}
+		sed -e 's/-lgcc_eh//g' Makeconfig.orig > Makeconfig
+		ln -s ../ports
+	_popd
+}
+
+custom_build() {
+	custom_stage
+	echo "OPTION_EGLIBC_LOCALES = n" > option-groups.config
+	$stages/$build_name/libc/configure $confargs
+	make
+}
+
+custom_install() {
+	make -j1 install_root=$DESTDIR install
+}
