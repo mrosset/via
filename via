@@ -1,6 +1,5 @@
 #! /bin/bash
 # ex: ts=8 sw=4 sts=4 et filetype=sh
-
 if [ -n "$DEBUG" ]; then
     set -x
     export PS4='+$BASH_SOURCE:$LINENO: ' #$FUNCNAME: '
@@ -48,6 +47,7 @@ sources=$cache/sources
 stages=$cache/stages
 packages=$cache/packages
 
+
 init() {
     # setup cache dir end log dir
     for d in $logs $repo $builds $sources $stages $packages; do
@@ -59,7 +59,6 @@ init() {
 
     export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
 }
-
 
 # function download()
 # downloads a url
@@ -275,7 +274,7 @@ via_build() {
         cross_build
     fi
 
-    $builder &>> $log
+    $builder
     if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
         make check
     fi
@@ -322,7 +321,7 @@ via_package() {
     log $(echo $packager) $name
     packager=$(get_package_type)
     _pushd $builds/$build_name
-    $packager &>> $log
+    $packager
     _popd
     package_files_dir
     if [ ! -d $DESTDIR ]; then
@@ -665,7 +664,11 @@ via_cross_build() {
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
     CLFS_HOST="$(arch)-cross-linux-gnu"
-    CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
+    if [[ $TARGET_ARCH == "arm" ]]; then
+        CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
+    else
+        CLFS_TARGET="${TARGET_ARCH}-linux-gnu"
+    fi
     export PATH=/usr/lib/ccache/bin:/cross-tools/bin:/bin:/usr/bin
 
     export CC="${CLFS_TARGET}-gcc"
