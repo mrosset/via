@@ -875,7 +875,7 @@ cross_phase() {
 	cross_mpc mpc
 	cross_binutils binutils
 	cross_gcc gcc
-	eglibc 
+	./via cross_build eglibc
 	make clean
 	init
 	cross_gcc_final gcc
