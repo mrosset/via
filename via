@@ -350,7 +350,7 @@ via_package() {
     strip_package
     find . > MANIFEST
     log "compressing" "$(basename $pkgfile)"
-    tar cfz $pkgfile *
+    fakeroot tar cfz $pkgfile *
     _popd
     _pushd $repo
     log "signing" "$(basename $pkgfile)"
@@ -411,7 +411,7 @@ diff_manifest() {
 }
 
 via_cross_install() {
-    TARGET_ARCH=arm
+    TARGET_ARCH=i686
     ROOT=/tools
     via_install $1
 }
@@ -505,7 +505,7 @@ no_build() {
 }
 
 gnu_package() {
-    make $package_args DESTDIR=$DESTDIR install
+    fakeroot make $package_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
@@ -673,7 +673,7 @@ via_remove_plan() {
 
 via_cross_build() {
     CROSS_TOOLS=/cross-tools
-    TARGET_ARCH="arm"
+    TARGET_ARCH="i686"
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
     CLFS_HOST="$(arch)-cross-linux-gnu"
@@ -684,6 +684,7 @@ via_cross_build() {
     fi
     export PATH=/usr/lib/ccache/bin:/cross-tools/bin:/bin:/usr/bin
 
+    export HOST_CC=gcc
     export CC="${CLFS_TARGET}-gcc"
     export CXX="${CLFS_TARGET}-g++"
     export AR="${CLFS_TARGET}-ar"
