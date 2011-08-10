@@ -1,0 +1,4 @@
+name="gnome-doc-utils"
+version="0.20.6"
+source="http://ftp.gnome.org/pub/gnome/sources/gnome-doc-utils/0.20/gnome-doc-utils-$version.tar.bz2"
+verify="091486e370480bf45349ad09dac799211092a02938b26a0d68206172cb6cebbf"

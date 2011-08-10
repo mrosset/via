@@ -95,7 +95,7 @@ via_stage() {
 
     log "$FUNCNAME" "$name"
 
-    if [ "$file" = "NIL" ]; then
+    if [ "$file" = "nil" ]; then
         log "$FUNCNAME" "no source file"
         [ ! -d "$builds/$build_name" ] && mkdir "$builds/$build_name"
         [ ! -d "$stages/$build_name" ] && mkdir $stages/$build_name
@@ -180,6 +180,12 @@ get_build_type() {
         printf "$builder"
         return 0
     fi
+
+    if is_func_defined "custom_build"; then
+        printf "custom_build"
+        return 0
+    fi
+
     # check for configure if it exists set gnu_build
     if [ -f "configure" ]; then
         printf "gnu_build"
@@ -206,6 +212,12 @@ get_package_type() {
         printf "$packager"
         return 0
     fi
+
+    if is_func_defined "custom_install"; then
+        printf "custom_install"
+        return 0
+    fi
+
     # check for configure if it exists set gnu_build
     if [ -f "configure" ]; then
         printf "gnu_package"
@@ -303,7 +315,7 @@ strip_package() {
                 $STRIP_CMD $STRIP_STATIC "$binary";;
             *application/x-executable*) # Binaries
                 log "strip binary" "$binary"
-                $STRIP_CMD $STRIP_BINARIES "$binary"
+                $STRIP_CMD $STRIP_BINARIES "$binary" || true
         esac
     done
 }
@@ -660,6 +672,7 @@ via_remove_plan() {
 }
 
 via_cross_build() {
+    CROSS_TOOLS=/cross-tools
     TARGET_ARCH="arm"
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
