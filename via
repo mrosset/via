@@ -2,8 +2,7 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 if [ -n "$DEBUG" ]; then
     set -x
-    export PS4='+$BASH_SOURCE:$LINENO: ' #$FUNCNAME: '
-    trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+    export PS4='+$BASH_SOURCE:$LINENO: $FUNCNAME: '
 fi
 
 set -e
@@ -672,8 +671,8 @@ via_remove_plan() {
 }
 
 via_cross_build() {
-    CROSS_TOOLS=/cross-tools
     TARGET_ARCH="i686"
+    CROSS_TOOLS=/cross-tools
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
     CLFS_HOST="$(arch)-cross-linux-gnu"
