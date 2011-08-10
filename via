@@ -10,7 +10,7 @@ set -e
 set -h
 set -u
 
-VIAHOME=$HOME/github/via
+VIAHOME=$HOME/via
 
 ROOT=/
 
