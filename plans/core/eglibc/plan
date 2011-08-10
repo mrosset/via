@@ -22,6 +22,14 @@ cross_build() {
 		sed -e 's/-lgcc_eh//g' Makeconfig.orig > Makeconfig
 		ln -s ../ports
 	_popd
+	_pushd $builds/$build_name
+cat > config.cache << "EOF"
+libc_cv_forced_unwind=yes
+libc_cv_c_cleanup=yes
+libc_cv_gnu89_inline=yes
+libc_cv_ssp=no
+EOF
+	_popd
 }
 
 custom_build() {
