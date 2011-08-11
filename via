@@ -2,12 +2,14 @@
 # ex: ts=8 sw=4 sts=4 et filetype=sh
 if [ -n "$DEBUG" ]; then
     set -x
-    export PS4='+$BASH_SOURCE:$LINENO: $FUNCNAME: '
+    export PS4='+$BASH_SOURCE:$LINENO: '
 fi
 
 set -e
 set -h
 set -u
+
+umask 022
 
 VIAHOME=$HOME/via
 
@@ -410,7 +412,7 @@ diff_manifest() {
 }
 
 via_cross_install() {
-    TARGET_ARCH=i686
+    TARGET_ARCH=x86_64
     ROOT=/tools
     via_install $1
 }
@@ -671,7 +673,7 @@ via_remove_plan() {
 }
 
 via_cross_build() {
-    TARGET_ARCH="i686"
+    TARGET_ARCH="x86_64"
     CROSS_TOOLS=/cross-tools
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
@@ -713,6 +715,19 @@ via_repo_sync() {
 via_get_version() {
     source_plan $1
     echo $name-$version
+}
+
+via_bootstrap_core() {
+    while read line; do
+        if [[ ${line::1} == "#" ]] || [[ ${line::1} == "" ]]; then
+            continue
+        fi
+        name_version="$(./via get_version $line)"
+        if [[ -d /var/db/via/$name_version ]]; then
+            continue
+        fi
+        ./via build_install $line
+    done < "cross/core.list"
 }
 
 while getopts ":r:" opt; do
