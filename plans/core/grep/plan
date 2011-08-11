@@ -1,5 +1,5 @@
 name="grep"
 version="2.9"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--bindir=/bin"
+build_args="--bindir=$PREFIX/bin"
 verify="gnu_verify"

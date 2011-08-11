@@ -2,3 +2,7 @@ name="patch"
 version="2.6.1"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
 verify="gnu_verify"
+
+cross_build() {
+	build_args="ac_cv_func_strnlen_working=yes"
+}

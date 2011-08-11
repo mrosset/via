@@ -1,0 +1,5 @@
+name="pyxml"
+version="0.8.4"
+build_name="PyXML-$version"
+source="http://downloads.sourceforge.net/sourceforge/pyxml/PyXML-$version.tar.gz"
+verify="9fab66f9584fb8e67aebd8745a5c97bf1c5a2e2e461adf68862bcec64e448c13"

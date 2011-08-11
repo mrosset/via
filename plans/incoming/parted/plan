@@ -1,0 +1,4 @@
+name="parted"
+version="2.4"
+source="http://ftp.gnu.org/gnu/parted/parted-$version.tar.xz"
+verify="508ff75591b9c8cc9d06f1e0b1db1a082a4b0c1b9d4efaac48b4ca46370d9073"

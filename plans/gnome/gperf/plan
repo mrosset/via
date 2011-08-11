@@ -1,11 +1,4 @@
 name="gperf"
 version="3.0.4"
 source="http://ftp.gnu.org/pub/gnu/gperf/gperf-3.0.4.tar.gz"
-build_name=""
-build="gnu_build"
-build_args=""
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-# ex: ts=8 sw=4 sts=4 et filetype=sh
-verify_args="767112a204407e62dbc3106647cf839ed544f3cf5d0f0523aaa2508623aad63e"
+verify="767112a204407e62dbc3106647cf839ed544f3cf5d0f0523aaa2508623aad63e"

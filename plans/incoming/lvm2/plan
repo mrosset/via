@@ -1,0 +1,5 @@
+name="lvm2"
+version="2.02.86"
+build_name="LVM2.$version"
+source="ftp://sources.redhat.com/pub/lvm2/LVM2.$version.tgz"
+verify="557cafa5285e80515d1855bb4ad37a20b64eec2e70e7a744efc4e276ab42552d"

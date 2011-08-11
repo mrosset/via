@@ -1,18 +1,12 @@
 name="ccache"
 version="3.1.5"
 source="http://samba.org/ftp/ccache/ccache-3.1.5.tar.bz2"
-build_name=""
-build="gnu_build"
-build_args=""
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="aac690d7e452f408d458b11c07ab5bf22055d398b2a010052d3d208670a99c36"
+verify="aac690d7e452f408d458b11c07ab5bf22055d398b2a010052d3d208670a99c36"
 
 custom_install() {
 	#install -Dm 755 ccache usr/bin/ccache
 	#install -Dm 644 ccache.1 usr/share/man/man1/ccache.1
-	gnu_install
+	gnu_package
 	cd $DESTDIR
 	install -d usr/lib/ccache/bin
 	ln -sf /usr/bin/ccache usr/lib/ccache/bin/cc 

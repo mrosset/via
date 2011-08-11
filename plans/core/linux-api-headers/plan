@@ -1,6 +1,6 @@
 name="linux-api-headers"
 version="3.0"
-source="http://www.kernel.org/pub/linux/kernel/v2.6/linux-$version.tar.bz2"
+source="http://www.kernel.org/pub/linux/kernel/v3.0/linux-$version.tar.bz2"
 build_name="linux-3.0"
 builder="custom_build"
 packager="custom_package"

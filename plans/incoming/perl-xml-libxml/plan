@@ -1,0 +1,4 @@
+name="perl-xml-libxml"
+version="1.70"
+source="http://www.cpan.org/authors/id/P/PA/PAJAS/XML-LibXML-$version.tar.gz"
+verify="53e6cf06772ba9d85055dc6e4488dbd876d2376e48ef3578fa73246ee98b3ba0"

@@ -1,8 +1,6 @@
 name="linux"
 version="3.0"
 source="http://www.kernel.org/pub/linux/kernel/v3.0/linux-$version.tar.bz2"
-builder="custom_build"
-packager="custom_package"
 verify="sign_verify"
 
 custom_build() {
@@ -10,7 +8,7 @@ custom_build() {
 	make
 }
 
-custom_package() {
+custom_install() {
 	mkdir -p $DESTDIR/boot
 	cp arch/x86_64/boot/bzImage $DESTDIR/boot/vmlinuz-$version-vanilla
 	cp System.map $DESTDIR/boot/System.map-$version

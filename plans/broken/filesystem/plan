@@ -1,4 +1,5 @@
 name="filesystem"
+source="nil"
 version="1"
 builder="no_build"
 packager="no_install"
@@ -22,9 +23,9 @@ post_hook() {
 		ln -s share/{man,doc,info} $dir
 	done
 
-	case $(uname -m) in
-		x86_64) ln -sv lib lib64 && ln -sv lib usr/lib64 ;;
-	esac
+	#case $(uname -m) in
+		#x86_64) ln -sv lib lib64 && ln -sv lib usr/lib64 ;;
+	#esac
 
 	mkdir var/{log,mail,spool}
 	ln -s run var/run

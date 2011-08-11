@@ -1,0 +1,4 @@
+name="gparted"
+version="0.8.1"
+source="http://downloads.sourceforge.net/project/gparted/gparted/gparted-$version/gparted-0.8.1.tar.bz2"
+verify="c30469d61188791ad12bafde4010163afb451faea076692551a48d8b59b61789"

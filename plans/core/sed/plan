@@ -1,5 +1,5 @@
 name="sed"
 version="4.2.1"
 source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--bindir=/bin --htmldir=/usr/share/doc/sed-4.2.1"
+build_args="--bindir=$PREFIX/bin --htmldir=$PREFIX/share/doc/sed-4.2.1"
 verify="gnu_verify"
