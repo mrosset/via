@@ -14,7 +14,7 @@ term=$TERM
 home=$HOME
 unset `env | awk -F= '/^\w/ {print $1}' | xargs`
 
-TARGET_ARCH="arm"
+TARGET_ARCH="x86_64"
 
 case $TARGET_ARCH in
 	i686)
@@ -558,8 +558,8 @@ tools_gcc() {
 			Makefile.orig > Makefile
 
 		make AS_FOR_TARGET="${AS}" \
-			LD_FOR_TARGET="${LD}" all-target-libgcc
-		make install-target-libgcc
+			LD_FOR_TARGET="${LD}"
+		make install
 
 	_popd
 
@@ -902,9 +902,9 @@ tools_phase() {
 		fi
 		./via cross_build $line
 	done < "cross/tools.list"
-	tools_gcc gcc
+	#tools_gcc gcc
 	ln -svf . /tools/tools
 }
 init
-cross_phase
+#cross_phase
 tools_phase
