@@ -18,17 +18,17 @@ which
 less
 openssl
 curl
+gnupg
 
 # devel
 gmp
 mpfr
 mpc
-# binutils
-# gcc
-# bison
-# diffutils
-# flex
-# m4
-# make
-# patch
-# sed
+binutils
+bison
+diffutils
+flex
+m4
+make
+patch
+sed
