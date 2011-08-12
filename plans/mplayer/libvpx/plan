@@ -2,12 +2,7 @@ name="libvpx"
 version="0.9.6"
 source="http://webm.googlecode.com/files/libvpx-v0.9.6.tar.bz2"
 build_name="libvpx-v$version"
-build="custom_build"
-build_args="--prefix=/usr --enable-shared"
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="28bd8a8ef216fb570912f0d378668051d99681bf13735b59e68a12ad79f2aa73"
+verify="28bd8a8ef216fb570912f0d378668051d99681bf13735b59e68a12ad79f2aa73"
 
 custom_build() {
     ./configure --enable-vp8 \

@@ -1,9 +1,7 @@
 name="mplayer2"
 version="2.0"
 source="http://ftp.mplayer2.org/pub/release/mplayer2-2.0.tar.xz"
-build_name=""
-build="custom_build"
-build_args="--prefix=/usr \
+build_args="\
 --enable-runtime-cpudetection \
 --disable-arts \
 --disable-speex \
@@ -14,13 +12,9 @@ build_args="--prefix=/usr \
 --disable-mga \
 --enable-xvmc \
 --confdir=/etc/mplayer"
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-verify_args="f1d17397bbdfcff2220d8b4bc17e7de5b78488736e21dca2df0d8a3216c85910"
+verify="f1d17397bbdfcff2220d8b4bc17e7de5b78488736e21dca2df0d8a3216c85910"
 
 custom_build() {
 	unset CFLAGS
-	confargs=""
 	gnu_build
 }

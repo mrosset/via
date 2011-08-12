@@ -1,0 +1,9 @@
+name="cups"
+version="1.4.8"
+builder="relocate_build"
+source="ftp://ftp.easysw.com/pub/cups/$version/cups-1.4.8-source.tar.bz2"
+verify="6bd27e1213c139ed0bbadc5c29f97cf1e8f7f8f5b0bb29b227ecaff32aafa9a6"
+
+custom_install() {
+	make BUILDROOT=$DESTDIR install-headers install-libs
+}

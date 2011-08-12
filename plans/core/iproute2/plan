@@ -1,8 +1,6 @@
 name="iproute2"
 version="2.6.39"
 source="http://devresources.linuxfoundation.org/dev/iproute2/download/iproute2-$version.tar.gz"
-builder="custom_build"
-packager="custom_package"
 verify="939df14f3eef81f22719e4db59e3b16b89c644d2d85ce7453c069baecf21bdbf"
 
 custom_build() {
@@ -10,7 +8,7 @@ custom_build() {
 	make DESTDIR=$DESTDIR
 }
 
-custom_package() {
+custom_install() {
 	make DESTDIR=$DESTDIR SBINDIR=/sbin MANDIR=/usr/share/man \
 		DOCDIR=/usr/share/doc/iproute2-2.6.39 install
 }

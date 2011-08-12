@@ -1,13 +1,7 @@
 name="chromium"
 version="12.0.742.124"
 source="http://build.chromium.org/official/chromium-$version.tar.bz2"
-build_name=""
-build="custom_build"
-build_args=""
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="468a4945c78afd3f4063212a51ee26ae8004636fbaac86837d2828675bf3827a"
+verify="468a4945c78afd3f4063212a51ee26ae8004636fbaac86837d2828675bf3827a"
 
 custom_build() {
 	build/gyp_chromium -f make build/all.gyp --depth=. \

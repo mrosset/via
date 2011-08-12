@@ -1,8 +1,6 @@
 name="bzip2"
 version="1.0.6"
 source="http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz"
-builder="custom_build"
-packager="custom_package"
 verify="a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd"
 
 custom_build() {
@@ -12,6 +10,11 @@ custom_build() {
 	make
 }
 
-custom_package() {
+custom_install() {
 	make PREFIX=$DESTDIR/$PREFIX install
+	install -Dm755 libbz2.so.1.0.6 $DESTDIR/usr/lib/libbz2.so.1.0.6
+	ln -s libbz2.so.1.0.6 $DESTDIR/usr/lib/libbz2.so
+	ln -s libbz2.so.1.0.6 $DESTDIR/usr/lib/libbz2.so.1
+	ln -s libbz2.so.1.0.6 $DESTDIR/usr/lib/libbz2.so.1.0
+
 }

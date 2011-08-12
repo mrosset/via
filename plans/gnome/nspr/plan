@@ -1,14 +1,7 @@
 name="nspr"
 version="4.8.8"
 source="ftp://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v4.8.8/src/nspr-4.8.8.tar.gz"
-build_name=""
-build="custom_build"
-build_args=""
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="92f3f4ded2ee313e396c180d5445cc3c718ff347d86c06b7bf14a1b5e049d4c9"
-# ex: ts=8 sw=4 sts=4 et filetype=sh
+verify="92f3f4ded2ee313e396c180d5445cc3c718ff347d86c06b7bf14a1b5e049d4c9"
 
 custom_build() {
   if [ "$CARCH" = "x86_64" ]; then
@@ -28,7 +21,7 @@ custom_build() {
 }
 
 custom_install() {
-    gnu_install
+    gnu_package
 
   NSPR_LIBS=`./config/nspr-config --libs`
   NSPR_CFLAGS=`./config/nspr-config --cflags`

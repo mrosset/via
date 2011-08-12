@@ -1,11 +1,6 @@
 name=xf86-video-nouveau
 version="0.0.16"
 source="nil"
-build_name=""
-build="custom_build"
-build_args=""
-install="custom_install"
-install_args=""
 verify="no_verify"
 
 custom_build()
@@ -20,7 +15,6 @@ custom_build()
 
 custom_install() {
 	_pushd $name
-		gnu_install
+		gnu_package
 	_popd
 }
-# ex: ts=8 sw=4 sts=4 et filetype=sh

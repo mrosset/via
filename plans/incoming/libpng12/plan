@@ -1,0 +1,5 @@
+name="libpng12"
+version="1.2.46"
+build_name="libpng-$version"
+source="http://sourceforge.net/projects/libpng/files/libpng12/$version/libpng-1.2.46.tar.xz"
+verify="f6f3ddc53bcb8cdd224f1d3642150df38aa5e8e9d509b0cedf793638c9269d65"

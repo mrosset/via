@@ -1,11 +1,4 @@
 name="gnome-keyring"
 version="3.0.3"
 source="http://ftp.gnome.org/pub/gnome/sources/gnome-keyring/3.0/gnome-keyring-3.0.3.tar.bz2"
-build_name=""
-build="gnu_build"
-build_args=""
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-# ex: ts=8 sw=4 sts=4 et filetype=sh
-verify_args="a06c34e474d93da62bf96a816e58cb5730e181d6523730f041f34c58a0d5e94e"
+verify="a06c34e474d93da62bf96a816e58cb5730e181d6523730f041f34c58a0d5e94e"

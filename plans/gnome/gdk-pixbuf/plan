@@ -1,11 +1,4 @@
 name="gdk-pixbuf"
 version="2.23.5"
 source="ftp://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.23/gdk-pixbuf-$version.tar.bz2"
-build_name=""
-build="gnu_build"
-build_args=""
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-verify_args="16171a1d6c85cafb64328066c3726c08b1c6621d4aba8990f97b26a2c8a6463a"
-# ex: ts=8 sw=4 sts=4 et filetype=sh
+verify="16171a1d6c85cafb64328066c3726c08b1c6621d4aba8990f97b26a2c8a6463a"

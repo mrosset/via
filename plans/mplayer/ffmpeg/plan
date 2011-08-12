@@ -2,8 +2,7 @@ name="ffmpeg"
 version="20110622"
 source="ftp://ftp.archlinux.org/other/ffmpeg/$name-$version.tar.xz"
 build_name="ffmpeg"
-build="custom_build"
-build_args="--prefix=/usr \
+build_args="\
 --enable-libmp3lame \
 --enable-libvorbis \
 --enable-libxvid \
@@ -21,12 +20,8 @@ build_args="--prefix=/usr \
 --enable-gpl \
 --enable-version3 \
 --enable-runtime-cpudetect"
-install="gnu_install"
-install_args=""
-verify="sha_verify"
-verify_args="fd7f9cb901a7bf6e51a8851f992f5f94cb0a8a06970d760ed3eddd844fead4b8"
+verify="fd7f9cb901a7bf6e51a8851f992f5f94cb0a8a06970d760ed3eddd844fead4b8"
 
 custom_build() {
-	confargs=""
 	gnu_build
 }

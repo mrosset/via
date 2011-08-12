@@ -8,7 +8,7 @@ build_args="--disable-profile --enable-add-ons \
 
 custom_stage() {
 	_pushd $sources
-		[[ ! -d $build_name ]] && svn co http://www.eglibc.org/svn/branches/eglibc-2_14 eglibc-2.14
+		[[ ! -d $build_name ]] && svn co http://www.eglibc.org/svn/branches/eglibc-2_14 eglibc-$version
 	_popd
 
 	[[ -d $stages/$build_name ]] && rmdir $stages/$build_name || true
@@ -35,7 +35,7 @@ EOF
 custom_build() {
 	custom_stage
 	echo "OPTION_EGLIBC_LOCALES = n" > option-groups.config
-	$stages/$build_name/libc/configure $confargs
+	$stages/$build_name/libc/configure $CONFIG
 	make
 }
 

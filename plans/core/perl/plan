@@ -1,8 +1,6 @@
 name="perl"
 version="5.14.1"
 source="http://www.cpan.org/src/5.0/$name-$version.tar.bz2"
-builder="custom_build"
-packager="gnu_package"
 verify="29b4a7e7c22d4a980ab9eb1ea486c5c4ee9ec533192a1ce8f3fe9ae32fb1f862"
 
 custom_build() {

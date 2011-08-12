@@ -6,13 +6,12 @@ verify="45e17667b5c6886b49b43e98b8a3f6684e77e5dceda8e939af6f5c8bebd7a939"
 
 custom_build() {
 	_pushd source
-		./configure $confargs
-		make
+		gnu_build
 	_popd
 }
 
 custom_install() {
 	_pushd source
-		make install
+		gnu_package
 	_popd
 }
