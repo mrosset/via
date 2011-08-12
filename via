@@ -83,6 +83,7 @@ download() {
     if [ ! -f "$file" ]; then
         log "$FUNCNAME" "$url"
         curl -f -L -# -O "$url"
+        echo
     fi	
     _popd
 
@@ -104,7 +105,10 @@ via_stage() {
     fi
     _pushd "$stages"
     if [ ! -d "$build_name" ]; then
-        tar xf "$sources/$file"
+        case $file in
+            *zip) bsdtar xf $sources/$file ;;
+            *) tar xf "$sources/$file";;
+        esac
         if [ -d "$plan_dir/patches" ]; then
             _pushd "$build_name"
             for i in $plan_dir/patches/*; do
@@ -249,6 +253,15 @@ is_cross_build() {
 
 is_func_defined() {
     if [ "$(type -t $1)" = "function" ]; then
+        true
+    else
+        false
+    fi
+}
+
+is_installed() {
+    name_version="$(via get_version $1)"
+    if [[ -d /var/db/via/$name_version ]]; then
         true
     else
         false
@@ -489,16 +502,17 @@ _popd() {
 }
 
 # BUILD HOOKS
-confargs="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
-    --localstatedir=/var --with-shared --config-cache"
+CONFIG="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
+    --localstatedir=/var --with-shared --config-cache --disable-static"
 
 relocate_build() {
     gnu_build
 }
 
+STDBUF=1048576
 gnu_build() {
-    $stages/$build_name/configure $confargs $build_args
-    make
+    stdbuf -e$STDBUF -o$STDBUF $stages/$build_name/configure $CONFIG $build_args --libexec=$PREFIX/lib/$name
+    stdbuf -e$STDBUF -o$STDBUF make
 }
 
 no_build() {
@@ -506,7 +520,7 @@ no_build() {
 }
 
 gnu_package() {
-    fakeroot make $package_args DESTDIR=$DESTDIR install
+    fakeroot stdbuf -e$STDBUF -o$STDBUF make $package_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
@@ -636,10 +650,11 @@ via_import() {
         log $FUNCNAME "$target already exists"
         return 1
     fi
-    if [ -z $path ]; then
+    if [ -z "$path" ]; then
         log $FUNCNAME "$1 abs not found"
         return
     fi
+    echo $path
     source $path/PKGBUILD
     source=${source/$pkgver/\$version}
     local t=$plans/incoming/$target/plan
@@ -696,7 +711,7 @@ via_cross_build() {
 
     PREFIX=/tools
     ROOT=/tools
-    confargs+="\
+    CONFIG+="\
         --prefix=$PREFIX \
         --sysconfdir=/tools/etc \
         --localstatedir=$PREFIX/var \
@@ -715,6 +730,15 @@ via_repo_sync() {
 via_get_version() {
     source_plan $1
     echo $name-$version
+}
+
+via_build_repo() {
+    for i in $plans/$1/*; do
+        plan="$(basename $i)"
+        if ! is_installed $plan; then
+            via build_install $plan
+        fi
+    done
 }
 
 via_bootstrap_core() {
