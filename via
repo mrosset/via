@@ -329,8 +329,38 @@ strip_package() {
                 $STRIP_CMD $STRIP_STATIC "$binary";;
             *application/x-executable*) # Binaries
                 log "strip binary" "$binary"
-                $STRIP_CMD $STRIP_BINARIES "$binary" || true
+                $STRIP_CMD $STRIP_BINARIES "$binary" || true ;;
         esac
+    done
+}
+
+is_binary_or_lib() {
+    case "$(file -bi "$1")" in
+        *application/x-sharedlib*) 
+            true;;
+        *application/x-executable*) # Binaries
+            true;;
+        *)
+            false;;
+    esac
+}
+
+write_depends() {
+    local db=$ROOT/var/db/via
+    touch DEPENDS
+    find . -type f 2>/dev/null | while read binary ; do
+        if ! is_binary_or_lib "$binary"; then
+            continue
+        fi
+        shlibs=$(objdump -x "$binary" | grep NEEDED | awk '{print $2}')
+        for i in $shlibs; do
+            dir=$(dirname $(grep -lR $i $db))
+            depend=$(basename $dir | awk -F '-' '{print $1}')
+            if ! grep -q "$depend" DEPENDS; then
+                log "$i" "$depend"
+                echo $depend >> DEPENDS
+            fi
+        done
     done
 }
 
@@ -362,6 +392,7 @@ via_package() {
         post_hook
     fi
     strip_package
+    write_depends
     find . > MANIFEST
     log "compressing" "$(basename $pkgfile)"
     fakeroot tar cfz $pkgfile *
@@ -462,7 +493,7 @@ via_install() {
     log "installing" $(basename $pkgfile)
     mkdir -p "$db/$fullname"
     tar -xf $pkgfile | true
-    mv MANIFEST $db/$fullname/MANIFEST
+    mv MANIFEST DEPENDS $db/$fullname/
     _popd
     if [[ $EUID = 0 ]]; then
         ldconfig &> /dev/null
@@ -688,7 +719,7 @@ via_remove_plan() {
 }
 
 via_cross_build() {
-    TARGET_ARCH="x86_64"
+    TARGET_ARCH="arm"
     CROSS_TOOLS=/cross-tools
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
