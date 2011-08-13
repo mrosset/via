@@ -515,7 +515,6 @@ via_install() {
     if is_installed $1; then
         diff_manifest
         log $(yellow WARNING) "$fullname is already installed"
-        return
         echo -n "reinstall ? y/n "
         read ok
         if [ "$ok" = "N" ] || [ -z "$ok" ] || [ "$ok" != "y" ]; then
