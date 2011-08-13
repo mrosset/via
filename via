@@ -261,7 +261,7 @@ is_func_defined() {
 
 is_installed() {
     name_version="$(via get_version $1)"
-    if [[ -d /var/db/via/$name_version ]]; then
+    if [[ -d $ROOT/var/db/via/$name_version ]]; then
         true
     else
         false
@@ -358,6 +358,9 @@ write_depends() {
         fi
         libs=$(objdump -x "$binary" | grep NEEDED | awk '{print $2}')
         for i in $libs; do
+            if grep -q $i MANIFEST; then
+                continue
+            fi
             manifest=$(grep -lR "$i" "$db") || true
             if [[ -z $manifest ]]; then
                 log "WARNING" "$i not resolved"
@@ -386,7 +389,7 @@ via_package() {
     log $(echo $packager) $name
     packager=$(get_package_type)
     _pushd $builds/$build_name
-    $packager
+        $packager
     _popd
     package_files_dir
     if [ ! -d $DESTDIR ]; then
@@ -401,10 +404,11 @@ via_package() {
         post_hook
     fi
     strip_package
-    write_depends
     find . > MANIFEST
+    write_depends
     log "compressing" "$(basename $pkgfile)"
     fakeroot tar cfz $pkgfile *
+    cp DEPENDS MANIFEST "$plan_dir/"
     _popd
     _pushd $repo
     log "signing" "$(basename $pkgfile)"
@@ -414,6 +418,9 @@ via_package() {
     if ! gpg --verify $pkgfile.sig &> /dev/null; then
         gpg --verify $pkgfile.sig 
     fi
+    _popd
+    _pushd $plan_dir
+        git diff .
     _popd
 }
 
@@ -470,8 +477,20 @@ via_cross_install() {
     via_install $1
 }
 
+
+install_depends() {
+    while read depend; do
+        if ! is_installed "$depend"; then
+            via_install "$depend" "no"
+        else
+            log "$depend" "skipping"
+        fi
+    done < <(tar xOf $pkgfile DEPENDS)
+}
+
 via_install() {
     source_plan $1
+    local with_depends=${2:-}
     local fullname=$name-$version
     local pkgfile="$repo/${TARGET_ARCH:-$(arch)}/$fullname-via.tar.gz"
     local db=var/db/via
@@ -482,15 +501,21 @@ via_install() {
         gpg --verify $pkgfile.sig
         exit 1
     fi
+
+    if [[ -z $with_depends ]]; then 
+        install_depends $pkgfile
+    fi
+
     _pushd $ROOT
     [ -d $db ] || mkdir -p $db
     if [ -f MANIFEST ]; then
         log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
         return 1
     fi
-    if [ -d "$db/$fullname" ]; then
+    if is_installed $1; then
         diff_manifest
         log $(yellow WARNING) "$fullname is already installed"
+        return
         echo -n "reinstall ? y/n "
         read ok
         if [ "$ok" = "N" ] || [ -z "$ok" ] || [ "$ok" != "y" ]; then
@@ -504,10 +529,8 @@ via_install() {
     tar -xf $pkgfile | true
     mv MANIFEST DEPENDS $db/$fullname/
     _popd
-    if [[ $EUID = 0 ]]; then
-        ldconfig &> /dev/null
-    fi
-    echo " " $(green "DONE")
+    ldconfig -r $ROOT &> /dev/null || true
+    echo " " $(green "done")
 }
 
 via_remove() {
@@ -531,7 +554,7 @@ via_remove() {
 logf() {
     local blue=$(tput setaf 4)
     local reset=$(tput sgr0)
-    printf "${blue}via: ${reset}%-20.20s %s" "$1" "$2"
+    printf "${blue}via: ${reset}%-20.20s %-20.20s" "$1" "$2"
 }
 
 # <action> <details>
