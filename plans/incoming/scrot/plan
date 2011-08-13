@@ -1,0 +1,4 @@
+name="scrot"
+version="0.8"
+source="ftp://ftp.archlinux.org/other/scrot/scrot-$version.tar.bz2"
+verify="db7bcde617ef1f542301a931e758916bc3e8d085fb65503d3585cd2c7231d016"

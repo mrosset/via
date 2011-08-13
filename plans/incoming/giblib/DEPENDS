@@ -1,0 +1,6 @@
+imlib2
+freetype
+zlib
+libX11
+libXext
+eglibc

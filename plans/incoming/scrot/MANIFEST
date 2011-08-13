@@ -1,0 +1,14 @@
+.
+./MANIFEST
+./usr
+./usr/bin
+./usr/bin/scrot
+./usr/doc
+./usr/doc/scrot
+./usr/doc/scrot/ChangeLog
+./usr/doc/scrot/README
+./usr/doc/scrot/TODO
+./usr/doc/scrot/AUTHORS
+./usr/man
+./usr/man/man1
+./usr/man/man1/scrot.1

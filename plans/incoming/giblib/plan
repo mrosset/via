@@ -1,0 +1,9 @@
+name="giblib"
+version="1.2.4"
+source="ftp://ftp.archlinux.org/other/giblib/giblib-$version.tar.bz2"
+verify="dd4f26fd1854054f94512f9235f59130271290335baa2e62296f57d3399e638c"
+
+custom_build() {
+	./configure $CONFIG
+	make
+}

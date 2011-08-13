@@ -1,0 +1,4 @@
+source $plans/*/gcc/plan
+build_name="$name-$version"
+name="libgcc"
+package_args="install-target-libgcc install-target-libstdc++-v3"
