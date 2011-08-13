@@ -347,14 +347,23 @@ is_binary_or_lib() {
 
 write_depends() {
     local db=$ROOT/var/db/via
+    if [[ ! -d $db ]]; then
+        log "WARNING" "$db does not exist"
+        return
+    fi
     touch DEPENDS
     find . -type f 2>/dev/null | while read binary ; do
         if ! is_binary_or_lib "$binary"; then
             continue
         fi
-        shlibs=$(objdump -x "$binary" | grep NEEDED | awk '{print $2}')
-        for i in $shlibs; do
-            dir=$(dirname $(grep -lR $i $db))
+        libs=$(objdump -x "$binary" | grep NEEDED | awk '{print $2}')
+        for i in $libs; do
+            manifest=$(grep -lR "$i" "$db") || true
+            if [[ -z $manifest ]]; then
+                log "WARNING" "$i not resolved"
+                continue
+            fi
+            dir=$(dirname "$manifest")
             depend=$(basename $dir | awk -F '-' '{print $1}')
             if ! grep -q "$depend" DEPENDS; then
                 log "$i" "$depend"
@@ -490,7 +499,7 @@ via_install() {
         fi
         via_remove $1
     fi
-    log "installing" $(basename $pkgfile)
+    logf "installing" $(basename $pkgfile)
     mkdir -p "$db/$fullname"
     tar -xf $pkgfile | true
     mv MANIFEST DEPENDS $db/$fullname/
@@ -498,6 +507,7 @@ via_install() {
     if [[ $EUID = 0 ]]; then
         ldconfig &> /dev/null
     fi
+    echo " " $(green "DONE")
 }
 
 via_remove() {
@@ -515,6 +525,13 @@ via_remove() {
     rm -r $db/$package
     _popd
     log $package "removed"
+}
+
+# <action> <details>
+logf() {
+    local blue=$(tput setaf 4)
+    local reset=$(tput sgr0)
+    printf "${blue}via: ${reset}%-20.20s %s" "$1" "$2"
 }
 
 # <action> <details>
@@ -542,8 +559,8 @@ relocate_build() {
 
 STDBUF=1048576
 gnu_build() {
-    stdbuf -e$STDBUF -o$STDBUF $stages/$build_name/configure $CONFIG $build_args --libexec=$PREFIX/lib/$name
-    stdbuf -e$STDBUF -o$STDBUF make
+    $stages/$build_name/configure $CONFIG --libexec=$PREFIX/lib/$name $build_args
+    make
 }
 
 no_build() {
@@ -551,7 +568,7 @@ no_build() {
 }
 
 gnu_package() {
-    fakeroot stdbuf -e$STDBUF -o$STDBUF make $package_args DESTDIR=$DESTDIR install
+    fakeroot make $package_args DESTDIR=$DESTDIR install
 }
 
 no_install() {
@@ -719,7 +736,7 @@ via_remove_plan() {
 }
 
 via_cross_build() {
-    TARGET_ARCH="arm"
+    TARGET_ARCH="x86_64"
     CROSS_TOOLS=/cross-tools
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
@@ -770,6 +787,25 @@ via_build_repo() {
             via build_install $plan
         fi
     done
+}
+
+via_setup_tools() {
+    CLFS=/mnt/clfs
+    via -r $CLFS install filesystem || true
+    mount -v --bind /dev $CLFS/dev 
+    mount -vt devpts devpts $CLFS/dev/pts
+    mount -vt tmpfs shm $CLFS/dev/shm
+    mount -vt proc proc $CLFS/proc
+    mount -vt sysfs sysfs $CLFS/sys
+    mount -v -o bind $HOME $CLFS/root
+}
+
+via_enter_chroot() {
+    CLFS=/mnt/clfs
+    chroot "$CLFS" /tools/bin/env -i \
+        HOME=/root TERM="$TERM" PS1='\u:\w\$ ' \
+        PATH=/bin:/usr/bin:/sbin:/usr/sbin:/tools/bin \
+        /tools/bin/bash --login +h
 }
 
 via_bootstrap_core() {
