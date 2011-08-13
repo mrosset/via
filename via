@@ -591,7 +591,11 @@ no_build() {
 }
 
 gnu_package() {
-    fakeroot make $package_args DESTDIR=$DESTDIR install
+    if [[ -z ${package_args:-} ]]; then
+        fakeroot make DESTDIR=$DESTDIR install
+    else
+        fakeroot make DESTDIR=$DESTDIR $package_args
+    fi
 }
 
 no_install() {
@@ -784,11 +788,12 @@ via_cross_build() {
     ROOT=/tools
     CONFIG+="\
         --prefix=$PREFIX \
-        --sysconfdir=/tools/etc \
+        --sysconfdir=$PREFIX/etc \
         --localstatedir=$PREFIX/var \
         --with-shared \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET}"
+        --host=${CLFS_TARGET} \
+        --target=${CLFS_TARGET}"
 
     via_build $1
     via_cross_install $1
@@ -842,6 +847,19 @@ via_bootstrap_core() {
         fi
         ./via build_install $line
     done < "cross/core.list"
+}
+
+via_install_android() {
+    TARGET_ARCH=arm
+    ROOT=$PWD/android
+    log "android install" "$(green "started")"
+    for i in bash curl coreutils git tar gnupg; do
+        if is_installed $i; then
+            continue
+        fi
+        via_install $i
+    done
+    log "android install" "$(green "finished")"
 }
 
 while getopts ":r:" opt; do
