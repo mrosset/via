@@ -8,7 +8,7 @@ verify="92511d1f0caaa298dba250426f8e7d5d00b271847886d1adc62422778d6320db"
 custom_build() {
 	case ${TARGET_ARCH:-} in
 		arm)
-			openssl_arch=linux-arm;;
+			openssl_arch=linux-armv4;;
 		i686)
 			openssl_arch=linux-generic32;;
 		x86_64)

@@ -11,12 +11,12 @@ custom_stage() {
 		[[ ! -d $build_name ]] && svn co http://www.eglibc.org/svn/branches/eglibc-2_13 eglibc-$version
 	_popd
 
-	[[ -d $stages/$build_name ]] && rmdir $stages/$build_name || true
-	svn export $sources/$build_name $stages/$build_name || true
+	[[ ! -d $stages/$build_name ]] && svn export $sources/$build_name $stages/$build_name
+	[[ ! -d $builds/$build_name ]] && mkdir $builds/$build_name
+	return 0
 }
 
 cross_build() {
-	custom_stage
 	_pushd $stages/$build_name/libc
 		cp -v Makeconfig{,.orig}
 		sed -e 's/-lgcc_eh//g' Makeconfig.orig > Makeconfig
@@ -33,7 +33,6 @@ EOF
 }
 
 custom_build() {
-	custom_stage
 	echo "OPTION_EGLIBC_LOCALES = n" > option-groups.config
 	#echo "OPTION_EGLIBC_NIS = n" >> option-groups.config
 	#echo "OPTION_EGLIBC_SUNRPC = n" >> option-groups.config
