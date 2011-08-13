@@ -1,0 +1,7 @@
+openssl
+gcc
+eglibc
+libtiff
+libpng
+libjpeg
+zlib

@@ -92,6 +92,10 @@ download() {
 # FIXME: this whole function is a mess rework it properly
 via_stage() {
     source_plan $1
+    if is_func_defined "custom_stage"; then
+        custom_stage
+        return
+    fi
     local file="$(basename $source)"
     local btype="$(echo $builder)"
 
@@ -482,8 +486,6 @@ install_depends() {
     while read depend; do
         if ! is_installed "$depend"; then
             via_install "$depend" "no"
-        else
-            log "$depend" "skipping"
         fi
     done < <(tar xOf $pkgfile DEPENDS)
 }
@@ -553,14 +555,14 @@ via_remove() {
 logf() {
     local blue=$(tput setaf 4)
     local reset=$(tput sgr0)
-    printf "${blue}via: ${reset}%-20.20s %-20.20s" "$1" "$2"
+    printf "${blue}via: ${reset}%-20.20s %-40.40s" "$1" "$2"
 }
 
 # <action> <details>
 log() {
     local blue=$(tput setaf 4)
     local reset=$(tput sgr0)
-    printf "${blue}via: ${reset}%-20.20s %s\n" "$1" "$2"
+    printf "${blue}via: ${reset}%-20.20s %-40.40s\n" "$1" "$2"
 }
 
 _pushd() {
