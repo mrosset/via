@@ -8,6 +8,7 @@ gcc
 sed
 bzip2
 pcre
+gettext
 glib
 pkg-config
 ncurses
@@ -31,7 +32,6 @@ diffutils
 gawk
 findutils
 flex
-gettext
 groff
 grub
 gzip
@@ -52,3 +52,6 @@ texinfo
 udev
 vim
 linux
+openssl
+curl
+git

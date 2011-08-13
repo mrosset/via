@@ -355,7 +355,7 @@ cross_gcc() {
 eglibc() {
 	log $FUNCNAME started
 	name=eglibc
-	version=2.13
+	version=2.14
 	build_name=$name-$version
 	#source=http://cross-lfs.org/files/packages/git/eglibc-$version-r13356.tar.bz2
 	#download $source
@@ -902,9 +902,9 @@ tools_phase() {
 		fi
 		./via cross_build $line
 	done < "cross/tools.list"
-	#tools_gcc gcc
+	tools_gcc gcc
 	ln -svf . /tools/tools
 }
 init
-#cross_phase
+cross_phase
 tools_phase
