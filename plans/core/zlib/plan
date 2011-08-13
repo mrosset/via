@@ -2,5 +2,10 @@ name="zlib"
 version="1.2.5"
 source="http://zlib.net/$name-$version.tar.gz"
 verify="6064e52e513facb0fbb7998c6413406cf253cfb986063d68f4771c2bf7a3f958"
-builder="relocate_build"
-CONFIG="--prefix=${PREFIX}"
+build_args="--prefix=${PREFIX}"
+
+custom_build() {
+	./configure $build_args
+	make static
+	make
+}

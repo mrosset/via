@@ -2,7 +2,7 @@ name="gcc"
 version="4.6.1"
 source="http://mirrors.kernel.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2"
 build_args="--libexecdir=/usr/lib \
---enable-languages=c,c++,go \
+--enable-languages=c,c++ \
 --enable-threads=posix \
 --enable-__cxa_atexit \
 --enable-clocale=gnu \

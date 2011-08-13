@@ -4,17 +4,7 @@ source="http://www.cpan.org/src/5.0/$name-$version.tar.bz2"
 verify="29b4a7e7c22d4a980ab9eb1ea486c5c4ee9ec533192a1ce8f3fe9ae32fb1f862"
 
 custom_build() {
-	sed -i -e "s|BUILD_ZLIB\s*= True|BUILD_ZLIB = False|"           \
-		-e "s|INCLUDE\s*= ./zlib-src|INCLUDE    = /usr/include|" \
-		-e "s|LIB\s*= ./zlib-src|LIB        = /usr/lib|"         \
-		cpan/Compress-Raw-Zlib/config.in
-
-	sh Configure -des -Dprefix=/usr \
-		-Dinc_version_list=none \
-		-Dvendorprefix=/usr           \
-		-Dman1dir=/usr/share/man/man1 \
-		-Dman3dir=/usr/share/man/man3 \
-		-Dpager="/usr/bin/less -isR"  \
-		-Duseshrplib
-	make
+	patch -Np1 -i $sources/perl-5.14.0-libc-1.patch || true
+	sed -i 's@/usr/include@/tools/include@g' ext/Errno/Errno_pm.PL
+	./configure.gnu --prefix=/$PREFIX -Dcc="gcc"
 }

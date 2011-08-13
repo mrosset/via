@@ -1,5 +1,5 @@
 name="systemd"
-version="33"
+version="32"
 source="http://www.freedesktop.org/software/systemd/systemd-$version.tar.bz2"
 build_args="--with-rootdir=/ \
 --sysconfdir=/etc \
@@ -9,4 +9,4 @@ build_args="--with-rootdir=/ \
 --disable-tcpwrap \
 --disable-gtk \
 --with-distro=other"
-verify="0de8b842841859b329dec26ecb3d7c10f6616ef80a074192800315893e3d5c3d"
+verify="714bd00ceb44639a675e8a7b7ee4f6bff42b70a442110c70e64ff41056828dae"
