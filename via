@@ -264,7 +264,7 @@ is_func_defined() {
 }
 
 is_installed() {
-    name_version="$(via get_version $1)"
+    name_version="$($VIAHOME/via get_version $1)"
     if [[ -d $ROOT/var/db/via/$name_version ]]; then
         true
     else
@@ -351,11 +351,11 @@ is_binary_or_lib() {
 
 write_depends() {
     local db=$ROOT/var/db/via
+    touch DEPENDS
     if [[ ! -d $db ]]; then
         log "WARNING" "$db does not exist"
         return
     fi
-    touch DEPENDS
     find . -type f 2>/dev/null | while read binary ; do
         if ! is_binary_or_lib "$binary"; then
             continue
@@ -412,7 +412,9 @@ via_package() {
     write_depends
     log "compressing" "$(basename $pkgfile)"
     fakeroot tar cfz $pkgfile *
-    cp DEPENDS MANIFEST "$plan_dir/"
+    if ! is_cross_build; then
+        cp DEPENDS MANIFEST "$plan_dir/"
+    fi
     _popd
     _pushd $repo
     log "signing" "$(basename $pkgfile)"
@@ -422,9 +424,6 @@ via_package() {
     if ! gpg --verify $pkgfile.sig &> /dev/null; then
         gpg --verify $pkgfile.sig 
     fi
-    _popd
-    _pushd $plan_dir
-        git diff .
     _popd
 }
 
@@ -476,7 +475,7 @@ diff_manifest() {
 }
 
 via_cross_install() {
-    TARGET_ARCH=x86_64
+    TARGET_ARCH=arm
     ROOT=/tools
     via_install $1
 }
@@ -760,7 +759,7 @@ via_remove_plan() {
 }
 
 via_cross_build() {
-    TARGET_ARCH="x86_64"
+    TARGET_ARCH="arm"
     CROSS_TOOLS=/cross-tools
     ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
