@@ -1,0 +1,18 @@
+name="db"
+version="5.2.28"
+source="http://download.oracle.com/berkeley-db/db-$version.tar.gz"
+verify="92133e3a5b4bb480db4cc349f1f6e636342910057b629a183389168f4b280e36"
+
+custom_build() {
+	_pushd build_unix
+		../dist/configure $CONFIG
+		make
+	_popd
+}
+
+custom_install() {
+	_pushd build_unix
+		gnu_package
+	_popd
+
+}

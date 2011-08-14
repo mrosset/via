@@ -1,0 +1,8 @@
+eglibc
+gdbm
+zlib
+readline
+ncurses
+openssl
+bzip2
+sqlite3

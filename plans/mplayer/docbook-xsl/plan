@@ -1,13 +1,8 @@
 name="docbook-xsl"
 version="1.76.1"
 source="http://downloads.sourceforge.net/sourceforge/docbook/docbook-xsl-1.76.1.tar.bz2"
-build_name=""
-build="no_build"
-build_args=""
-install="custom_install"
-install_args=""
-verify="sha_verify"
-verify_args="d6bdfd76f672c810299c71443e5127431ffb87d2c79d818aee72c86eaccd312c"
+builder="no_build"
+verify="d6bdfd76f672c810299c71443e5127431ffb87d2c79d818aee72c86eaccd312c"
 
 custom_install() {
 	pkgroot=${DESTDIR}/usr/share/xml/docbook/xsl-stylesheets-${version}
