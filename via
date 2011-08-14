@@ -212,7 +212,7 @@ get_build_type() {
     fi
 
     echo "ERROR" "could not determine builder type"
-    exit 1
+    return 1
 }
 
 get_package_type() {
@@ -227,7 +227,7 @@ get_package_type() {
         return 0
     fi
 
-    # check for configure if it exists set gnu_build
+    # check for configure if it exists set gnu_package
     if [ -f "configure" ]; then
         printf "gnu_package"
         return 0
@@ -244,7 +244,7 @@ get_package_type() {
     fi
 
     log "ERROR" "could not determine packager type"
-    exit 1
+    return 1
 }
 
 is_cross_build() {
@@ -463,13 +463,11 @@ diff_manifest() {
     while read line; do
         case "${line::1}" in
             "<")
-                echo $(red "$line")
-                ;;
+                echo $(red "$line");;
             ">")
-                echo $(green "$line")
-                ;;
+                echo $(green "$line");;
             *)
-                echo "$line"
+                echo "$line";;
         esac
     done < <(diff $db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST))
 }
@@ -853,7 +851,7 @@ via_install_android() {
     TARGET_ARCH=arm
     ROOT=$PWD/android
     log "android install" "$(green "started")"
-    for i in bash curl coreutils git tar gnupg; do
+    for i in bash curl coreutils git tar gnupg nmap; do
         if is_installed $i; then
             continue
         fi
