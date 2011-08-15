@@ -36,6 +36,9 @@ MAKEFLAGS="-j3"
 
 GPG_USER="test@test.com"
 
+
+URL_REPO=http://via.googlecode.com/files/
+
 chroot=$VIAHOME/chroot
 repo=$VIAHOME/repo
 cache=$VIAHOME/cache
@@ -487,14 +490,36 @@ install_depends() {
     done < <(tar xOf $pkgfile DEPENDS)
 }
 
+download_from_repo() {
+    local file=$(basename $1)
+    local curl_cmd="curl -f -L -# -O"
+
+    _pushd $repo/${TARGET_ARCH:-$(arch)}
+
+    if [[ ! -f $file ]]; then
+        log "downloading" "$file"
+        stdbuf -eL -oL $curl_cmd $URL_REPO/$file
+    fi
+
+    if [[ ! -f $file.sig ]]; then 
+        log "downloading" "$file.sig"
+        stdbuf -eL -oL $curl_cmd $URL_REPO/$file.sig
+    fi
+
+    _popd
+}
+
 via_install() {
     source_plan $1
     local with_depends=${2:-}
     local fullname=$name-$version
     local pkgfile="$repo/${TARGET_ARCH:-$(arch)}/$fullname-via.tar.gz"
+    local file=$(basename "$pkgfile")
     local db=var/db/via
-
+    
     [ -d $ROOT ] || mkdir -p $ROOT
+
+    download_from_repo "$pkgfile"
 
     if ! gpg --verify $pkgfile.sig &> /dev/null;then
         gpg --verify $pkgfile.sig
@@ -585,7 +610,7 @@ gnu_build() {
 }
 
 no_build() {
-    log $FUNCNAME "$name"
+    log "$FUNCNAME" "$name"
 }
 
 gnu_package() {
@@ -850,13 +875,16 @@ via_bootstrap_core() {
 via_install_android() {
     TARGET_ARCH=arm
     ROOT=$PWD/android
+    tarball="android.tar.bz2"
     log "android install" "$(green "started")"
-    for i in bash curl coreutils git tar gnupg nmap; do
+    for i in bash curl coreutils git tar gnupg shadow openssh wireless_tools util-linux which; do
         if is_installed $i; then
             continue
         fi
         via_install $i
     done
+    log "creating" "$tarball" 
+    tar cfj $tarball ./android
     log "android install" "$(green "finished")"
 }
 
