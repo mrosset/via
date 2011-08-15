@@ -36,8 +36,8 @@ MAKEFLAGS="-j3"
 
 GPG_USER="test@test.com"
 
-
-URL_REPO=http://via.googlecode.com/files/
+REPO_URL="https://via.googlecode.com/files"
+REPO_USER="mike.rosset@gmail.com"
 
 chroot=$VIAHOME/chroot
 repo=$VIAHOME/repo
@@ -492,21 +492,31 @@ install_depends() {
 
 download_from_repo() {
     local file=$(basename $1)
-    local curl_cmd="curl -f -L -# -O"
+    local curl_cmd="stdbuf -eL -oL curl -f -L -# -O"
 
     _pushd $repo/${TARGET_ARCH:-$(arch)}
 
     if [[ ! -f $file ]]; then
         log "downloading" "$file"
-        stdbuf -eL -oL $curl_cmd $URL_REPO/$file
+        $curl_cmd $URL_REPO/$file
     fi
 
     if [[ ! -f $file.sig ]]; then 
         log "downloading" "$file.sig"
-        stdbuf -eL -oL $curl_cmd $URL_REPO/$file.sig
+        $curl_cmd $URL_REPO/$file.sig
     fi
 
     _popd
+}
+
+via_upload_to_repo() {
+    local file=$1
+    local pass=$(cat $HOME/.gc_pass)
+    log "uploading" "$1"
+    curl -# -u $REPO_USER:$pass \
+        -F summary='"test"' \
+        -F upload=@${file} \
+        $REPO_URL | cat
 }
 
 via_install() {
