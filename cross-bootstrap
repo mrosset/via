@@ -14,7 +14,7 @@ term=$TERM
 home=$HOME
 unset `env | awk -F= '/^\w/ {print $1}' | xargs`
 
-TARGET_ARCH="x86_64"
+TARGET_ARCH="arm"
 
 case $TARGET_ARCH in
 	i686)
@@ -48,7 +48,7 @@ export PATH=/usr/lib/ccache/bin:$CROSS_TOOLS/bin:/bin:/usr/bin
 CLFS_HOST="$(arch)-cross-linux-gnu"
 CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
 
-export MAKFLAGS="-j3"
+export MAKEFLAGS="-j3"
 
 TOOLS_CONFIGURE="\
 	--prefix=$TOOLS \
@@ -902,7 +902,6 @@ tools_phase() {
 		fi
 		./via cross_build $line
 	done < "cross/tools.list"
-	tools_gcc gcc
 	ln -svf . /tools/tools
 }
 init
