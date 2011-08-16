@@ -19,16 +19,19 @@ less
 openssl
 curl
 gnupg
-
-# devel
 gmp
 mpfr
 mpc
-binutils
-bison
+libgcc
 diffutils
-flex
-m4
-make
-patch
-sed
+
+# devel
+#binutils
+#gcc
+#bison
+#diffutils
+#flex
+#m4
+#make
+#patch
+#sed
