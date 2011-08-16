@@ -386,7 +386,7 @@ write_depends() {
 via_package() {
     source_plan "$1"
     local arch="${TARGET_ARCH:-$(arch)}"
-    local pkgfile="$repo/$arch/$name-$version-via.tar.gz"
+    local pkgfile="$repo/$arch/$name-$version-$arch.tar.bz2"
     [ ! -d "$(dirname $pkgfile)" ] && mkdir $(dirname $pkgfile)
     log $FUNCNAME "$name"
     if [ -d $DESTDIR ]; then
@@ -414,7 +414,7 @@ via_package() {
     find . > MANIFEST
     write_depends
     log "compressing" "$(basename $pkgfile)"
-    fakeroot tar cfz $pkgfile *
+    fakeroot tar cfj $pkgfile *
     if ! is_cross_build; then
         cp DEPENDS MANIFEST "$plan_dir/"
     fi
@@ -461,7 +461,8 @@ install_core() {
 
 diff_manifest() {
     local fullname=$name-$version
-    local pkgfile="$repo/${TARGET_ARCH:-$(arch)}/$fullname-via.tar.gz"
+    local arch=${TARGET_ARCH:-$(arch)}
+    local pkgfile="$repo/$arch/$fullname-$arch.tar.bz2"
     local db=var/db/via
     while read line; do
         case "${line::1}" in
@@ -498,12 +499,12 @@ download_from_repo() {
 
     if [[ ! -f $file ]]; then
         log "downloading" "$file"
-        $curl_cmd $URL_REPO/$file
+        $curl_cmd $REPO_URL/$file
     fi
 
     if [[ ! -f $file.sig ]]; then 
         log "downloading" "$file.sig"
-        $curl_cmd $URL_REPO/$file.sig
+        $curl_cmd $REPO_URL/$file.sig
     fi
 
     _popd
@@ -512,9 +513,11 @@ download_from_repo() {
 via_upload_to_repo() {
     local file=$1
     local pass=$(cat $HOME/.gc_pass)
+    local arch=${TARGET_ARCH:-$(arch)}
     log "uploading" "$1"
     curl -# -u $REPO_USER:$pass \
-        -F summary='"test"' \
+        -F summary=$file \
+        -F label=$arch \
         -F upload=@${file} \
         $REPO_URL | cat
 }
@@ -523,7 +526,8 @@ via_install() {
     source_plan $1
     local with_depends=${2:-}
     local fullname=$name-$version
-    local pkgfile="$repo/${TARGET_ARCH:-$(arch)}/$fullname-via.tar.gz"
+    local arch=${TARGET_ARCH:-$(arch)}
+    local pkgfile="$repo/$arch/$fullname-$arch.tar.bz2"
     local file=$(basename "$pkgfile")
     local db=var/db/via
     
@@ -825,8 +829,9 @@ via_cross_build() {
         --localstatedir=$PREFIX/var \
         --with-shared \
         --build=${CLFS_HOST} \
-        --host=${CLFS_TARGET} \
-        --target=${CLFS_TARGET}"
+        --host=${CLFS_TARGET}"
+        #TODO: move this to packages that need it ie . gcc
+        #--target=${CLFS_TARGET}
 
     via_build $1
     via_cross_install $1
