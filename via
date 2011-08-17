@@ -83,10 +83,18 @@ download() {
         return 0
     fi
     _pushd "$sources"
-    if [ ! -f "$file" ]; then
-        log "$FUNCNAME" "$url"
-        curl -f -L -# -O "$url"
-        echo
+    if [[ ! -f "$file" ]] && [[ ! -d "$file" ]]; then
+        case ${url} in
+            http*|https*|ftp*)
+                log "curl" "$url"
+                curl -f -L -# -O "$url";;
+            git*)
+                log "git" "$url"
+                git clone "$url" "$file";;
+            *)
+                log "ERROR" "could not resolve download type"
+                return 1;;
+        esac
     fi	
     _popd
 
@@ -114,6 +122,7 @@ via_stage() {
     if [ ! -d "$build_name" ]; then
         case $file in
             *zip) bsdtar xf $sources/$file ;;
+            *git) git clone $sources/$file $file;;
             *) tar xf "$sources/$file";;
         esac
         if [ -d "$plan_dir/patches" ]; then
@@ -246,7 +255,6 @@ get_package_type() {
         return 0
     fi
 
-    log "ERROR" "could not determine packager type"
     return 1
 }
 
@@ -393,8 +401,8 @@ via_package() {
         log "cleaning" "$(basename "$DESTDIR")"
         rm -rf $DESTDIR
     fi
+    packager=$(get_package_type) || log "ERROR" "could not determine packager type"
     log $(echo $packager) $name
-    packager=$(get_package_type)
     _pushd $builds/$build_name
         $packager
     _popd
@@ -802,14 +810,18 @@ via_remove_plan() {
 via_cross_build() {
     TARGET_ARCH="arm"
     CROSS_TOOLS=/cross-tools
-    ABI="gnueabi"
     unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
     CLFS_HOST="$(arch)-cross-linux-gnu"
-    if [[ $TARGET_ARCH == "arm" ]]; then
-        CLFS_TARGET="${TARGET_ARCH}-linux-${ABI}"
-    else
-        CLFS_TARGET="${TARGET_ARCH}-linux-gnu"
-    fi
+
+    case $TARGET_ARCH in
+        arm)
+            CLFS_TARGET="${TARGET_ARCH}-linux-gnueabi";;
+        hurd)
+            CLFS_TARGET="i586-pc-gnu";;
+        *)
+            CLFS_TARGET="${TARGET_ARCH}-linux-gnu";;
+    esac
+
     export PATH=/usr/lib/ccache/bin:/cross-tools/bin:/bin:/usr/bin
 
     export HOST_CC=gcc
@@ -901,6 +913,17 @@ via_install_android() {
     log "creating" "$tarball" 
     tar cfj $tarball ./android
     log "android install" "$(green "finished")"
+}
+
+via_upload_repo() {
+    _pushd $repo/$1
+        for i in *; do via_upload_to_repo $i || true ; done
+    _popd
+}
+
+via_plan_to_json() {
+    source_plan $1
+    printf '{"name": "%s", "version": "%s", "source": "%s"}' "$name" "$version" "$source"
 }
 
 while getopts ":r:" opt; do
