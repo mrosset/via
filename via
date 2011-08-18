@@ -506,7 +506,6 @@ via_cross_install() {
     via_install $1
 }
 
-
 install_depends() {
     while read depend; do
         if ! is_installed "$depend"; then
@@ -641,7 +640,6 @@ relocate_build() {
     gnu_build
 }
 
-STDBUF=1048576
 gnu_build() {
     $stages/$build_name/configure $CONFIG --libexec=$PREFIX/lib/$name $build_args
     make
@@ -817,10 +815,6 @@ via_gen_hash() {
     local file=$(basename $source)
     sha=$(sha256sum $sources/$file | awk '{print $1}')
     echo verify=\"$sha\" >> $plan
-}
-
-via_remove_plan() {
-    rm -rv $(find $plans -name $1)
 }
 
 via_cross_build() {
