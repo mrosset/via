@@ -634,7 +634,8 @@ _popd() {
 
 # BUILD HOOKS
 CONFIG="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
-    --localstatedir=/var --with-shared --config-cache --disable-static"
+    --localstatedir=/var --with-shared --config-cache \
+    --disable-dependency-tracking"
 
 relocate_build() {
     gnu_build
