@@ -3,9 +3,7 @@
 # gives unlimited permission to copy, distribute and modify it.
 
 AC_INIT([via], [0.1], [mike.rossest@gmail.com])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-AC_PROG_CC
-AC_CONFIG_HEADERS([config.h])
+AM_INIT_AUTOMAKE
 AC_CONFIG_FILES([
  Makefile
  src/Makefile
