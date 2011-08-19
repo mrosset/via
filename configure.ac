@@ -1,11 +1,23 @@
-# Copyright (C) 2006 Free Software Foundation, Inc.
-# This configure.ac script is free software; the Free Software Foundation
-# gives unlimited permission to copy, distribute and modify it.
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
 
-AC_INIT([via],[0.1],[mike.rossest@gmail.com])
+AC_PREREQ([2.68])
+AC_INIT([via], [0.1], [mike.rosset@gmail.com])
 AM_INIT_AUTOMAKE
-AC_CONFIG_FILES([
- Makefile
- src/Makefile
-])
+AC_SUBST([viaconfdir], ['${sysconfdir}/${PACKAGE}'])
+
+# Checks for programs.
+AC_PROG_INSTALL
+
+# Checks for libraries.
+
+# Checks for header files.
+
+# Checks for typedefs, structures, and compiler characteristics.
+
+# Checks for library functions.
+
+AC_CONFIG_FILES([Makefile
+                 etc/Makefile
+                 src/Makefile])
 AC_OUTPUT

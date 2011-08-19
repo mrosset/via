@@ -50,7 +50,7 @@ CXXFLAGS="-march=native -mtune=native -O2 -pipe"
 LDFLAGS=" -Wl,--hash-style=gnu -Wl,--as-needed"
 MAKEFLAGS="-j3"
 
-export CONFIG_SITE=$VIAHOME/config/via.site
+export CONFIG_SITE=$VIAHOME/etc/config.site
 
 GPG_USER="test@test.com"
 
@@ -636,9 +636,12 @@ _popd() {
 }
 
 # BUILD HOOKS
-CONFIG="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
-    --localstatedir=/var --with-shared --config-cache \
-    --disable-dependency-tracking" 
+
+# TODO: remove CONFIG altogether
+#CONFIG="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
+#    --localstatedir=/var --with-shared --config-cache \
+#    --disable-dependency-tracking" 
+
 
 CONFIG=""
 
@@ -647,7 +650,7 @@ relocate_build() {
 }
 
 gnu_build() {
-    $stages/$build_name/configure $CONFIG $build_args
+    $stages/$build_name/configure $build_args
     make
 }
 
