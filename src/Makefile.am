@@ -3,3 +3,5 @@
 ## gives unlimited permission to copy, distribute and modify it.
 
 bin_SCRIPTS = via cross-bootstrap
+
+EXTRA_DIST = via cross-bootstrap
