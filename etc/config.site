@@ -4,7 +4,7 @@ ROOT=/
 prefix=$PREFIX
 localstatedir=$ROOT/var
 sharedstatedir=$ROOT/var
-sysconfdir=$ROOT/etc
+test "$sysconfdir" = NONE && sysconfdir=$ROOT/etc
 libexecdir=$PREFIX/lib/$name
 
 enable_shared=yes
