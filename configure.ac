@@ -8,6 +8,7 @@ AC_SUBST([viaconfdir], ['${sysconfdir}/${PACKAGE}'])
 
 # Checks for programs.
 AC_PROG_INSTALL
+AC_PROG_SED
 
 # Checks for libraries.
 
