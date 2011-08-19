@@ -27,7 +27,7 @@ set -u
 
 umask 022
 
-VIAHOME=$HOME/via
+export VIAHOME=$HOME/via
 
 ROOT=/
 
@@ -47,8 +47,10 @@ CXXFLAGS="-march=native -mtune=native -O2 -pipe"
 
 # --hash-style : use gnu hash tables
 # --as-needed  : only add libraries to DT_NEEDED that resolve 
-LDFLAGS="-Wl,--hash-style=gnu -Wl,--as-needed"
+LDFLAGS=" -Wl,--hash-style=gnu -Wl,--as-needed"
 MAKEFLAGS="-j3"
+
+export CONFIG_SITE=$VIAHOME/config/via.site
 
 GPG_USER="test@test.com"
 
@@ -209,6 +211,7 @@ source_plan() {
     if [ "${package_args:-NIL}" = "NIL" ]; then
         package_args=""
     fi
+    export name=$name
 }
 
 get_build_type() {
@@ -291,7 +294,7 @@ is_func_defined() {
 }
 
 is_installed() {
-    name_version="$($VIAHOME/via get_version $1)"
+    name_version="$($VIAHOME/src/via get_version $1)"
     if [[ -d $ROOT/var/db/via/$name_version ]]; then
         true
     else
@@ -635,14 +638,16 @@ _popd() {
 # BUILD HOOKS
 CONFIG="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
     --localstatedir=/var --with-shared --config-cache \
-    --disable-dependency-tracking"
+    --disable-dependency-tracking" 
+
+CONFIG=""
 
 relocate_build() {
     gnu_build
 }
 
 gnu_build() {
-    $stages/$build_name/configure $CONFIG --libexec=$PREFIX/lib/$name $build_args
+    $stages/$build_name/configure $CONFIG $build_args
     make
 }
 

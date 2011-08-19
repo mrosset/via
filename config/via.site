@@ -1,0 +1,16 @@
+PREFIX=/usr
+ROOT=$PREFIX
+
+prefix=$PREFIX
+localstatedir=$ROOT/var
+sharedstatedir=$ROOT/var
+sysconfdir=$ROOT/etc
+libexecdir=$PREFIX/lib/$name 
+
+enable_shared=yes
+enable_static=no
+enable_dependency_tracking=no
+
+test "$cache_file" = NONE && cache_file="$VIAHOME/cache/config.cache"
+# A cache file is only valid for one C compiler.
+CC=gcc
