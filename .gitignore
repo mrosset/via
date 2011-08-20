@@ -3,4 +3,14 @@ logs
 keys
 root
 repo
-local
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache
+config.log
+config.status
+configure
+etc/via.conf
+src/cross-bootstrap
+src/via
+src/via.in

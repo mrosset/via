@@ -1,17 +1,20 @@
-PREFIX=/usr
-ROOT=/
-
-prefix=$PREFIX
-localstatedir=$ROOT/var
-sharedstatedir=$ROOT/var
-test "$sysconfdir" = NONE && sysconfdir=$ROOT/etc
-libexecdir=$PREFIX/lib/$name
+prefix=/usr
 
 enable_shared=yes
+with_shared=yes
 enable_static=no
+with_static=no
 enable_dependency_tracking=no
 
-#test "$cache_file" = NONE 
-cache_file="$VIAHOME/cache/config.cache"
 # A cache file is only valid for one C compiler.
 CC=gcc
+cache_file="$VIAHOME/cache/config.cache"
+
+# config.site for FHS defaults when installing below /usr,
+# and the respective settings were not changed on the command line.
+if test "$prefix" = /usr; then
+	test "$sysconfdir" = '${prefix}/etc' && sysconfdir=/etc
+	test "$sharedstatedir" = '${prefix}/com' && sharedstatedir=/var
+	test "$localstatedir" = '${prefix}/var' && localstatedir=/var
+	test "$libexecdir" = '${exec_prefix}/libexec' && libexecdir=/usr/lib/$name/ || true
+fi

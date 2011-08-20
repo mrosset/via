@@ -1,6 +1,6 @@
-bin_SCRIPTS = via
+bin_SCRIPTS = via cross-bootstrap
 CLEANFILES = $(bin_SCRIPTS)
-EXTRA_DIST = via.in
+EXTRA_DIST = via.in cross-bootstrap.in
 
 do_subst = sed -e 's,[@]viaconfdir[@],$(viaconfdir),g'
 

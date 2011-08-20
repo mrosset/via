@@ -266,7 +266,7 @@ is_func_defined() {
 }
 
 is_installed() {
-    name_version="$($VIAHOME/src/via get_version $1)"
+    name_version="$(via get_version $1)"
     if [[ -d $ROOT/var/db/via/$name_version ]]; then
         true
     else
@@ -614,15 +614,13 @@ _popd() {
 #    --localstatedir=/var --with-shared --config-cache \
 #    --disable-dependency-tracking" 
 
-
 CONFIG=""
-
 relocate_build() {
     gnu_build
 }
 
 gnu_build() {
-    $stages/$build_name/configure $build_args
+    $stages/$build_name/configure $CONFIG $build_args
     make
 }
 
@@ -801,7 +799,7 @@ via_gen_hash() {
 via_cross_build() {
     TARGET_ARCH="arm"
     CROSS_TOOLS=/cross-tools
-    unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS
+    unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS CONFIG_SITE
     CLFS_HOST="$(arch)-cross-linux-gnu"
 
     case $TARGET_ARCH in
