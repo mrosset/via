@@ -42,16 +42,45 @@ stages=$cache/stages
 packages=$cache/packages
 
 
-init() {
-    # setup cache dir end log dir
+export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
+
+check_via_home() {
+    local error=0
+
+    if [ ! -d "$VIAHOME" ]; then
+        log "ERROR" "via home dir does not exists"
+        echo "use via init to create it"
+        exit 1
+    fi
+
+    if [ ! -d "$plans" ]; then
+        log "ERROR" "plans dir does not exists"
+        echo "use via sync to clone the plans repo."
+        exit 1
+    fi
+}
+
+via_init() {
+    log "$FUNCNAME" "via home"
+    # create via home dirs
     for d in $logs $repo $builds $sources $stages $packages; do
         if [ ! -d $d ]; then
-            #log $FUNCNAME $d
-            mkdir -p $d
+            log "creating" "$d"
+            mkdir -p "$d"
         fi
     done
+    via_sync
+    log "$FUNCNAME" $(green "done")
+}
 
-    export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
+via_sync() {
+    if [ ! -d "$plans" ]; then
+        log "syncing plans"  "$plans"
+        git clone "$GIT_PLANS_REPO" "$plans"
+        log "syncing plans" $(green "done")
+    else
+        log "plans dir" "already exists skipping"
+    fi
 }
 
 # function download()
@@ -928,9 +957,15 @@ while getopts ":r:" opt; do
     esac
 done
 
-init
 action=$1
 shift
+
+if [ "$action" = "sync" ] || [ "$action" = "init" ]; then
+    via_$action
+    exit 0
+fi
+
+check_via_home
 via_$action $@
 
 # ex: ts=8 sw=4 sts=4 et filetype=sh

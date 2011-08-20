@@ -27,3 +27,5 @@ GPG_USER="test@test.com"
 
 REPO_URL="https://via.googlecode.com/files"
 REPO_USER="mike.rosset@gmail.com"
+
+GIT_PLANS_REPO="https://code.google.com/p/via.plans"
