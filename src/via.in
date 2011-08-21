@@ -858,6 +858,7 @@ via_cross_build() {
         --sysconfdir=$PREFIX/etc \
         --localstatedir=$PREFIX/var \
         --with-shared \
+        --config-cache \
         --build=${CLFS_HOST} \
         --host=${CLFS_TARGET}"
         #TODO: move this to packages that need it ie . gcc

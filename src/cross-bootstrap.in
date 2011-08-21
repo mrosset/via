@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/bash
 
 #   via is a build system, used for building and packaging software.
 #   Copyright (C) 2011 Michael Rosset <mike.rosset@gmail.com>
@@ -893,11 +893,8 @@ cross_phase() {
 	cross_mpc mpc
 	cross_binutils binutils
 	cross_gcc gcc
-	./via cross_build eglibc
-	make clean
-	init
+	via cross_build eglibc
 	cross_gcc_final gcc
-	make clean
 }
 
 tools_phase() {
@@ -914,11 +911,11 @@ tools_phase() {
 		if [[ ${line::1} == "#" ]] || [[ ${line::1} == "" ]]; then
 			continue
 		fi
-		name_version="$(./via get_version $line)"
-		if [[ -d /tools/var/db/via/$name_version ]]; then
+		name_version="$(via get_version $line)"
+		if [ -d $TOOLS/var/db/via/$name_version ]; then
 			continue
 		fi
-		./via cross_build $line
+		via cross_build $line
 	done < "cross/tools.list"
 	ln -svf . /tools/tools
 }
