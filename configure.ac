@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+# AC_PREREQ([2.68])
 AC_INIT([via], [0.1], [mike.rosset@gmail.com])
 AM_INIT_AUTOMAKE
 AC_SUBST([viaconfdir], ['${sysconfdir}/${PACKAGE}'])
