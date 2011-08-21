@@ -3,8 +3,7 @@ TODO
 
 Via
 -------
-1. use automake/autotools to install via
-2. move plans to another git repo?
-3. fix stage to be sane and hookable
-4. push/pop for build and install flags
-5. install common licenses for each package
+1. fix stage to be sane and hookable
+2. push/pop for build and install flags
+3. install common licenses for each package
+4. go through core and check licenses/patches
