@@ -1,7 +1,7 @@
 vbuild (Build System)
 ==============
 
-1. Prototype posix shell. Possibly go later
+1. Prototype bash. Possibly go later
 1. Light weight meta/build data, with minimal logic
 2. Meta data must be easily parsed by non shell
 3. Support for sub packages, i.e. gcc gcclibs
@@ -13,9 +13,7 @@ Build interfaces
 1. build
 2. stage
 3. download
-4. pre install
-5. install
-6. post install
+4. package
 
 Logging
 --------------
@@ -30,13 +28,14 @@ Paths
 Cache dir structure
 --------------
 cache
-├── build
-│   └── foo-0.0.1
-├── package
-│   └── foo-0.0.1
-├── sources
-└── stage
-    └── foo-0.0.1
+	\build
+		\foo-0.0.1
+	\package
+		\foo-0.0.1
+	\sources
+		\foo-0.0.1.tar.gz
+	\stage
+		\foo-0.0.1
 
 Via (Package Manager)
 ==============
