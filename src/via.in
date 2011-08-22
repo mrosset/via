@@ -934,6 +934,13 @@ via_install_android() {
     log "android install" "$(green "finished")"
 }
 
+via_clean() {
+    log "cleaning" "stages"
+    rm -rf $stages/*
+    log "cleaning" "builds"
+    rm -rf $builds/*
+}
+
 via_upload_repo() {
     _pushd $repo/$1
         for i in *; do via_upload_to_repo $i || true ; done
