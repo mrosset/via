@@ -8,7 +8,7 @@ enable_dependency_tracking=no
 
 # A cache file is only valid for one C compiler.
 CC=gcc
-cache_file="$VIAHOME/cache/config.cache"
+cache_file="$VIAHOME/cache/$name-config.cache"
 
 # config.site for FHS defaults when installing below /usr,
 # and the respective settings were not changed on the command line.
