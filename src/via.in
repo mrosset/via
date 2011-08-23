@@ -48,14 +48,14 @@ check_via_home() {
     local error=0
 
     if [ ! -d "$VIAHOME" ]; then
-        log "ERROR" "via home dir does not exists"
-        echo "use via init to create it"
+        error "via home dir does not exists"
+        error "use via init to create it"
         exit 1
     fi
 
     if [ ! -d "$plans" ]; then
-        log "ERROR" "plans dir does not exists"
-        echo "use via sync to clone the plans repo."
+        error "plans dir does not exists"
+        error "use via sync to clone the plans repo."
         exit 1
     fi
 }
@@ -111,7 +111,7 @@ download() {
                 log "git" "$url"
                 git clone "$url" "$file";;
             *)
-                log "ERROR" "could not resolve download type"
+                error "could not resolve download type"
                 return 1;;
         esac
     fi	
@@ -123,24 +123,34 @@ via_stage() {
 
     source_plan "$1"
     local file=$(basename $source)
-    log "staging" "$name"
 
-    if [[ -n ${stager:-} ]]; then
-        $stager
+    if [[ ! -d $stage_dir ]]; then
+        case $file in
+            *gz|*bz2|*xz)
+                log "stageing" "$file"
+                tar xf "$sources/$file" -C "$stages/";;
+        esac
+    fi
+
+    get_build_type
+    local build_type=$RESULT
+
+    if [[ -d $build_dir ]]; then
         return 0
     fi
 
-    case $file in
-        *gz|*bz2|*xz)
-            tar xf "$sources/$file" -C "$stages/";;
-    esac
+    if [[ $build_type == "gnu_build" ]]; then
+        mkdir $build_dir
+    else
+        cp -a $stage_dir $build_dir
+    fi
 
 }
 
 via_build_core() {
     if [ "$ROOT" = "/" ]; then
-        log "ERROR" "ROOT is set to / this is wrong!"
-        log "ERROR" "specify target dir with -r"
+        error "ROOT is set to / this is wrong."
+        error "specify target dir with -r"
         exit 1
     fi
     local db=$ROOT/var/db/via
@@ -163,24 +173,20 @@ via_build_install() {
 source_plan() {
     source $plans/*/$1/plan
 
-    source="${source:-NIL}"
-    builder="${builder:-NIL}"
-    packager="${packager:-NIL}"
-
     plan_dir=$(echo $plans/*/$1)
     files_dir="$plan_dir/files"
 
-    if [ "${build_name:-NIL}" = "NIL" ]; then
+    if [[ -z ${build_name:-} ]]; then
         build_name=$name-$version
     fi
 
-    if [ "${build_args:-NIL}" = "NIL" ]; then
+    if [[ -z ${build_args:-} ]]; then
         build_args=""
     fi
 
     export DESTDIR="$packages/$name-$version"
 
-    if [ "${package_args:-NIL}" = "NIL" ]; then
+    if [[ -z ${package_args:-} ]]; then
         package_args=""
     fi
     build_dir="$builds/$build_name"
@@ -189,61 +195,61 @@ source_plan() {
 }
 
 get_build_type() {
-    # if builder is set use it.
-    if [ "$builder" != "NIL" ]; then
-        printf "$builder"
+
+    if [[ -n ${builder:-} ]]; then
+        RESULT="$builder"
         return 0
     fi
 
     if is_func_defined "custom_build"; then
-        printf "custom_build"
+        RESULT="custom_build"
         return 0
     fi
 
     # check for configure if it exists set gnu_build
-    if [ -f "configure" ]; then
-        printf "gnu_build"
+    if [[ -f $stage_dir/configure ]]; then
+        RESULT="gnu_build"
         return 0
     fi
 
-    if [ -f "Makefile" ]; then
-        printf "gnu_make"
+    if [[ -f $stage_dir/Makefile ]]; then
+        RESULT="gnu_make"
         return 0
     fi
 
-    if [ -f "setup.py" ]; then
-        printf "python_build"
+    if [[ -f $stage_dir/setup.py ]]; then
+        RESULT="python_build"
         return 0
     fi
 
-    echo "ERROR" "could not determine builder type"
+    error "could not determine builder type"
     return 1
 }
 
 get_package_type() {
     # if packager is set use it.
-    if [ "$packager" != "NIL" ]; then
-        printf "$packager"
+    if [[ -n "${packager:-}" ]]; then
+        RESULT="$packager"
         return 0
     fi
 
     if is_func_defined "custom_install"; then
-        printf "custom_install"
+        RESULT="custom_install"
         return 0
     fi
 
     # check for configure if it exists set gnu_package
-    if [ -f "configure" ]; then
+    if [[ -f $stage_dir/configure ]]; then
+        RESULT="gnu_package"
+        return 0
+    fi
+
+    if [[ -f $stage_dir/Makefile ]]; then
         printf "gnu_package"
         return 0
     fi
 
-    if [ -f "Makefile" ]; then
-        printf "gnu_package"
-        return 0
-    fi
-
-    if [ -f "setup.py" ]; then
+    if [[ -f $stage_dir/setup.py ]]; then
         printf "python_package"
         return 0
     fi
@@ -295,11 +301,9 @@ via_build() {
     esac
 
     via_stage $name
-    [[ ! -d "$build_dir" ]] && mkdir $build_dir
-    _pushd "$stages/$build_name"
-    builder=$(get_build_type)
-    build_type=$(echo $builder)
-    _popd
+    get_build_type
+    builder=$RESULT
+    local build_type=$(echo $builder)
 
     _pushd $builds/$build_name
     log "$build_type" "$name"
@@ -309,9 +313,7 @@ via_build() {
     fi
 
     $builder
-    if [ "$build_type" = "gnu_build" ] && [ -n "$TEST" ]; then
-        make check
-    fi
+
     via_package $name
     _popd
 
@@ -394,7 +396,8 @@ via_package() {
         log "cleaning" "$(basename "$DESTDIR")"
         rm -rf $DESTDIR
     fi
-    packager=$(get_package_type) || log "ERROR" "could not determine packager type"
+    get_package_type
+    packager=$RESULT
     log $(echo $packager) $name
     _pushd $builds/$build_name
         $packager
@@ -424,11 +427,12 @@ via_package() {
     log "signing" "$(basename $pkgfile)"
     [ -f $pkgfile.sig ] && rm $pkgfile.sig
     gpg -u $GPG_USER --detach-sign $pkgfile
-    log "GPG" $(green "OK")
-    if ! gpg --verify $pkgfile.sig &> /dev/null; then
-        gpg --verify $pkgfile.sig 
+    if ! gpg --verify $pkgfile.sig >/dev/null 2>&1; then
+        error "gpg signature failed"
     fi
+    log "gpg:" $(green "OK")
     _popd
+    rm -rf $build_dir
 }
 
 package_files_dir() {
@@ -535,8 +539,9 @@ via_install() {
 
     download_from_repo "$pkgfile"
 
-    if ! gpg --verify $pkgfile.sig &> /dev/null;then
-        gpg --verify $pkgfile.sig
+    if ! gpg --verify $pkgfile.sig >/dev/null 2>&1 ;then
+        gpg --verify $pkgfile.sig  || true
+        error "gpg verification failed for $(basename $pkgfile)"
         exit 1
     fi
 
@@ -601,12 +606,16 @@ log() {
     printf "${blue}via: ${reset}%-20.20s %-40.40s\n" "$1" "$2"
 }
 
+error() {
+    echo "via:" "ERROR" $(red "$1") >&2
+}
+
 _pushd() {
     builtin pushd "$@" > /dev/null
 }
 
 _popd() {
-    builtin popd &> /dev/null
+    builtin popd > /dev/null
 }
 
 # BUILD HOOKS
@@ -669,8 +678,8 @@ gnu_verify() {
         download $url.$ext
     fi
     if ! gpg --verify $file.$ext &> /dev/null; then
-        log $FUNCNAME $(red FAILED)
-        gpg --verify $file.$ext
+        gpg --verify $file.$ext || true
+        error "gpg verification failed for $file"
         return 1
     fi	
     log $FUNCNAME $(green PASS)
@@ -701,13 +710,13 @@ sha_verify() {
 red() {
     local red=$(tput setaf 1)
     local reset= #$(tput sgr0)
-    echo ${red}$1${reset}
+    echo "${red}${1}${reset}"
 }
 
 green() {
     local green=$(tput setaf 2)
     local reset=$(tput sgr0)
-    echo ${green}$1${reset}
+    echo "${green}${1}${reset}"
 }
 
 yellow() {
@@ -719,7 +728,7 @@ yellow() {
 blue() {
     local blue=$(tput setaf 4)
     local reset=$(tput sgr0)
-    echo ${blue}$1${reset}
+    echo "${blue}${1}${reset}"
 }
 
 via_edit() {
