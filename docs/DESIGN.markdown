@@ -1,6 +1,5 @@
 vbuild (Build System)
 ==============
-
 1. Prototype bash. Possibly go later
 1. Light weight meta/build data, with minimal logic
 2. Meta data must be easily parsed by non shell
@@ -9,21 +8,29 @@ vbuild (Build System)
 7. Minimal dependencies
 
 Build interfaces
---------------
-1. build
-2. stage
-3. download
-4. package
+---------------
+1. download
+2. verify
+3. stage
+4. build
+5. package
+
+build interfaces are simple function hooks. In most cases these do not
+need to be defined. Usually there is a easy way to check if the majority 
+hooked should be called. function hooks make it easy to deal with corner cases,
+while still keeping plan logic and meta data to a minimum.
+
+There are some cases where there are more corner cases then other. Ie build 
+and pakckage. In those cases we can use predefined custom functions.
+
+Variables
+---------
+When sourcing plan we have one point of entry function called source\_plan.
 
 Logging
 --------------
 8. Output must be simple but informative
 9. Verbose output is buffered and back traced on errors
-
-Paths
---------------
-1. only 2 paths plans and cache
-2. all paths are references as full paths
 
 Cache dir structure
 --------------
