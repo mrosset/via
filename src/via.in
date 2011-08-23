@@ -119,51 +119,22 @@ download() {
 
 }
 
-# FIXME: this whole function is a mess rework it properly
 via_stage() {
-    source_plan $1
-    if is_func_defined "custom_stage"; then
-        custom_stage
-        return
-    fi
-    local file="$(basename $source)"
-    local btype="$(echo $builder)"
 
-    log "$FUNCNAME" "$name"
+    source_plan "$1"
+    local file=$(basename $source)
+    log "staging" "$name"
 
-    if [ "$file" = "nil" ]; then
-        log "$FUNCNAME" "no source file"
-        [ ! -d "$builds/$build_name" ] && mkdir "$builds/$build_name"
-        [ ! -d "$stages/$build_name" ] && mkdir $stages/$build_name
+    if [[ -n ${stager:-} ]]; then
+        $stager
         return 0
     fi
-    _pushd "$stages"
-    if [ ! -d "$build_name" ]; then
-        case $file in
-            *zip) bsdtar xf $sources/$file ;;
-            *git) git clone $sources/$file $file;;
-            *) tar xf "$sources/$file";;
-        esac
-        if [ -d "$plan_dir/patches" ]; then
-            _pushd "$build_name"
-            for i in $plan_dir/patches/*; do
-                log "applying" "$(basename $i)"
-                patch -Np1 -i "$i"
-            done
-            _popd
-        fi
-    fi
-    _popd
-    _pushd $stages/$build_name
-    btype=$(get_build_type)
-    _popd $stages/$build_name
-    if [ ! -d "$builds/$build_name" ] && [ "$btype" = "gnu_build" ]; then
-        mkdir "$builds/$build_name"
-    fi
 
-    if [ ! "$btype" = "gnu_build" ] && [ ! -d "$builds/$build_name" ]; then
-        cp -af "$stages/$build_name" "$builds"
-    fi
+    case $file in
+        *gz|*bz2|*xz)
+            tar xf "$sources/$file" -C "$stages/";;
+    esac
+
 }
 
 via_build_core() {
@@ -212,6 +183,8 @@ source_plan() {
     if [ "${package_args:-NIL}" = "NIL" ]; then
         package_args=""
     fi
+    build_dir="$builds/$build_name"
+    stage_dir="$stages/$build_name"
     export name=$name
 }
 
@@ -322,7 +295,7 @@ via_build() {
     esac
 
     via_stage $name
-
+    [[ ! -d "$build_dir" ]] && mkdir $build_dir
     _pushd "$stages/$build_name"
     builder=$(get_build_type)
     build_type=$(echo $builder)
@@ -451,7 +424,7 @@ via_package() {
     log "signing" "$(basename $pkgfile)"
     [ -f $pkgfile.sig ] && rm $pkgfile.sig
     gpg -u $GPG_USER --detach-sign $pkgfile
-    log $pkgfile $(green "OK")
+    log "GPG" $(green "OK")
     if ! gpg --verify $pkgfile.sig &> /dev/null; then
         gpg --verify $pkgfile.sig 
     fi
