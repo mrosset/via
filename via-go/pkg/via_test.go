@@ -20,7 +20,7 @@ func TestFindPlan(t *testing.T) {
 }
 
 func TestPackage(t *testing.T) {
-	err := Package("bash")
+	err := Package("bash", "x86_64")
 	checkError(t, err)
 }
 

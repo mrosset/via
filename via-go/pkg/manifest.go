@@ -20,8 +20,8 @@ type FileEntry struct {
 }
 
 type Manifest struct {
-	Package *Plan
-	Files   []*FileEntry
+	Meta  *Plan
+	Files []*FileEntry
 }
 
 func NewManifest(plan *Plan) *Manifest {

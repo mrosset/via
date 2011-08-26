@@ -10,18 +10,19 @@ import (
 	"time"
 )
 
-func Package(name string) (err os.Error) {
+func Package(name string, arch string) (err os.Error) {
 	plan, err := FindPlan(name)
 	if err != nil {
 		return err
 	}
 	dir := filepath.Join(packages, plan.NameVersion())
-	file := fmt.Sprintf("%s.tar.gz", plan.NameVersion())
+	file := fmt.Sprintf("%s-%s.tar.gz", plan.NameVersion(), arch)
+	file = filepath.Join(repo, arch, file)
 	err = os.Chdir(dir)
 	if err != nil {
 		return
 	}
-	fd, err := os.Create(filepath.Join(packages, file))
+	fd, err := os.Create(file)
 	if err != nil {
 		return
 	}
@@ -32,10 +33,17 @@ func Package(name string) (err os.Error) {
 	manifest := NewManifest(plan)
 	vis := NewTarVisitor(gz, manifest)
 	filepath.Walk(".", vis, nil)
+	err = manifest.Save("manifest.json.gz")
+	if err != nil {
+		return
+	}
+	err = tarFile("manifest.json.gz", vis.tw)
+	if err != nil {
+		fmt.Println("ERROR", err)
+	}
 	vis.tw.Close()
 	gz.Close()
 	fd.Close()
-	err = manifest.Save("manifest.json.gz")
 	return
 }
 
@@ -59,15 +67,23 @@ func (t TarVisitor) VisitDir(path string, f *os.FileInfo) bool {
 }
 
 func (t TarVisitor) VisitFile(path string, f *os.FileInfo) {
+	err := tarFile(path, t.tw)
+	if err != nil {
+		fmt.Println("ERROR", err)
+	}
+	t.man.AddEntry(path, EntryFile)
+}
+
+func tarFile(path string, tw *tar.Writer) (err os.Error) {
 	hdr := NewHeader(path)
-	t.tw.WriteHeader(hdr)
+	tw.WriteHeader(hdr)
 	fd, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
+		return
 	}
-	io.Copy(t.tw, fd)
+	io.Copy(tw, fd)
 	fd.Close()
-	t.man.AddEntry(path, EntryFile)
+	return
 }
 
 func NewHeader(path string) *tar.Header {
