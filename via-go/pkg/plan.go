@@ -1,0 +1,85 @@
+package via
+
+import (
+	"bytes"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+type Plan struct {
+	Name    string "name"
+	Version string "version"
+	Source  string "source"
+}
+
+func (this Plan) NameVersion() string {
+	return fmt.Sprintf("%s-%s", this.Name, this.Version)
+}
+
+func ParsePlan(path string) (plan *Plan, err os.Error) {
+	var (
+		kmap = make(map[string]string)
+		keys = []string{"name", "version", "source"}
+	)
+	fd, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer fd.Close()
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(fd)
+	if err != nil {
+		return
+	}
+	for {
+		line, err := buf.ReadString('\n')
+		if err == os.EOF {
+			break
+		}
+		line = line[:len(line)-1]
+		for _, k := range keys {
+			if strings.HasPrefix(line, k) {
+				v := strings.Split(line, "=")[1]
+				kmap[k] = v[1 : len(v)-1]
+			}
+		}
+	}
+	plan = &Plan{
+		kmap["name"],
+		kmap["version"],
+		kmap["source"],
+	}
+	return
+}
+
+func FindPlan(name string) (plan *Plan, err os.Error) {
+	glob := fmt.Sprintf("%s/*/%s/plan", plans, name)
+	files, err := filepath.Glob(glob)
+	if err != nil {
+		return
+	}
+	if len(files) != 1 {
+		return nil, fmt.Errorf("expected 1 plan got %v", len(files))
+	}
+	plan, err = ParsePlan(files[0])
+	return
+}
+
+func ListPlans() (err os.Error) {
+	glob := fmt.Sprintf("%s/*/*/plan", plans)
+	files, err := filepath.Glob(glob)
+	if err != nil {
+		return
+	}
+	for _, i := range files {
+		plan, err := ParsePlan(i)
+		if err != nil {
+			return fmt.Errorf("%s %s", i, err.String())
+		}
+		fmt.Printf("%-20.20s %s\n", plan.Name, plan.Version)
+	}
+	fmt.Printf("found %v plans", len(files))
+	return
+}
