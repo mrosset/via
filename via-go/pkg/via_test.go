@@ -24,11 +24,11 @@ func TestFindPlan(t *testing.T) {
 }
 
 func TestPackage(t *testing.T) {
-	err := Package("vim", "x86_64")
+	err := Package("bash", "x86_64")
 	checkError(t, err)
 }
 
-func TestHeaders(t *testing.T) {
+func testHeaders(t *testing.T) {
 	plan, err := FindPlan("vim")
 	checkError(t, err)
 	file := filepath.Join(repo, "x86_64", plan.NameVersion()+"-x86_64.tar.gz")
@@ -47,7 +47,7 @@ func TestHeaders(t *testing.T) {
 }
 
 func TestUnPack(t *testing.T) {
-	plan, err := FindPlan("vim")
+	plan, err := FindPlan("bash")
 	checkError(t, err)
 	file := filepath.Join(repo, "x86_64", plan.NameVersion()+"-x86_64.tar.gz")
 	err = Unpack("./tmp", file)

@@ -174,6 +174,7 @@ func Unpack(root string, file string) (err os.Error) {
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir:
+			//fmt.Printf("%-40.40s -> D\n", hdr.Name)
 			if fileExists(hdr.Name) {
 				continue
 			}
@@ -183,13 +184,23 @@ func Unpack(root string, file string) (err os.Error) {
 				return
 			}
 		case tar.TypeSymlink:
-			fmt.Printf("%s -> %s\n", hdr.Name, hdr.Linkname)
-			err = os.Symlink(hdr.Name, hdr.Linkname)
+			if fileExists(hdr.Name) {
+				err = os.Remove(hdr.Name)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+			//fmt.Printf("%-40.40s -> %s\n", hdr.Name, hdr.Linkname)
+			if err != nil {
+				fmt.Println(err)
+			}
+			err = os.Symlink(hdr.Linkname, hdr.Name)
 			if err != nil {
 				fmt.Println(err)
 			}
 		case tar.TypeReg, tar.TypeRegA:
-			f, err := os.Create(hdr.Name)
+			//fmt.Printf("%-40.40s -> F\n", hdr.Name)
+			f, err := os.OpenFile(hdr.Name, os.O_WRONLY|os.O_CREATE, uint32(hdr.Mode))
 			if err != nil {
 				return err
 			}
