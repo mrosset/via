@@ -11,3 +11,7 @@ var (
 	cache    = path.Join(home, "cache")
 	packages = path.Join(cache, "packages")
 )
+
+func GetRepo() string {
+	return repo
+}

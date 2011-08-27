@@ -11,7 +11,10 @@ import (
 )
 
 func Package(name string, arch string) (err os.Error) {
-	wd, _ := os.Getwd()
+	wd, err := os.Getwd()
+	if err != nil {
+		return
+	}
 	defer func() {
 		os.Chdir(wd)
 	}()
@@ -132,7 +135,6 @@ type TarBallReader struct {
 }
 
 func (this *TarBallReader) Close() {
-	fmt.Println("closeing tarball")
 	this.gz.Close()
 	this.fd.Close()
 }
@@ -155,6 +157,13 @@ func NewTarBallReader(path string) (tgzr *TarBallReader, err os.Error) {
 }
 
 func Unpack(root string, file string) (err os.Error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return
+	}
+	defer func() {
+		os.Chdir(wd)
+	}()
 	err = os.Chdir(root)
 	if err != nil {
 		return
@@ -174,7 +183,7 @@ func Unpack(root string, file string) (err os.Error) {
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir:
-			//fmt.Printf("%-40.40s -> D\n", hdr.Name)
+			//fmt.Printf("\r%-40.40s -> D", hdr.Name)
 			if fileExists(hdr.Name) {
 				continue
 			}
@@ -190,7 +199,7 @@ func Unpack(root string, file string) (err os.Error) {
 					fmt.Println(err)
 				}
 			}
-			//fmt.Printf("%-40.40s -> %s\n", hdr.Name, hdr.Linkname)
+			//fmt.Printf("\r%-40.40s -> %s", hdr.Name, hdr.Linkname)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -199,7 +208,7 @@ func Unpack(root string, file string) (err os.Error) {
 				fmt.Println(err)
 			}
 		case tar.TypeReg, tar.TypeRegA:
-			//fmt.Printf("%-40.40s -> F\n", hdr.Name)
+			//fmt.Printf("\r%-40.40s -> F", hdr.Name)
 			f, err := os.OpenFile(hdr.Name, os.O_WRONLY|os.O_CREATE, uint32(hdr.Mode))
 			if err != nil {
 				return err
