@@ -9,6 +9,10 @@ import (
 )
 
 const (
+	manifestName = "manifest.json.gz"
+)
+
+const (
 	EntryDir = iota
 	EntryFile
 	EntryLink

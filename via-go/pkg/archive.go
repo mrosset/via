@@ -11,6 +11,10 @@ import (
 )
 
 func Package(name string, arch string) (err os.Error) {
+	wd, _ := os.Getwd()
+	defer func() {
+		os.Chdir(wd)
+	}()
 	plan, err := FindPlan(name)
 	if err != nil {
 		return err
@@ -33,7 +37,7 @@ func Package(name string, arch string) (err os.Error) {
 	manifest := NewManifest(plan)
 	vis := NewTarVisitor(gz, manifest)
 	filepath.Walk(".", vis, nil)
-	err = manifest.Save("manifest.json.gz")
+	err = manifest.Save(manifestName)
 	if err != nil {
 		return
 	}
@@ -77,6 +81,9 @@ func (t TarVisitor) VisitFile(path string, f *os.FileInfo) {
 func tarFile(path string, tw *tar.Writer) (err os.Error) {
 	hdr := NewHeader(path)
 	tw.WriteHeader(hdr)
+	if hdr.Typeflag == tar.TypeSymlink {
+		return
+	}
 	fd, err := os.Open(path)
 	if err != nil {
 		return
@@ -88,7 +95,7 @@ func tarFile(path string, tw *tar.Writer) (err os.Error) {
 
 func NewHeader(path string) *tar.Header {
 	hdr := new(tar.Header)
-	fi, err := os.Stat(path)
+	fi, err := os.Lstat(path)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -104,10 +111,105 @@ func NewHeader(path string) *tar.Header {
 		hdr.Typeflag = tar.TypeDir
 		hdr.Name = hdr.Name + "/"
 	case fi.IsSymlink():
-		fmt.Println("LINK", path)
+		link, err := os.Readlink(path)
+		if err != nil {
+			fmt.Println(err)
+		}
+		hdr.Name = path
+		hdr.Typeflag = tar.TypeSymlink
+		hdr.Linkname = link
 	default:
 		hdr.Typeflag = tar.TypeReg
 		hdr.Size = fi.Size
 	}
 	return hdr
+}
+
+type TarBallReader struct {
+	fd *os.File
+	gz *gzip.Decompressor
+	tr *tar.Reader
+}
+
+func (this *TarBallReader) Close() {
+	fmt.Println("closeing tarball")
+	this.gz.Close()
+	this.fd.Close()
+}
+
+func NewTarBallReader(path string) (tgzr *TarBallReader, err os.Error) {
+	fd, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	gz, err := gzip.NewReader(fd)
+	if err != nil {
+		return
+	}
+	tr := tar.NewReader(gz)
+	if err != nil {
+		return
+	}
+	tgzr = &TarBallReader{fd, gz, tr}
+	return
+}
+
+func Unpack(root string, file string) (err os.Error) {
+	err = os.Chdir(root)
+	if err != nil {
+		return
+	}
+	tgr, err := NewTarBallReader(file)
+	if err != nil {
+		return err
+	}
+	defer tgr.Close()
+	for {
+		hdr, err := tgr.tr.Next()
+		if err != nil {
+			return
+		}
+		if hdr == nil {
+			break
+		}
+		switch hdr.Typeflag {
+		case tar.TypeDir:
+			if fileExists(hdr.Name) {
+				continue
+			}
+			err = os.Mkdir(hdr.Name, uint32(hdr.Mode))
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		case tar.TypeSymlink:
+			fmt.Printf("%s -> %s\n", hdr.Name, hdr.Linkname)
+			err = os.Symlink(hdr.Name, hdr.Linkname)
+			if err != nil {
+				fmt.Println(err)
+			}
+		case tar.TypeReg, tar.TypeRegA:
+			f, err := os.Create(hdr.Name)
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(f, tgr.tr)
+			f.Close()
+			if err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+func fileExists(path string) bool {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	if fi.IsRegular() || fi.IsDirectory() {
+		return true
+	}
+	return false
 }

@@ -1,8 +1,12 @@
 package via
 
 import (
+	"archive/tar"
+	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
+	"github.com/kr/pretty.go"
 )
 
 func testListPlans(t *testing.T) {
@@ -20,7 +24,33 @@ func TestFindPlan(t *testing.T) {
 }
 
 func TestPackage(t *testing.T) {
-	err := Package("bash", "x86_64")
+	err := Package("vim", "x86_64")
+	checkError(t, err)
+}
+
+func TestHeaders(t *testing.T) {
+	plan, err := FindPlan("vim")
+	checkError(t, err)
+	file := filepath.Join(repo, "x86_64", plan.NameVersion()+"-x86_64.tar.gz")
+	//file := "/home/strings/via/cache/packages/vim-7.3.tar.gz"
+	tbr, err := NewTarBallReader(file)
+	checkError(t, err)
+	for {
+		hdr, err := tbr.tr.Next()
+		if err == os.EOF {
+			break
+		}
+		if hdr.Typeflag == tar.TypeSymlink {
+			fmt.Printf("%# v", pretty.Formatter(hdr))
+		}
+	}
+}
+
+func TestUnPack(t *testing.T) {
+	plan, err := FindPlan("vim")
+	checkError(t, err)
+	file := filepath.Join(repo, "x86_64", plan.NameVersion()+"-x86_64.tar.gz")
+	err = Unpack("./tmp", file)
 	checkError(t, err)
 }
 
