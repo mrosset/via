@@ -892,11 +892,11 @@ via_bootstrap_core() {
         if [[ ${line::1} == "#" ]] || [[ ${line::1} == "" ]]; then
             continue
         fi
-        name_version="$(./via get_version $line)"
-        if [[ -d /var/db/via/$name_version ]]; then
+        name_version="$(via get_version $line)"
+        if [[ -d $ROOT/var/db/via/$name_version ]]; then
             continue
         fi
-        ./via build_install $line
+        via build_install $line
     done < "cross/core.list"
 }
 
@@ -927,11 +927,6 @@ via_upload_repo() {
     _pushd $repo/$1
         for i in *; do via_upload_to_repo $i || true ; done
     _popd
-}
-
-via_plan_to_json() {
-    source_plan $1
-    printf '{"name": "%s", "version": "%s", "source": "%s"}' "$name" "$version" "$source"
 }
 
 while getopts ":r:" opt; do
