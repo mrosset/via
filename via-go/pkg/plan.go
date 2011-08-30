@@ -8,14 +8,27 @@ import (
 	"strings"
 )
 
+type Pack Plan
+
 type Plan struct {
 	Name    string "name"
 	Version string "version"
 	Source  string "source"
+	Tarball string "tarball"
 }
 
 func (this Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", this.Name, this.Version)
+}
+
+func (this Plan) Print() {
+	pp := func(f, v string) {
+		fmt.Printf("%-10.10s = %s\n", f, v)
+	}
+	pp("Name", this.Name)
+	pp("Version", this.Version)
+	pp("Source", this.Source)
+	pp("Tarball", this.Tarball)
 }
 
 func ParsePlan(path string) (plan *Plan, err os.Error) {
@@ -50,6 +63,7 @@ func ParsePlan(path string) (plan *Plan, err os.Error) {
 		kmap["name"],
 		kmap["version"],
 		kmap["source"],
+		"",
 	}
 	return
 }

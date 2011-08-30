@@ -1,6 +1,7 @@
 package via
 
 import (
+	"fmt"
 	"path"
 )
 
@@ -12,6 +13,14 @@ var (
 	packages = path.Join(cache, "packages")
 )
 
-func GetRepo() string {
-	return repo
+const (
+	PackExt = "tar.gz"
+)
+
+func PkgFile(plan *Plan, arch string) string {
+	return fmt.Sprintf("%s-%s-%s.%s", plan.Name, plan.Version, arch, PackExt)
+}
+
+func PkgAbsFile(plan *Plan, arch string) string {
+	return fmt.Sprintf("%s/%s/%s", repo, arch, PkgFile(plan, arch))
 }

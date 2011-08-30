@@ -1,10 +1,8 @@
 package via
 
 import (
-	"bytes"
-	"compress/gzip"
+	"fmt"
 	"io"
-	"json"
 	"os"
 )
 
@@ -36,26 +34,30 @@ func (t *Manifest) AddEntry(file string, eType int) {
 	t.Files = append(t.Files, &FileEntry{file, eType})
 }
 
-func (t Manifest) Save(path string) (err os.Error) {
-	fd, err := os.Create(path)
+func ReadManifest(r io.Reader) (man *Manifest, err os.Error) {
+	man = new(Manifest)
+	err = ReadGzIo(man, r)
+	return man, err
+}
+
+func UnPackManifest(file string) (man *Manifest, err os.Error) {
+	tbr, err := NewTarBallReader(file)
 	if err != nil {
-		return
+		return nil, err
 	}
-	defer fd.Close()
-	gw, err := gzip.NewWriter(fd)
-	if err != nil {
-		return
+	defer tbr.Close()
+	for {
+		hdr, err := tbr.tr.Next()
+		if err == os.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if hdr.Name == manifestName {
+			man, err = ReadManifest(tbr.tr)
+			return man, err
+		}
 	}
-	defer gw.Close()
-	b, err := json.Marshal(t)
-	if err != nil {
-		return
-	}
-	buf := new(bytes.Buffer)
-	err = json.Indent(buf, b, "", "\t")
-	if err != nil {
-		return
-	}
-	io.Copy(gw, buf)
-	return
+	return nil, fmt.Errorf("Could not find %s in %s", manifestName, file)
 }

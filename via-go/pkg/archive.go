@@ -24,6 +24,7 @@ func Package(name string, arch string) (err os.Error) {
 	}
 	dir := filepath.Join(packages, plan.NameVersion())
 	file := fmt.Sprintf("%s-%s.tar.gz", plan.NameVersion(), arch)
+	plan.Tarball = file
 	file = filepath.Join(repo, arch, file)
 	err = os.Chdir(dir)
 	if err != nil {
@@ -40,11 +41,11 @@ func Package(name string, arch string) (err os.Error) {
 	manifest := NewManifest(plan)
 	vis := NewTarVisitor(gz, manifest)
 	filepath.Walk(".", vis, nil)
-	err = manifest.Save(manifestName)
+	err = WriteGzFile(manifest, manifestName)
 	if err != nil {
 		return
 	}
-	err = tarFile("manifest.json.gz", vis.tw)
+	err = tarFile(manifestName, vis.tw)
 	if err != nil {
 		fmt.Println("ERROR", err)
 	}
@@ -175,11 +176,11 @@ func Unpack(root string, file string) (err os.Error) {
 	defer tgr.Close()
 	for {
 		hdr, err := tgr.tr.Next()
+		if err == os.EOF {
+			break
+		}
 		if err != nil {
 			return
-		}
-		if hdr == nil {
-			break
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir:
