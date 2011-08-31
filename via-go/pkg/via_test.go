@@ -1,7 +1,6 @@
 package via
 
 import (
-	"fmt"
 	"os"
 	"testing"
 )
@@ -11,6 +10,10 @@ var (
 	testArch = "x86_64"
 	testRoot = "./tmp"
 )
+
+func init() {
+	os.Mkdir(testRoot, 0755)
+}
 
 func TestFindPlan(t *testing.T) {
 	for _, test := range tests {
@@ -45,10 +48,55 @@ func TestUpdateRepo(t *testing.T) {
 }
 
 func TestLoadRepo(t *testing.T) {
-	rep, err := LoadRepo(testArch)
+	_, err := LoadRepo(testArch)
 	checkError(t, err)
-	for _, m := range rep.Manifests {
-		fmt.Printf("%-10.10s %s\n", m.Meta.Name, m.Meta.Tarball)
+}
+
+var testDownload = "bash-4.2-x86_64.tar.bz2"
+
+func TestDownload(t *testing.T) {
+	InitClient()
+	err := Download(testDownload)
+	checkError(t, err)
+}
+
+func TestUpload(t *testing.T) {
+	InitClient()
+	err := Upload(testDownload)
+	checkError(t, err)
+}
+
+func TestGetDownloadList(t *testing.T) {
+	InitClient()
+	_, err := GetDownloadList()
+	checkError(t, err)
+}
+
+func TestNetRc(t *testing.T) {
+	expected := "Mike.Rosset@gmail.com"
+	if netrc["login"] != expected {
+		t.Errorf("expected %s got %s", expected, netrc["login"])
+	}
+}
+
+func TestIsUploaded(t *testing.T) {
+	pass, err := isUploaded(testDownload)
+	if err != nil {
+		t.Error(err)
+	}
+	if !pass {
+		t.Errorf("%s is expected to exist on server we got %v",
+			testDownload, pass)
+
+	}
+	notExpected := "failthis"
+	fail, err := isUploaded(notExpected)
+	if err != nil {
+		t.Error(err)
+	}
+	if fail {
+		t.Errorf("%s is expected to not exist on server we got %v",
+			testDownload, fail)
 	}
 }
 
