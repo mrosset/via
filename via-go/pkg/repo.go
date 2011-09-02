@@ -49,3 +49,8 @@ func UpdateRepo(arch string) (err os.Error) {
 	err = r.Save(arch)
 	return err
 }
+
+func uploadRepo(arch string) (err os.Error) {
+	file := fmt.Sprintf("%s/%s/repo-%s.json.gz", repo, arch, arch)
+	return upload(file)
+}

@@ -1,6 +1,7 @@
 package via
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -60,15 +61,9 @@ func TestDownload(t *testing.T) {
 	checkError(t, err)
 }
 
-func TestUpload(t *testing.T) {
+func testUpload(t *testing.T) {
 	InitClient()
-	err := Upload(testDownload)
-	checkError(t, err)
-}
-
-func TestGetDownloadList(t *testing.T) {
-	InitClient()
-	_, err := GetDownloadList()
+	err := upload(testDownload)
 	checkError(t, err)
 }
 
@@ -79,25 +74,19 @@ func TestNetRc(t *testing.T) {
 	}
 }
 
-func TestIsUploaded(t *testing.T) {
-	pass, err := isUploaded(testDownload)
-	if err != nil {
+func testUploadRepo(t *testing.T) {
+	if err := uploadRepo(testArch); err != nil {
 		t.Error(err)
 	}
-	if !pass {
-		t.Errorf("%s is expected to exist on server we got %v",
-			testDownload, pass)
+}
 
+func TestGetDownloadList(t *testing.T) {
+	InitClient()
+	list, err := GetDownloadList()
+	for i, l := range list {
+		fmt.Printf("%-0.2d %s\n", i, l)
 	}
-	notExpected := "failthis"
-	fail, err := isUploaded(notExpected)
-	if err != nil {
-		t.Error(err)
-	}
-	if fail {
-		t.Errorf("%s is expected to not exist on server we got %v",
-			testDownload, fail)
-	}
+	checkError(t, err)
 }
 
 func checkError(t *testing.T, err os.Error) {

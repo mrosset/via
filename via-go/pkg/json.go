@@ -1,6 +1,7 @@
 package via
 
 import (
+	"bytes"
 	"compress/gzip"
 	"io"
 	"json"
@@ -40,5 +41,15 @@ func WriteGzIo(v interface{}, w io.Writer) (err os.Error) {
 		return err
 	}
 	defer gz.Close()
-	return json.NewEncoder(gz).Encode(v)
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	buf := new(bytes.Buffer)
+	err = json.Indent(buf, b, "", "\t")
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(gz, buf)
+	return err
 }

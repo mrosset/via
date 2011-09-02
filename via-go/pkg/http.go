@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"mime/multipart"
 	"strings"
+	//"github.com/kr/pretty.go"
 )
 
 var (
@@ -31,15 +32,20 @@ func InitClient() {
 	}
 }
 
-// Upload file to google code
-func Upload(file string) (err os.Error) {
-	exists, err := isUploaded(file)
-	if err != nil {
-		return err
+func upExists(file string) bool {
+	url := fmt.Sprintf("%s/%s", filesUrl, file)
+	res, _ := client.Head(url)
+	if res.StatusCode == 200 {
+		return true
 	}
-	if exists {
-		fmt.Println("WARNING upload exists skipping")
-		return nil
+	return false
+}
+
+// Upload file to google code
+func upload(file string) (err os.Error) {
+	if upExists(filepath.Base(file)) {
+		fmt.Println("WARNING", file, "exists on server")
+		//return nil
 	}
 	buf := new(bytes.Buffer)
 	w := multipart.NewWriter(buf)
@@ -50,7 +56,7 @@ func Upload(file string) (err os.Error) {
 		return err
 	}
 	// Create file field writer
-	fw, err := w.CreateFormFile("upload", file)
+	fw, err := w.CreateFormFile("upload", filepath.Base(file))
 	if err != nil {
 		return err
 	}
@@ -73,8 +79,6 @@ func Upload(file string) (err os.Error) {
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.SetBasicAuth(netrc["login"], netrc["password"])
 	res, err := client.Do(req)
-	io.Copy(os.Stderr, res.Body)
-	return nil
 	return checkResponse(res, err)
 }
 
@@ -126,17 +130,6 @@ func Download(file string) (err os.Error) {
 	defer fd.Close()
 	_, err = io.Copy(fd, res.Body)
 	return err
-}
-
-func isUploaded(file string) (bool, os.Error) {
-	res, err := client.Head(filesUrl + "/" + file)
-	if err != nil {
-		return false, err
-	}
-	if res.StatusCode == 200 {
-		return true, nil
-	}
-	return false, nil
 }
 
 func checkResponse(res *http.Response, err os.Error) os.Error {
