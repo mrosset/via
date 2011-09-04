@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	tests    = []string{"bash", "ncdu"}
+	tests = []string{"bash", "ncdu", "file", "vim"}
+	//tests    = []string{"git"}
 	testArch = "x86_64"
 	testRoot = "./tmp"
 )

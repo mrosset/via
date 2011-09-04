@@ -3,11 +3,19 @@ package via
 import (
 	"archive/tar"
 	"compress/gzip"
+	"debug/elf"
+	"exec"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
+)
+
+const (
+	Sharedlib  = "application/x-sharedlib"
+	Executable = "application/x-executable"
 )
 
 func Package(name string, arch string) (err os.Error) {
@@ -45,7 +53,7 @@ func Package(name string, arch string) (err os.Error) {
 	if err != nil {
 		return
 	}
-	err = tarFile(manifestName, vis.tw)
+	err = vis.tarFile(manifestName)
 	if err != nil {
 		fmt.Println("ERROR", err)
 	}
@@ -56,49 +64,84 @@ func Package(name string, arch string) (err os.Error) {
 }
 
 type TarVisitor struct {
-	tw  *tar.Writer
-	man *Manifest
+	tw        *tar.Writer
+	man       *Manifest
+	hardlinks map[uint64]string
 }
 
 func NewTarVisitor(w io.Writer, m *Manifest) *TarVisitor {
-	return &TarVisitor{tar.NewWriter(w), m}
+	return &TarVisitor{
+		tar.NewWriter(w),
+		m,
+		make(map[uint64]string),
+	}
 }
 
-func (t TarVisitor) VisitDir(path string, f *os.FileInfo) bool {
+func (tv TarVisitor) VisitDir(path string, f *os.FileInfo) bool {
 	if path == "." {
 		return true
 	}
-	hdr := NewHeader(path)
-	t.tw.WriteHeader(hdr)
-	t.man.AddEntry(path, EntryDir)
+	hdr := NewHeader(path, tv.hardlinks)
+	tv.tw.WriteHeader(hdr)
+	tv.man.AddEntry(path, EntryDir)
 	return true
 }
 
-func (t TarVisitor) VisitFile(path string, f *os.FileInfo) {
-	err := tarFile(path, t.tw)
+func (tv TarVisitor) VisitFile(path string, f *os.FileInfo) {
+	var (
+		deps []string
+	)
+	mime, err := fileMagic(path)
 	if err != nil {
 		fmt.Println("ERROR", err)
 	}
-	t.man.AddEntry(path, EntryFile)
+	switch mime {
+	case Sharedlib:
+		err = stripLib(path)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		deps, err = getDepends(path)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+	case Executable:
+		err = stripBin(path)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+		deps, err = getDepends(path)
+		if err != nil {
+			fmt.Println("ERROR", err)
+		}
+	}
+	if len(deps) > 0 {
+		fmt.Println(deps)
+	}
+	err = tv.tarFile(path)
+	if err != nil {
+		fmt.Println("ERROR", err)
+	}
+	tv.man.AddEntry(path, EntryFile)
 }
 
-func tarFile(path string, tw *tar.Writer) (err os.Error) {
-	hdr := NewHeader(path)
-	tw.WriteHeader(hdr)
-	if hdr.Typeflag == tar.TypeSymlink {
-		return
+func (tv TarVisitor) tarFile(path string) (err os.Error) {
+	hdr := NewHeader(path, tv.hardlinks)
+	tv.tw.WriteHeader(hdr)
+	if hdr.Typeflag == tar.TypeSymlink || hdr.Typeflag == tar.TypeLink {
+		return nil
 	}
 	fd, err := os.Open(path)
 	if err != nil {
-		return
+		return err
 	}
-	io.Copy(tw, fd)
-	fd.Close()
-	return
+	defer fd.Close()
+	_, err = io.Copy(tv.tw, fd)
+	return err
 }
 
-func NewHeader(path string) *tar.Header {
-	hdr := new(tar.Header)
+func NewHeader(path string, hl map[uint64]string) (hdr *tar.Header) {
+	hdr = new(tar.Header)
 	fi, err := os.Lstat(path)
 	if err != nil {
 		fmt.Println(err)
@@ -114,12 +157,14 @@ func NewHeader(path string) *tar.Header {
 	case fi.IsDirectory():
 		hdr.Typeflag = tar.TypeDir
 		hdr.Name = hdr.Name + "/"
+	case fi.Nlink > 1:
+		hdr.Typeflag = tar.TypeLink
+		fmt.Println("WARNING", path, "is hardlink")
 	case fi.IsSymlink():
 		link, err := os.Readlink(path)
 		if err != nil {
 			fmt.Println(err)
 		}
-		hdr.Name = path
 		hdr.Typeflag = tar.TypeSymlink
 		hdr.Linkname = link
 	default:
@@ -233,4 +278,41 @@ func fileExists(path string) bool {
 		return true
 	}
 	return false
+}
+
+func fileMagic(path string) (string, os.Error) {
+	output, err := exec.Command("file", "-b", "-i", path).Output()
+	if err != nil {
+		return "", err
+	}
+	mime := strings.Split(string(output), " ")
+	return mime[0][:len(mime[0])-1], nil
+}
+
+func stripLib(path string) os.Error {
+	stripArg := "--strip-unneeded"
+	output, err := exec.Command("strip", stripArg, path).CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf("%s %s", string(output), err)
+	}
+	return err
+}
+
+func stripBin(path string) os.Error {
+	stripArg := "--strip-all"
+	output, err := exec.Command("strip", stripArg, path).CombinedOutput()
+	if err != nil {
+		err = fmt.Errorf("%s %s", string(output), err)
+	}
+	return err
+}
+
+func getDepends(path string) (depends []string, err os.Error) {
+	f, err := elf.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	depends, err = f.ImportedLibraries()
+	return depends, err
 }
