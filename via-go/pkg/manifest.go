@@ -2,7 +2,6 @@ package via
 
 import (
 	"fmt"
-	"io"
 	"os"
 )
 
@@ -26,22 +25,13 @@ type Manifest struct {
 	Files []*FileEntry
 }
 
-func NewManifest(plan *Plan) *Manifest {
-	return &Manifest{plan, []*FileEntry{}}
-}
-
 func (t *Manifest) AddEntry(file string, eType int) {
 	t.Files = append(t.Files, &FileEntry{file, eType})
 }
 
-func ReadManifest(r io.Reader) (man *Manifest, err os.Error) {
-	man = new(Manifest)
-	err = ReadGzIo(man, r)
-	return man, err
-}
-
-func UnPackManifest(file string) (man *Manifest, err os.Error) {
+func UnpackManifest(file string) (mani *Manifest, err os.Error) {
 	tbr, err := NewTarBallReader(file)
+	mani = new(Manifest)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +45,8 @@ func UnPackManifest(file string) (man *Manifest, err os.Error) {
 			return nil, err
 		}
 		if hdr.Name == manifestName {
-			man, err = ReadManifest(tbr.tr)
-			return man, err
+			err = ReadGzIo(mani, tbr.tr)
+			return mani, err
 		}
 	}
 	return nil, fmt.Errorf("Could not find %s in %s", manifestName, file)

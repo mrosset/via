@@ -40,7 +40,7 @@ func UpdateRepo(arch string) (err os.Error) {
 	}
 	r := &Repo{arch, make(map[string]*Manifest)}
 	for _, f := range files {
-		man, err := UnPackManifest(f)
+		man, err := UnpackManifest(f)
 		if err != nil {
 			return err
 		}

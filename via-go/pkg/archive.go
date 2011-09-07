@@ -36,31 +36,33 @@ func Package(name string, arch string) (err os.Error) {
 	file = filepath.Join(repo, arch, file)
 	err = os.Chdir(dir)
 	if err != nil {
-		return
+		return err
 	}
 	fd, err := os.Create(file)
 	if err != nil {
-		return
+		return err
 	}
 	gz, err := gzip.NewWriterLevel(fd, gzip.BestCompression)
 	if err != nil {
-		return
+		return err
 	}
-	manifest := NewManifest(plan)
-	vis := NewTarVisitor(gz, manifest)
+	mani := new(Manifest)
+	mani.Meta = (plan)
+	vis := NewTarVisitor(gz, mani)
 	filepath.Walk(".", vis, nil)
-	err = WriteGzFile(manifest, manifestName)
+	err = WriteGzFile(mani, manifestName)
 	if err != nil {
-		return
+		return err
 	}
 	err = vis.tarFile(manifestName)
 	if err != nil {
-		fmt.Println("ERROR", err)
+		return err
 	}
 	vis.tw.Close()
 	gz.Close()
 	fd.Close()
-	return
+
+	return Sign(file)
 }
 
 type TarVisitor struct {
@@ -88,6 +90,10 @@ func (tv TarVisitor) VisitDir(path string, f *os.FileInfo) bool {
 }
 
 func (tv TarVisitor) VisitFile(path string, f *os.FileInfo) {
+	// TODO: remove this vpack does packaging
+	if path == "DEPENDS" || path == "MANIFEST" || path == "manifest.json.gz" {
+		return
+	}
 	var (
 		deps []string
 	)
@@ -115,9 +121,7 @@ func (tv TarVisitor) VisitFile(path string, f *os.FileInfo) {
 			fmt.Println("ERROR", err)
 		}
 	}
-	if len(deps) > 0 {
-		fmt.Println(deps)
-	}
+	_ = deps
 	err = tv.tarFile(path)
 	if err != nil {
 		fmt.Println("ERROR", err)
@@ -227,6 +231,9 @@ func Unpack(root string, file string) (err os.Error) {
 		if err != nil {
 			return
 		}
+		if hdr.Name == manifestName {
+			break
+		}
 		switch hdr.Typeflag {
 		case tar.TypeDir:
 			//fmt.Printf("\r%-40.40s -> D", hdr.Name)
@@ -267,17 +274,6 @@ func Unpack(root string, file string) (err os.Error) {
 		}
 	}
 	return
-}
-
-func fileExists(path string) bool {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	if fi.IsRegular() || fi.IsDirectory() {
-		return true
-	}
-	return false
 }
 
 func fileMagic(path string) (string, os.Error) {
