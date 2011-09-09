@@ -45,6 +45,8 @@ packages=$cache/packages
 
 export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
 
+PKG_EXT="tar.gz"
+
 check_via_home() {
     local error=0
 
@@ -124,6 +126,10 @@ via_stage() {
 
     source_plan "$1"
     local file=$(basename $source)
+
+    if is_func_defined "custom_stage"; then
+        custom_stage
+    fi
 
     if [[ ! -d $stage_dir ]]; then
         case $file in
@@ -391,8 +397,27 @@ write_depends() {
 
 via_package() {
     source_plan "$1"
+    if [ -d $DESTDIR ]; then
+        log "cleaning" "$(basename "$DESTDIR")"
+        rm -rf $DESTDIR
+    fi
+    get_package_type
+    packager=$RESULT
+    log $(echo $packager) $name
+    _pushd $build_dir
+        $packager
+    _popd
+    package_files_dir
+    if [ ! -d $DESTDIR ]; then
+        mkdir $DESTDIR
+    fi
+    vpack pack $1
+}
+
+via_package_old() {
+    source_plan "$1"
     local arch="${TARGET_ARCH:-$(arch)}"
-    local pkgfile="$repo/$arch/$name-$version-$arch.tar.bz2"
+    local pkgfile="$repo/$arch/$name-$version-$arch.$PKG_EXT"
     [ ! -d "$(dirname $pkgfile)" ] && mkdir $(dirname $pkgfile)
     log $FUNCNAME "$name"
     if [ -d $DESTDIR ]; then
@@ -421,7 +446,8 @@ via_package() {
     find . > MANIFEST
     write_depends
     log "compressing" "$(basename $pkgfile)"
-    fakeroot tar cfj $pkgfile *
+    #fakeroot tar cf $pkgfile *
+    fakeroot tar cf - * | gzip -9 > $pkgfile
     if ! is_cross_build; then
         cp DEPENDS MANIFEST "$plan_dir/"
     fi
@@ -470,7 +496,7 @@ install_core() {
 diff_manifest() {
     local fullname=$name-$version
     local arch=${TARGET_ARCH:-$(arch)}
-    local pkgfile="$repo/$arch/$fullname-$arch.tar.bz2"
+    local pkgfile="$repo/$arch/$fullname-$arch.$PKG_EXT"
     local db=var/db/via
     while read line; do
         case "${line::1}" in
@@ -534,7 +560,7 @@ via_install() {
     local with_depends=${2:-}
     local fullname=$name-$version
     local arch=${TARGET_ARCH:-$(arch)}
-    local pkgfile="$repo/$arch/$fullname-$arch.tar.bz2"
+    local pkgfile="$repo/$arch/$fullname-$arch.$PKG_EXT"
     local file=$(basename "$pkgfile")
     local db=var/db/via
     

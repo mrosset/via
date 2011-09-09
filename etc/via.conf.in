@@ -13,8 +13,8 @@ CHOST="x86_64-unknown-linux-gnu"
 # -mtune : generic optimization for -march
 # -O2    : optimization level for code
 # -pipe  : use pipes instead of tmp files for compiler communication
-CFLAGS="-march=native -mtune=native -O2 -pipe"
-CXXFLAGS="-march=native -mtune=native -O2 -pipe"
+CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
 
 # --hash-style : use gnu hash tables
 # --as-needed  : only add libraries to DT_NEEDED that resolve 
