@@ -20,7 +20,7 @@ var (
 )
 
 func init() {
-	log.SetPrefix(fmt.Sprintf("%s: ", Blue("via")))
+	log.SetPrefix(fmt.Sprintf("%s ", Blue("via:")))
 	log.SetFlags(0)
 }
 
@@ -100,6 +100,7 @@ func Check(root string, name string) os.Error {
 	for _, f := range mani.Files {
 		fpath := filepath.Join(root, f.Path)
 		if !fileExists(fpath) {
+			fmt.Println(fpath)
 			errors++
 			continue
 		}

@@ -7,6 +7,7 @@ import (
 	"exec"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -162,8 +163,14 @@ func NewHeader(path string, hl map[uint64]string) (hdr *tar.Header) {
 		hdr.Typeflag = tar.TypeDir
 		hdr.Name = hdr.Name + "/"
 	case fi.Nlink > 1:
-		hdr.Typeflag = tar.TypeLink
-		fmt.Println("WARNING", path, "is hardlink")
+		if ref, ok := hl[fi.Ino]; ok {
+			hdr.Typeflag = tar.TypeLink
+			hdr.Linkname = ref
+			break
+		}
+		hl[fi.Ino] = path
+		hdr.Typeflag = tar.TypeReg
+		hdr.Size = fi.Size
 	case fi.IsSymlink():
 		link, err := os.Readlink(path)
 		if err != nil {
@@ -244,6 +251,17 @@ func Unpack(root string, file string) (err os.Error) {
 			if err != nil {
 				fmt.Println(err)
 				return
+			}
+		case tar.TypeLink:
+			if fileExists(hdr.Name) {
+				err := os.Remove(hdr.Name)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+			err = os.Link(hdr.Linkname, hdr.Name)
+			if err != nil {
+				fmt.Println(err)
 			}
 		case tar.TypeSymlink:
 			if fileExists(hdr.Name) {

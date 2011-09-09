@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	tests = []string{"bash", "ncdu", "file", "coreutils","eglibc"}
-	//tests    = []string{"git"}
+	//tests    = []string{"bash", "ncdu", "file", "coreutils", "eglibc", "git"}
+	tests    = []string{"git","eglibc"}
 	testArch = "x86_64"
 	testRoot = "./tmp"
 )
@@ -97,7 +97,7 @@ func TestCheck(t *testing.T) {
 	}
 }
 
-func TestOwnsFile(t *testing.T) {
+func testOwnsFile(t *testing.T) {
 	expected := "file"
 	mani, err := OwnsFile(testRoot, "libmagic.so.1")
 	checkError(t, err)
@@ -106,7 +106,7 @@ func TestOwnsFile(t *testing.T) {
 	}
 }
 
-func TestRemove(t *testing.T) {
+func testRemove(t *testing.T) {
 	for _, test := range tests {
 		err := Remove(testRoot, test)
 		checkError(t, err)
