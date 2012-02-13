@@ -1,0 +1,31 @@
+export VIAHOME=$HOME/via
+
+ROOT=/
+
+TEST=""
+
+PREFIX="/usr"
+
+CARCH="x86_64"
+CHOST="x86_64-unknown-linux-gnu"
+
+# -march : cpu to build for
+# -mtune : generic optimization for -march
+# -O2    : optimization level for code
+# -pipe  : use pipes instead of tmp files for compiler communication
+CFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+CXXFLAGS="-march=x86-64 -mtune=generic -O2 -pipe"
+
+# --hash-style : use gnu hash tables
+# --as-needed  : only add libraries to DT_NEEDED that resolve 
+LDFLAGS=" -Wl,--hash-style=gnu -Wl,--as-needed"
+MAKEFLAGS="-j3"
+
+export CONFIG_SITE="@viaconfdir@/config.site"
+
+GPG_USER="test@test.com"
+
+REPO_URL="https://via.googlecode.com/files"
+REPO_USER="mike.rosset@gmail.com"
+
+GIT_PLANS_REPO="https://code.google.com/p/via.plans"

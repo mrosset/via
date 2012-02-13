@@ -1,0 +1,985 @@
+#! /bin/bash
+
+#   via is a build system, used for building and packaging software.
+#   Copyright (C) 2011 Michael Rosset <mike.rosset@gmail.com>
+#   Portions Copyright (C) 2007-2010 Pacman Development Team <pacman-dev@archlinux.org>
+
+#   via is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+if [ -n "$DEBUG" ]; then
+    set -x
+    export PS4='+$BASH_SOURCE:$LINENO: '
+fi
+
+set -e
+set -h
+set -u
+
+umask 022
+
+source '@viaconfdir@/via.conf'
+
+chroot=$VIAHOME/chroot
+repo=$VIAHOME/repo
+cache=$VIAHOME/cache
+plans=$VIAHOME/plans
+logs=$VIAHOME/logs
+log=$VIAHOME/logs/via.log
+
+builds=$cache/builds
+sources=$cache/sources
+stages=$cache/stages
+packages=$cache/packages
+
+
+export CFLAGS CXXFLAGS LDFLAGS MAKEFLAGS CHOST
+
+PKG_EXT="tar.gz"
+
+check_via_home() {
+    local error=0
+
+    if [ ! -d "$VIAHOME" ]; then
+        error "via home dir does not exists"
+        error "use via init to create it"
+        exit 1
+    fi
+
+    if [ ! -d "$plans" ]; then
+        error "plans dir does not exists"
+        error "use via sync to clone the plans repo."
+        exit 1
+    fi
+}
+
+via_init() {
+    log "$FUNCNAME" "via home"
+    # create via home dirs
+    for d in $logs $repo $builds $sources $stages $packages; do
+        if [ ! -d $d ]; then
+            log "creating" "$d"
+            mkdir -p "$d"
+        fi
+    done
+    via_sync
+    log "$FUNCNAME" $(green "done")
+}
+
+via_sync() {
+    if [ ! -d "$plans" ]; then
+        log "syncing plans"  "$plans"
+        git clone "$GIT_PLANS_REPO" "$plans"
+        log "syncing plans" $(green "done")
+    else
+        log "plans dir" "already exists skipping"
+    fi
+}
+
+# function download()
+# downloads a url
+# $1 = url
+# example:
+# download http://www.foo.org/foo.tar.gz
+download() {
+    if [ "$source" == "NIL" ]; then
+        echo "RETURN"
+        return
+    fi
+
+    local url="$1"
+    local file="$(basename $url)"
+
+    if [ "$url" = "nil" ]; then
+        log "$FUNCNAME" "no source file"
+        return 0
+    fi
+    _pushd "$sources"
+    if [[ ! -f "$file" ]] && [[ ! -d "$file" ]]; then
+        case ${url} in
+            http*|https*|ftp*)
+                log "curl" "$url"
+                curl -f -L -# -O "$url";;
+            git*)
+                log "git" "$url"
+                git clone "$url" "$file";;
+            *)
+                error "could not resolve download type"
+                return 1;;
+        esac
+    fi	
+    _popd
+
+}
+
+via_stage() {
+
+    source_plan "$1"
+    local file=$(basename $source)
+
+    if is_func_defined "custom_stage"; then
+        custom_stage
+    fi
+
+    if [[ ! -d $stage_dir ]]; then
+        case $file in
+            *gz|*bz2|*xz)
+                log "stageing" "$file"
+                tar xf "$sources/$file" -C "$stages/";;
+        esac
+    fi
+
+    get_build_type
+    local build_type=$RESULT
+
+    if [[ -d $build_dir ]]; then
+        return 0
+    fi
+
+    if [[ $build_type == "gnu_build" ]]; then
+        mkdir $build_dir
+    else
+        cp -a $stage_dir $build_dir
+    fi
+
+}
+
+via_build_core() {
+    if [ "$ROOT" = "/" ]; then
+        error "ROOT is set to / this is wrong."
+        error "specify target dir with -r"
+        exit 1
+    fi
+    local db=$ROOT/var/db/via
+    for i in $plans/core/*; do
+        source_plan "$(basename $i)"
+        if [ ! -d "$db/$name-$version" ] ; then
+            via build "$name"
+            via -r $ROOT install "$name"
+        else
+            log skipping $name
+        fi
+    done
+}
+
+via_build_install() {
+    via_build $1
+    sudo -E via install "$1"
+}
+
+source_plan() {
+    source $plans/*/$1/plan
+
+    plan_dir=$(echo $plans/*/$1)
+    files_dir="$plan_dir/files"
+
+    if [[ -z ${build_name:-} ]]; then
+        build_name=$name-$version
+    fi
+
+    if [[ -z ${build_args:-} ]]; then
+        build_args=""
+    fi
+
+    export DESTDIR="$packages/$name-$version"
+
+    if [[ -z ${package_args:-} ]]; then
+        package_args=""
+    fi
+    build_dir="$builds/$build_name"
+    stage_dir="$stages/$build_name"
+    export name=$name
+}
+
+get_build_type() {
+
+    if [[ -n ${builder:-} ]]; then
+        RESULT="$builder"
+        return 0
+    fi
+
+    if is_func_defined "custom_build"; then
+        RESULT="custom_build"
+        return 0
+    fi
+
+    # check for configure if it exists set gnu_build
+    if [[ -f $stage_dir/configure ]]; then
+        RESULT="gnu_build"
+        return 0
+    fi
+
+    if [[ -f $stage_dir/Makefile ]]; then
+        RESULT="gnu_make"
+        return 0
+    fi
+
+    if [[ -f $stage_dir/setup.py ]]; then
+        RESULT="python_build"
+        return 0
+    fi
+
+    error "could not determine builder type"
+    return 1
+}
+
+get_package_type() {
+    # if packager is set use it.
+    if [[ -n "${packager:-}" ]]; then
+        RESULT="$packager"
+        return 0
+    fi
+
+    if is_func_defined "custom_install"; then
+        RESULT="custom_install"
+        return 0
+    fi
+
+    # check for configure if it exists set gnu_package
+    if [[ -f $stage_dir/configure ]]; then
+        RESULT="gnu_package"
+        return 0
+    fi
+
+    if [[ -f $stage_dir/Makefile ]]; then
+        printf "gnu_package"
+        return 0
+    fi
+
+    if [[ -f $stage_dir/setup.py ]]; then
+        printf "python_package"
+        return 0
+    fi
+
+    return 1
+}
+
+is_cross_build() {
+    if [ -n "${CLFS_TARGET:-}" ]; then
+        true
+    else
+        false
+    fi
+}
+
+is_func_defined() {
+    if [ "$(type -t $1)" = "function" ]; then
+        true
+    else
+        false
+    fi
+}
+
+is_installed() {
+    name_version="$(via get_version $1)"
+    if [[ -d $ROOT/var/db/via/$name_version ]]; then
+        true
+    else
+        false
+    fi
+}
+
+via_build() {
+    source_plan $1
+    log starting $name
+    download $source
+    case $verify in
+        gnu_verify)
+            gnu_verify $source
+            ;;
+        sign_verify)
+            sign_verify $source
+            ;;
+        no_verify)
+            ;;
+        *)
+            sha_verify $source
+            ;;
+    esac
+
+    via_stage $name
+    get_build_type
+    builder=$RESULT
+    local build_type=$(echo $builder)
+
+    _pushd $builds/$build_name
+    log "$build_type" "$name"
+
+    if is_func_defined 'cross_build' && is_cross_build; then
+        cross_build
+    fi
+
+    $builder
+
+    via_package $name
+    _popd
+
+    log done "$name-$version"
+}
+
+# Portions of this function are take from pacman's makepkg please see
+# this files header for copyright
+strip_package() {
+    STRIP_SHARED="--strip-unneeded"
+    STRIP_BINARIES="--strip-all"
+    STRIP_STATIC="--strip-debug"
+    if is_cross_build; then
+        STRIP_CMD="${CLFS_TARGET}-strip"
+    else
+        STRIP_CMD="strip"
+    fi
+    find . -type f -perm -u+w 2>/dev/null | while read binary ; do
+        case "$(file -bi "$binary")" in
+            *application/x-sharedlib*)  # Libraries (.so)
+                log "strip shared" "$binary"
+                $STRIP_CMD $STRIP_SHARED "$binary";;
+            *application/x-archive*)    # Libraries (.a)
+                log "strip static" "$binary"
+                $STRIP_CMD $STRIP_STATIC "$binary";;
+            *application/x-executable*) # Binaries
+                log "strip binary" "$binary"
+                $STRIP_CMD $STRIP_BINARIES "$binary" || true ;;
+        esac
+    done
+}
+
+is_binary_or_lib() {
+    case "$(file -bi "$1")" in
+        *application/x-sharedlib*) 
+            true;;
+        *application/x-executable*) # Binaries
+            true;;
+        *)
+            false;;
+    esac
+}
+
+write_depends() {
+    local db=$ROOT/var/db/via
+    touch DEPENDS
+    if [[ ! -d $db ]]; then
+        log "WARNING" "$db does not exist"
+        return
+    fi
+    find . -type f 2>/dev/null | while read binary ; do
+        if ! is_binary_or_lib "$binary"; then
+            continue
+        fi
+        libs=$(objdump -x "$binary" | grep NEEDED | awk '{print $2}')
+        for i in $libs; do
+            if grep -q $i MANIFEST; then
+                continue
+            fi
+            manifest=$(grep -lR "$i" "$db") || true
+            if [[ -z $manifest ]]; then
+                log "WARNING" "$i not resolved"
+                continue
+            fi
+            dir=$(dirname "$manifest")
+            depend=$(basename $dir | awk -F '-' '{print $1}')
+            if ! grep -q "$depend" DEPENDS; then
+                log "$i" "$depend"
+                echo $depend >> DEPENDS
+            fi
+        done
+    done
+}
+
+via_package() {
+    source_plan "$1"
+    if [ -d $DESTDIR ]; then
+        log "cleaning" "$(basename "$DESTDIR")"
+        rm -rf $DESTDIR
+    fi
+    get_package_type
+    packager=$RESULT
+    log $(echo $packager) $name
+    _pushd $build_dir
+        $packager
+    _popd
+    package_files_dir
+    if [ ! -d $DESTDIR ]; then
+        mkdir $DESTDIR
+    fi
+    vpack pack $1
+}
+
+via_package_old() {
+    source_plan "$1"
+    local arch="${TARGET_ARCH:-$(arch)}"
+    local pkgfile="$repo/$arch/$name-$version-$arch.$PKG_EXT"
+    [ ! -d "$(dirname $pkgfile)" ] && mkdir $(dirname $pkgfile)
+    log $FUNCNAME "$name"
+    if [ -d $DESTDIR ]; then
+        log "cleaning" "$(basename "$DESTDIR")"
+        rm -rf $DESTDIR
+    fi
+    get_package_type
+    packager=$RESULT
+    log $(echo $packager) $name
+    _pushd $builds/$build_name
+        $packager
+    _popd
+    package_files_dir
+    if [ ! -d $DESTDIR ]; then
+        mkdir $DESTDIR
+    fi
+    if [ -n "${CLFS_TARGET:-}" ] || [ "$PREFIX" = "/tools" ]; then
+        _pushd $DESTDIR/tools
+    else
+        _pushd $DESTDIR
+    fi
+    if [ "$(type -t post_hook)" = "function" ]; then
+        post_hook
+    fi
+    strip_package
+    find . > MANIFEST
+    write_depends
+    log "compressing" "$(basename $pkgfile)"
+    #fakeroot tar cf $pkgfile *
+    fakeroot tar cf - * | gzip -9 > $pkgfile
+    if ! is_cross_build; then
+        cp DEPENDS MANIFEST "$plan_dir/"
+    fi
+    _popd
+    _pushd $repo
+    log "signing" "$(basename $pkgfile)"
+    [ -f $pkgfile.sig ] && rm $pkgfile.sig
+    gpg -u $GPG_USER --detach-sign $pkgfile
+    if ! gpg --verify $pkgfile.sig >/dev/null 2>&1; then
+        error "gpg signature failed"
+    fi
+    log "gpg:" $(green "OK")
+    _popd
+    rm -rf $build_dir
+}
+
+package_files_dir() {
+    if [ ! -d $files_dir ]; then
+        return
+    fi
+    for f in $files_dir/*; do
+        local file=$(head -1 < $f | awk '{print $2}')
+        local mode=$(head -1 < $f | awk '{print $3}')
+        log "installing" "$file"
+        install -Dm $mode $f $DESTDIR/$file
+    done
+}
+
+install_core() {
+    via -r $ROOT install filesystem
+    for i in $plans/core/*; do
+        via -r $ROOT install "$(basename $i)"
+    done
+    cp /etc/ld.so.conf $ROOT/etc
+    cp /etc/nsswitch.conf $ROOT/etc
+    ldconfig -r $ROOT
+    chroot $ROOT groupadd -g 81 dbus
+    chroot $ROOT useradd -u 81 -g dbus -d / -s /bin/false dbus
+    chroot $ROOT passwd -l dbus
+    chroot $ROOT dbus-uuidgen --ensure
+    chroot $ROOT groupadd -g 54 lock
+    chroot $ROOT systemd-machine-id-setup
+    log "core" "installed"
+}
+
+diff_manifest() {
+    local fullname=$name-$version
+    local arch=${TARGET_ARCH:-$(arch)}
+    local pkgfile="$repo/$arch/$fullname-$arch.$PKG_EXT"
+    local db=var/db/via
+    while read line; do
+        case "${line::1}" in
+            "<")
+                echo $(red "$line");;
+            ">")
+                echo $(green "$line");;
+            *)
+                echo "$line";;
+        esac
+    done < <(diff $db/$fullname/MANIFEST <(tar xOf $pkgfile MANIFEST))
+}
+
+via_cross_install() {
+    TARGET_ARCH=arm
+    ROOT=/tools
+    via_install $1
+}
+
+install_depends() {
+    while read depend; do
+        if ! is_installed "$depend"; then
+            via_install "$depend" "no"
+        fi
+    done < <(tar xOf $pkgfile DEPENDS)
+}
+
+download_from_repo() {
+    local file=$(basename $1)
+    local curl_cmd="stdbuf -eL -oL curl -f -L -# -O"
+
+    _pushd $repo/${TARGET_ARCH:-$(arch)}
+
+    if [[ ! -f $file ]]; then
+        log "downloading" "$file"
+        $curl_cmd $REPO_URL/$file
+    fi
+
+    if [[ ! -f $file.sig ]]; then 
+        log "downloading" "$file.sig"
+        $curl_cmd $REPO_URL/$file.sig
+    fi
+
+    _popd
+}
+
+via_upload_to_repo() {
+    local file=$1
+    local pass=$(cat $HOME/.gc_pass)
+    local arch=${TARGET_ARCH:-$(arch)}
+    log "uploading" "$1"
+    curl -# -u $REPO_USER:$pass \
+        -F summary=$file \
+        -F label=$arch \
+        -F upload=@${file} \
+        $REPO_URL | cat
+}
+
+via_install() {
+    source_plan $1
+    local with_depends=${2:-}
+    local fullname=$name-$version
+    local arch=${TARGET_ARCH:-$(arch)}
+    local pkgfile="$repo/$arch/$fullname-$arch.$PKG_EXT"
+    local file=$(basename "$pkgfile")
+    local db=var/db/via
+    
+    [ -d $ROOT ] || mkdir -p $ROOT
+
+    download_from_repo "$pkgfile"
+
+    if ! gpg --verify $pkgfile.sig >/dev/null 2>&1 ;then
+        gpg --verify $pkgfile.sig  || true
+        error "gpg verification failed for $(basename $pkgfile)"
+        exit 1
+    fi
+
+    if [[ -z $with_depends ]]; then 
+        install_depends $pkgfile
+    fi
+
+    _pushd $ROOT
+    [ -d $db ] || mkdir -p $db
+    if [ -f MANIFEST ]; then
+        log $FUNCNAME "$(red "ERROR") $fullname: MANIFEST exists"
+        return 1
+    fi
+    if is_installed $1; then
+        diff_manifest
+        log $(yellow WARNING) "$fullname is already installed"
+        echo -n "reinstall ? y/n "
+        read ok
+        if [ "$ok" = "N" ] || [ -z "$ok" ] || [ "$ok" != "y" ]; then
+            echo "not installing"
+            return 0
+        fi
+        via_remove $1
+    fi
+    logf "installing" $(basename $pkgfile)
+    mkdir -p "$db/$fullname"
+    tar -xf $pkgfile | true
+    mv MANIFEST DEPENDS $db/$fullname/
+    _popd
+    ldconfig -r $ROOT &> /dev/null || true
+    echo " " $(green "done")
+}
+
+via_remove() {
+    local db=var/db/via
+    _pushd $ROOT
+    local package=$(basename $db/$1-[0-9]*/)
+    log "removing" $package
+    local manifest=$db/$package/MANIFEST
+    # remove files
+    while read file; do
+        if [ -f $file ]; then
+            rm $file
+        fi
+    done < $manifest
+    rm -r $db/$package
+    _popd
+    log $package "removed"
+}
+
+# <action> <details>
+logf() {
+    local blue=$(tput setaf 4)
+    local reset=$(tput sgr0)
+    printf "${blue}via: ${reset}%-20.20s %-40.40s" "$1" "$2"
+}
+
+# <action> <details>
+log() {
+    local blue=$(tput setaf 4)
+    local reset=$(tput sgr0)
+    printf "${blue}via: ${reset}%-20.20s %-40.40s\n" "$1" "$2"
+}
+
+error() {
+    echo "via:" "ERROR" $(red "$1") >&2
+}
+
+_pushd() {
+    builtin pushd "$@" > /dev/null
+}
+
+_popd() {
+    builtin popd > /dev/null
+}
+
+# BUILD HOOKS
+
+# TODO: remove CONFIG altogether
+#CONFIG="--prefix=$PREFIX --sysconfdir=/etc --enable-shared \
+#    --localstatedir=/var --with-shared --config-cache \
+#    --disable-dependency-tracking" 
+
+CONFIG=""
+relocate_build() {
+    gnu_build
+}
+
+gnu_build() {
+    $stages/$build_name/configure $CONFIG $build_args
+    make
+}
+
+no_build() {
+    log "$FUNCNAME" "$name"
+}
+
+gnu_package() {
+    if [[ -z ${package_args:-} ]]; then
+        fakeroot make DESTDIR=$DESTDIR install
+    else
+        fakeroot make DESTDIR=$DESTDIR $package_args
+    fi
+}
+
+no_install() {
+    log $FUNCNAME "$name"
+}
+
+gnu_make() {
+    make $build_args
+}
+
+no_verify() {
+    log $FUNCNAME "no file to verify"
+}
+
+python_build() {
+    python setup.py build
+}
+
+python_package() {
+    python setup.py install --root="$DESTDIR/" --optimize=2
+}
+
+# VERIFY HOOKS
+gnu_verify() {
+    local url=$1
+    local ext=${2:-sig}
+    local file=$(basename $url)
+    log $FUNCNAME $name
+    _pushd $sources
+    if [ ! -f $file.$ext ]; then
+        download $url.$ext
+    fi
+    if ! gpg --verify $file.$ext &> /dev/null; then
+        gpg --verify $file.$ext || true
+        error "gpg verification failed for $file"
+        return 1
+    fi	
+    log $FUNCNAME $(green PASS)
+    _popd
+}
+
+sign_verify() {
+    gnu_verify $1 sign
+}
+
+sha_verify() {
+    local url=$1
+    local file=$(basename $url)
+    log $FUNCNAME $name
+    _pushd $sources
+    sha=$(sha256sum $file | awk '{print $1}')
+    if [ ! "$sha" = "$verify" ]; then
+        log $FUNCNAME $(red FAILED)
+        echo $sha
+        return 1
+    fi	
+    log $FUNCNAME $(green PASS)
+    _popd
+}
+# END HOOKS
+
+
+red() {
+    local red=$(tput setaf 1)
+    local reset= #$(tput sgr0)
+    echo "${red}${1}${reset}"
+}
+
+green() {
+    local green=$(tput setaf 2)
+    local reset=$(tput sgr0)
+    echo "${green}${1}${reset}"
+}
+
+yellow() {
+    local yellow=$(tput setaf 3)
+    local reset=$(tput sgr0)
+    echo "${yellow}${1}${reset}"
+}
+
+blue() {
+    local blue=$(tput setaf 4)
+    local reset=$(tput sgr0)
+    echo "${blue}${1}${reset}"
+}
+
+via_edit() {
+    local name=$1
+    $EDITOR $plans/*/$name/plan
+}
+
+via_mkvirt() {
+    local image=./vanilla.img
+    local target=./vanilla
+    trap "umount $target" ERR
+    [ ! -d $target ] && mkdir $target
+    ROOT=$target
+    qemu-img create -f raw $image 700M
+    mkfs.ext4 -F $image
+    mount -o loop $image $target
+    install_core
+    echo "/dev/sda / ext4 defaults 1 2" > $ROOT/etc/fstab
+    echo "vanvirt" > $ROOT/etc/hostname
+    mount -o bind /dev $target/dev
+    chroot $target passwd
+    umount $target/dev
+    umount $target
+    log $FUNCNAME "completed"
+}
+
+via_virt() {
+    local kernel=/boot/vmlinuz-*
+    local initrd=/boot/initramfs-*.img
+    echo "starting emulator"
+    qemu-system-x86_64 -hda ./vanilla.img \
+        -initrd $initrd \
+        -kernel $kernel \
+        -nographic -append "console=ttyS0 root=/dev/sda init=/bin/systemd"
+    #-append "root=/dev/sda"
+}
+
+via_import() {
+    local abs=/var/abs/
+    local target=$1
+    local path=$(find $abs -type d -name $target)
+    if [ -d $plans/*/$target ]; then
+        log $FUNCNAME "$target already exists"
+        return 1
+    fi
+    if [ -z "$path" ]; then
+        log $FUNCNAME "$1 abs not found"
+        return
+    fi
+    echo $path
+    source $path/PKGBUILD
+    source=${source/$pkgver/\$version}
+    local t=$plans/incoming/$target/plan
+    mkdir -p $plans/incoming/$target
+    cp -v $plans/plan.proto $t
+    sed -i "s,NAME,$pkgname," $t
+    sed -i "s,VERSION,$pkgver," $t
+    sed -i "s,SOURCE,$source," $t
+    via_gen_hash $target
+    cat $path/PKGBUILD
+    log $FUNCNAME "$target imported"
+    #via build_install $target
+}
+
+via_list() {
+    local db=$ROOT/var/db/via
+    cat $db/$1-*/MANIFEST
+}
+
+via_gen_hash() {
+    source_plan $1
+    download $source
+    local plan=$plans/*/$1/plan
+    local file=$(basename $source)
+    sha=$(sha256sum $sources/$file | awk '{print $1}')
+    echo verify=\"$sha\" >> $plan
+}
+
+via_cross_build() {
+    TARGET_ARCH="arm"
+    CROSS_TOOLS=/cross-tools
+    unset CHOST CARCH CFLAGS CXXFLAGS LDFLAGS CONFIG_SITE
+    CLFS_HOST="$(arch)-cross-linux-gnu"
+
+    case $TARGET_ARCH in
+        arm)
+            CLFS_TARGET="${TARGET_ARCH}-linux-gnueabi";;
+        hurd)
+            CLFS_TARGET="i586-pc-gnu";;
+        *)
+            CLFS_TARGET="${TARGET_ARCH}-linux-gnu";;
+    esac
+
+    export PATH=/usr/lib/ccache/bin:/cross-tools/bin:/bin:/usr/bin
+
+    export HOST_CC=gcc
+    export CC="${CLFS_TARGET}-gcc"
+    export CXX="${CLFS_TARGET}-g++"
+    export AR="${CLFS_TARGET}-ar"
+    export AS="${CLFS_TARGET}-as"
+    export RANLIB="${CLFS_TARGET}-ranlib"
+    export LD="${CLFS_TARGET}-ld"
+    export STRIP="${CLFS_TARGET}-strip"
+
+    PREFIX=/tools
+    ROOT=/tools
+    CONFIG+="\
+        --prefix=$PREFIX \
+        --sysconfdir=$PREFIX/etc \
+        --localstatedir=$PREFIX/var \
+        --with-shared \
+        --config-cache \
+        --build=${CLFS_HOST} \
+        --host=${CLFS_TARGET}"
+        #TODO: move this to packages that need it ie . gcc
+        #--target=${CLFS_TARGET}
+
+    via_build $1
+    via_cross_install $1
+}
+
+via_repo_sync() {
+    rsync -augzv $VIAHOME/repo/arm -e ssh android:/tools/via/repo/
+}
+
+via_get_version() {
+    source_plan $1
+    echo $name-$version
+}
+
+via_build_repo() {
+    for i in $plans/$1/*; do
+        plan="$(basename $i)"
+        if ! is_installed $plan; then
+            via build_install $plan
+        fi
+    done
+}
+
+via_setup_tools() {
+    CLFS=/mnt/clfs
+    via -r $CLFS install filesystem || true
+    mount -v --bind /dev $CLFS/dev 
+    mount -vt devpts devpts $CLFS/dev/pts
+    mount -vt tmpfs shm $CLFS/dev/shm
+    mount -vt proc proc $CLFS/proc
+    mount -vt sysfs sysfs $CLFS/sys
+    mount -v -o bind $HOME $CLFS/root
+}
+
+via_enter_chroot() {
+    CLFS=/mnt/clfs
+    chroot "$CLFS" /tools/bin/env -i \
+        HOME=/root TERM="$TERM" PS1='\u:\w\$ ' \
+        PATH=/bin:/usr/bin:/sbin:/usr/sbin:/tools/bin \
+        /tools/bin/bash --login +h
+}
+
+via_bootstrap_core() {
+    while read line; do
+        if [[ ${line::1} == "#" ]] || [[ ${line::1} == "" ]]; then
+            continue
+        fi
+        name_version="$(via get_version $line)"
+        if [[ -d $ROOT/var/db/via/$name_version ]]; then
+            continue
+        fi
+        via build_install $line
+    done < "cross/core.list"
+}
+
+via_install_android() {
+    TARGET_ARCH=arm
+    ROOT=$PWD/android
+    tarball="android.tar.bz2"
+    log "android install" "$(green "started")"
+    for i in bash curl coreutils git tar gnupg shadow openssh wireless_tools util-linux which; do
+        if is_installed $i; then
+            continue
+        fi
+        via_install $i
+    done
+    log "creating" "$tarball" 
+    tar cfj $tarball ./android
+    log "android install" "$(green "finished")"
+}
+
+via_clean() {
+    log "cleaning" "stages"
+    rm -rf $stages/*
+    log "cleaning" "builds"
+    rm -rf $builds/*
+}
+
+via_upload_repo() {
+    _pushd $repo/$1
+        for i in *; do via_upload_to_repo $i || true ; done
+    _popd
+}
+
+while getopts ":r:" opt; do
+    case $opt in
+        r)
+            ROOT=$OPTARG
+            shift 2
+            ;;
+        \?)
+            ;;
+        :)
+            ;;
+    esac
+done
+
+action=$1
+shift
+
+if [ "$action" = "sync" ] || [ "$action" = "init" ]; then
+    via_$action
+    exit 0
+fi
+
+check_via_home
+via_$action $@
+
+# ex: ts=8 sw=4 sts=4 et filetype=sh
