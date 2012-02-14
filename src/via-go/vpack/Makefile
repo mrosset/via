@@ -11,5 +11,5 @@ clean:
 	go clean
 
 test: all
-	./${TARG} pack bash vim
+	./${TARG} pack bash ncdu
 	./${TARG} install bash vim

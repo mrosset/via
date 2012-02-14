@@ -65,7 +65,7 @@ func install(targets []string) (err error) {
 		log.Printf("installing %s", plan.NameVersion())
 		file := fmt.Sprintf("%s-%s.tar.gz", plan.NameVersion(), *arch)
 		file = filepath.Join(via.GetRepo(), *arch, file)
-		err = via.Unpack(*root, file)
+		err = via.Install(*root, target)
 		if err != nil {
 			return err
 		}
