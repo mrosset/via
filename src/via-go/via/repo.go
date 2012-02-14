@@ -2,7 +2,6 @@ package via
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 )
 
@@ -15,7 +14,7 @@ func (this *Repo) AddManifest(man *Manifest) {
 	this.Manifests[man.Meta.Name] = man
 }
 
-func LoadRepo(arch string) (rep *Repo, err os.Error) {
+func LoadRepo(arch string) (rep *Repo, err error) {
 	file := fmt.Sprintf("%s/%s/repo-%s.json.gz", repo, arch, arch)
 	rep = new(Repo)
 	err = ReadGzFile(rep, file)
@@ -25,13 +24,13 @@ func LoadRepo(arch string) (rep *Repo, err os.Error) {
 	return rep, err
 }
 
-func (this *Repo) Save(arch string) (err os.Error) {
+func (this *Repo) Save(arch string) (err error) {
 	file := fmt.Sprintf("%s/%s/repo-%s.json.gz", repo, arch, arch)
 	err = WriteGzFile(this, file)
 	return err
 }
 
-func UpdateRepo(arch string) (err os.Error) {
+func UpdateRepo(arch string) (err error) {
 	dir := filepath.Join(repo, arch)
 
 	files, err := filepath.Glob(dir + "/*" + PackExt)
@@ -50,7 +49,7 @@ func UpdateRepo(arch string) (err os.Error) {
 	return err
 }
 
-func uploadRepo(arch string) (err os.Error) {
+func uploadRepo(arch string) (err error) {
 	file := fmt.Sprintf("%s/%s/repo-%s.json.gz", repo, arch, arch)
 	return upload(file)
 }

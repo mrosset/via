@@ -1,4 +1,4 @@
-SUBDIRS = src etc
+SUBDIRS = src etc src/via-go/via src/via-go/vpack
 
 dist_doc_DATA = README
 

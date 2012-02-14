@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"via"
+	"via-go/via"
 )
 
 var (
@@ -39,7 +39,7 @@ func main() {
 	}
 }
 
-func pack(targets []string) (err os.Error) {
+func pack(targets []string) (err error) {
 	for _, target := range targets {
 		log.Printf("packing %s ", target)
 		err = via.Package(target, *arch)
@@ -50,7 +50,7 @@ func pack(targets []string) (err os.Error) {
 	return
 }
 
-func install(targets []string) (err os.Error) {
+func install(targets []string) (err error) {
 	if !fileExists(*root) {
 		err = os.MkdirAll(*root, 0755)
 		if err != nil {
@@ -82,7 +82,7 @@ func fileExists(path string) bool {
 	if err != nil {
 		return false
 	}
-	if fi.IsRegular() || fi.IsDirectory() {
+	if !fi.IsDir() || fi.IsDir() {
 		return true
 	}
 	return false

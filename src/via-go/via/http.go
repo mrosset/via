@@ -3,12 +3,12 @@ package via
 import (
 	"bytes"
 	"fmt"
-	"html"
-	"http"
+	"exp/html"
 	"io"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
-	"mime/multipart"
 	"strings"
 	//"github.com/kr/pretty.go"
 )
@@ -23,7 +23,7 @@ var (
 func InitClient() {
 	if client == nil {
 		client = new(http.Client)
-		var err os.Error
+		var err error
 		netrc, err = getNetRc()
 		if err != nil {
 			fmt.Println(err)
@@ -42,7 +42,7 @@ func upExists(file string) bool {
 }
 
 // Upload file to google code
-func upload(file string) (err os.Error) {
+func upload(file string) (err error) {
 	if upExists(filepath.Base(file)) {
 		fmt.Println("WARNING", file, "exists on server")
 		//return nil
@@ -82,7 +82,7 @@ func upload(file string) (err os.Error) {
 	return checkResponse(res, err)
 }
 
-func GetDownloadList() (list []string, err os.Error) {
+func GetDownloadList() (list []string, err error) {
 	res, err := client.Get(listUrl)
 	if checkResponse(res, err) != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func GetDownloadList() (list []string, err os.Error) {
 	return list, err
 }
 
-func Download(file string) (err os.Error) {
+func Download(file string) (err error) {
 	rawurl := fmt.Sprintf("%s/%s", filesUrl, file)
 	res, err := client.Get(rawurl)
 	if checkResponse(res, err) != nil {
@@ -132,7 +132,7 @@ func Download(file string) (err os.Error) {
 	return err
 }
 
-func checkResponse(res *http.Response, err os.Error) os.Error {
+func checkResponse(res *http.Response, err error) error {
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func checkResponse(res *http.Response, err os.Error) os.Error {
 	return nil
 }
 
-func getNetRc() (map[string]string, os.Error) {
+func getNetRc() (map[string]string, error) {
 	nr := make(map[string]string)
 	home := os.Getenv("HOME")
 	fd, err := os.Open(filepath.Join(home, ".netrc"))
@@ -156,7 +156,7 @@ func getNetRc() (map[string]string, os.Error) {
 	}
 	for {
 		line, err := buf.ReadBytes('\n')
-		if err == os.EOF {
+		if err == io.EOF {
 			break
 		}
 		if err != nil {

@@ -8,7 +8,7 @@ import (
 
 var (
 	//tests    = []string{"bash", "ncdu", "file", "coreutils", "eglibc", "git"}
-	tests    = []string{"git","eglibc"}
+tests    = []string{"ncdu"}
 	testArch = "x86_64"
 	testRoot = "./tmp"
 )
@@ -113,7 +113,7 @@ func testRemove(t *testing.T) {
 	}
 }
 
-func checkError(t *testing.T, err os.Error) {
+func checkError(t *testing.T, err error) {
 	if err != nil {
 		t.Error(err)
 	}

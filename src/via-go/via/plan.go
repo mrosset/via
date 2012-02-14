@@ -3,6 +3,7 @@ package via
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,7 +32,7 @@ func (this Plan) Print() {
 	pp("Tarball", this.Tarball)
 }
 
-func ParsePlan(path string) (plan *Plan, err os.Error) {
+func ParsePlan(path string) (plan *Plan, err error) {
 	var (
 		kmap = make(map[string]string)
 		keys = []string{"name", "version", "source"}
@@ -48,7 +49,7 @@ func ParsePlan(path string) (plan *Plan, err os.Error) {
 	}
 	for {
 		line, err := buf.ReadString('\n')
-		if err == os.EOF {
+		if err == io.EOF {
 			break
 		}
 		line = line[:len(line)-1]
@@ -68,7 +69,7 @@ func ParsePlan(path string) (plan *Plan, err os.Error) {
 	return
 }
 
-func FindPlan(name string) (plan *Plan, err os.Error) {
+func FindPlan(name string) (plan *Plan, err error) {
 	glob := fmt.Sprintf("%s/*/%s/plan", plans, name)
 	files, err := filepath.Glob(glob)
 	if err != nil {
@@ -81,7 +82,7 @@ func FindPlan(name string) (plan *Plan, err os.Error) {
 	return
 }
 
-func ListPlans() (err os.Error) {
+func ListPlans() (err error) {
 	glob := fmt.Sprintf("%s/*/*/plan", plans)
 	files, err := filepath.Glob(glob)
 	if err != nil {
@@ -90,7 +91,7 @@ func ListPlans() (err os.Error) {
 	for _, i := range files {
 		plan, err := ParsePlan(i)
 		if err != nil {
-			return fmt.Errorf("%s %s", i, err.String())
+			return fmt.Errorf("%s %s", i, err.Error())
 		}
 		fmt.Printf("%-20.20s %s\n", plan.Name, plan.Version)
 	}

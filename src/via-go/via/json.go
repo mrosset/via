@@ -3,12 +3,12 @@ package via
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"io"
-	"json"
 	"os"
 )
 
-func WriteGzFile(v interface{}, file string) (err os.Error) {
+func WriteGzFile(v interface{}, file string) (err error) {
 	fd, err := os.Create(file)
 	if err != nil {
 		return err
@@ -17,7 +17,7 @@ func WriteGzFile(v interface{}, file string) (err os.Error) {
 	return WriteGzIo(v, fd)
 }
 
-func ReadGzFile(v interface{}, file string) (err os.Error) {
+func ReadGzFile(v interface{}, file string) (err error) {
 	fd, err := os.Open(file)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func ReadGzFile(v interface{}, file string) (err os.Error) {
 	return ReadGzIo(v, fd)
 }
 
-func ReadGzIo(v interface{}, r io.Reader) (err os.Error) {
+func ReadGzIo(v interface{}, r io.Reader) (err error) {
 	gz, err := gzip.NewReader(r)
 	if err != nil {
 		return err
@@ -35,11 +35,8 @@ func ReadGzIo(v interface{}, r io.Reader) (err os.Error) {
 	return json.NewDecoder(gz).Decode(v)
 }
 
-func WriteGzIo(v interface{}, w io.Writer) (err os.Error) {
-	gz, err := gzip.NewWriter(w)
-	if err != nil {
-		return err
-	}
+func WriteGzIo(v interface{}, w io.Writer) (err error) {
+	gz := gzip.NewWriter(w)
 	defer gz.Close()
 	b, err := json.Marshal(v)
 	if err != nil {

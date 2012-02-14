@@ -2,7 +2,7 @@ package via
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 const (
@@ -29,7 +29,7 @@ func (t *Manifest) AddEntry(file string, eType int) {
 	t.Files = append(t.Files, &FileEntry{file, eType})
 }
 
-func UnpackManifest(file string) (mani *Manifest, err os.Error) {
+func UnpackManifest(file string) (mani *Manifest, err error) {
 	tbr, err := NewTarBallReader(file)
 	mani = new(Manifest)
 	if err != nil {
@@ -38,7 +38,7 @@ func UnpackManifest(file string) (mani *Manifest, err os.Error) {
 	defer tbr.Close()
 	for {
 		hdr, err := tbr.tr.Next()
-		if err == os.EOF {
+		if err == io.EOF {
 			break
 		}
 		if err != nil {

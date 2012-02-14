@@ -2,10 +2,10 @@ package via
 
 import (
 	"fmt"
+	. "github.com/str1ngs/go-ansi/color"
 	"log"
 	"os"
 	"path"
-	. "github.com/str1ngs/go-ansi/color"
 	"path/filepath"
 )
 
@@ -40,7 +40,7 @@ func PkgAbsFile(plan *Plan, arch string) string {
 	return fmt.Sprintf("%s/%s/%s", repo, arch, PkgFile(plan, arch))
 }
 
-func Install(root string, name string) os.Error {
+func Install(root string, name string) error {
 	vd := filepath.Join(root, varDb, name)
 	if !fileExists(vd) {
 		err := os.MkdirAll(vd, 0755)
@@ -70,7 +70,7 @@ func Install(root string, name string) os.Error {
 	return err
 }
 
-func List(root string, name string) os.Error {
+func List(root string, name string) error {
 	vd := filepath.Join(root, varDb, name)
 	if !fileExists(vd) {
 		return fmt.Errorf("%s name is not installed", name)
@@ -86,7 +86,7 @@ func List(root string, name string) os.Error {
 	return nil
 }
 
-func Check(root string, name string) os.Error {
+func Check(root string, name string) error {
 	vd := filepath.Join(root, varDb, name)
 	if !fileExists(vd) {
 		return fmt.Errorf("%s name is not installed", name)
@@ -111,7 +111,7 @@ func Check(root string, name string) os.Error {
 	return nil
 }
 
-func Remove(root string, name string) os.Error {
+func Remove(root string, name string) error {
 	vd := filepath.Join(root, varDb, name)
 	if !fileExists(vd) {
 		return fmt.Errorf("%s name is not installed", name)
@@ -137,7 +137,7 @@ func Remove(root string, name string) os.Error {
 	return os.RemoveAll(vd)
 }
 
-func OwnsFile(root, file string) (*Manifest, os.Error) {
+func OwnsFile(root, file string) (*Manifest, error) {
 	vd := filepath.Join(root, varDb)
 	pkgs, err := filepath.Glob(filepath.Join(vd, "*"))
 	if err != nil {
@@ -181,7 +181,7 @@ func fileExists(path string) bool {
 	if err != nil {
 		return false
 	}
-	if fi.IsRegular() || fi.IsDirectory() || fi.IsSymlink() {
+	if !fi.IsDir() || fi.IsDir() || fi.Mode() == os.ModeSymlink {
 		return true
 	}
 	return false

@@ -1,13 +1,13 @@
 package via
 
 import (
-	pgp "crypto/openpgp"
-	"exec"
+	pgp "code.google.com/p/go.crypto/openpgp"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
-func Sign(path string) (err os.Error) {
+func Sign(path string) (err error) {
 	sig := path + ".sig"
 	if fileExists(sig) {
 		err = os.Remove(sig)
@@ -19,7 +19,7 @@ func Sign(path string) (err os.Error) {
 		"--detach-sign", path).Run()
 }
 
-func CheckSig(path string) (err os.Error) {
+func CheckSig(path string) (err error) {
 	keyring := filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
 	fd, err := os.Open(keyring)
 	if err != nil {

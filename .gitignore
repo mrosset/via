@@ -4,3 +4,7 @@ keys
 root
 repo
 local
+src/code.google.com/
+src/github.com
+pkg/
+bin
