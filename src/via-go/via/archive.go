@@ -52,7 +52,7 @@ func Package(name string, arch string) (err error) {
 	mani.Meta = (plan)
 	vis := NewTarVisitor(gz, mani)
 	walkFn := func(path string, info os.FileInfo, err error) error {
-		vis.VisitFile(path, info)
+		vis.Visit(path, info)
 		return nil
 	}
 	filepath.Walk(".", walkFn)
@@ -85,14 +85,26 @@ func NewTarVisitor(w io.Writer, m *Manifest) *TarVisitor {
 	}
 }
 
-func (tv TarVisitor) VisitDir(path string, f os.FileInfo) bool {
+func (tv TarVisitor) Visit(path string, f os.FileInfo) {
+	fi, err := os.Lstat(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if fi.IsDir() {
+		tv.VisitDir(path, f)
+		return
+	}
+	tv.VisitFile(path, f)
+}
+
+func (tv TarVisitor) VisitDir(path string, f os.FileInfo) {
 	if path == "." {
-		return true
+		return
 	}
 	hdr := NewHeader(path, tv.hardlinks)
 	tv.tw.WriteHeader(hdr)
 	tv.man.AddEntry(path, EntryDir)
-	return true
+	return
 }
 
 func (tv TarVisitor) VisitFile(path string, f os.FileInfo) {
@@ -137,7 +149,10 @@ func (tv TarVisitor) VisitFile(path string, f os.FileInfo) {
 
 func (tv TarVisitor) tarFile(path string) (err error) {
 	hdr := NewHeader(path, tv.hardlinks)
-	tv.tw.WriteHeader(hdr)
+	err = tv.tw.WriteHeader(hdr)
+	if err != nil {
+		return err
+	}
 	if hdr.Typeflag == tar.TypeSymlink || hdr.Typeflag == tar.TypeLink {
 		return nil
 	}
@@ -161,7 +176,7 @@ func NewHeader(path string, hl map[uint64]string) (hdr *tar.Header) {
 		log.Fatal(path + " is not a Unix file")
 	}
 	hdr.Name = path
-	hdr.Mode = int64(fi.Mode())
+	hdr.Mode = int64(stat.Mode)
 	hdr.Uid = int(stat.Uid)
 	hdr.Gid = int(stat.Gid)
 	hdr.AccessTime = time.Now()
@@ -178,15 +193,15 @@ func NewHeader(path string, hl map[uint64]string) (hdr *tar.Header) {
 			break
 		}
 		hl[stat.Ino] = path
-		hdr.Typeflag = tar.TypeReg
-		hdr.Size = fi.Size()
+		//hdr.Typeflag = tar.TypeReg
+		//hdr.Size = fi.Size()
 	case fi.Mode() == os.ModeSymlink:
-		link, err := os.Readlink(path)
+		//link, err := os.Readlink(path)
 		if err != nil {
 			fmt.Println(err)
 		}
-		hdr.Typeflag = tar.TypeSymlink
-		hdr.Linkname = link
+		//hdr.Typeflag = tar.TypeSymlink
+		//hdr.Linkname = link
 	default:
 		hdr.Typeflag = tar.TypeReg
 		hdr.Size = fi.Size()
