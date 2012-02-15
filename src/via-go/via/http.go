@@ -2,7 +2,6 @@ package via
 
 import (
 	"bytes"
-	"errors"
 	"exp/html"
 	"fmt"
 	"io"
@@ -11,8 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	//"github.com/kr/pretty.go"
-	"log"
+	gurl "github.com/str1ngs/gurl/pkg"
 )
 
 var (
@@ -153,28 +151,8 @@ func DownloadSig(url string) (err error) {
 }
 
 func download(url string, dest string) (err error) {
-	file := filepath.Join(dest, filepath.Base(url))
-	_, err = os.Stat(file)
-	if err == nil {
-		log.Println("skipping download", file, "exists")
-		return nil
-	}
-	log.Println("downloading", url)
-	res, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return errors.New("HTTP returned " + res.Status)
-	}
-	fd, err := os.Create(file)
-	log.Println("saving to ", file)
-	_, err = io.Copy(fd, res.Body)
-	if err != nil {
-		return err
-	}
-	return nil
+	gurl := new(gurl.Client)
+	return gurl.Download(cache, url)
 }
 
 func getNetRc() (map[string]string, error) {

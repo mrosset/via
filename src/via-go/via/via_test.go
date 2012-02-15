@@ -8,7 +8,7 @@ import (
 
 var (
 	//tests    = []string{"bash", "ncdu", "file", "coreutils", "eglibc", "git"}
-	tests    = []string{"ncdu"}
+	tests    = []string{"ncdu","bash","vim"}
 	testArch = "x86_64"
 	testRoot = "./tmp"
 )
