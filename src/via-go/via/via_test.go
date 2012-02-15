@@ -8,7 +8,7 @@ import (
 
 var (
 	//tests    = []string{"bash", "ncdu", "file", "coreutils", "eglibc", "git"}
-tests    = []string{"ncdu"}
+	tests    = []string{"ncdu"}
 	testArch = "x86_64"
 	testRoot = "./tmp"
 )
@@ -55,19 +55,16 @@ func TestLoadRepo(t *testing.T) {
 var testDownload = "bash-4.2-x86_64.tar.bz2"
 
 func testdownload(t *testing.T) {
-	InitClient()
 	err := Download(testDownload)
 	checkError(t, err)
 }
 
 func testUpload(t *testing.T) {
-	InitClient()
 	err := upload(testDownload)
 	checkError(t, err)
 }
 
 func TestNetRc(t *testing.T) {
-	InitClient()
 	expected := "Mike.Rosset@gmail.com"
 	if netrc["login"] != expected {
 		t.Errorf("expected %s got %s", expected, netrc["login"])
@@ -81,7 +78,6 @@ func testUploadRepo(t *testing.T) {
 }
 
 func testGetDownloadList(t *testing.T) {
-	InitClient()
 	list, err := GetDownloadList()
 	for i, l := range list {
 		fmt.Printf("%-0.2d %s\n", i, l)
@@ -89,8 +85,22 @@ func testGetDownloadList(t *testing.T) {
 	checkError(t, err)
 }
 
+func TestDownloadSrc(t *testing.T) {
+	url := "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+	if err := DownloadSrc(url); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestDownloadSig(t *testing.T) {
+	url := "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+	if err := DownloadSig(url); err != nil {
+		t.Error(err)
+	}
+
+}
+
 func TestCheck(t *testing.T) {
-	InitClient()
 	for _, test := range tests {
 		err := Check(testRoot, test)
 		checkError(t, err)

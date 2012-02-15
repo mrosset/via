@@ -2,8 +2,9 @@ package via
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"exp/html"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	//"github.com/kr/pretty.go"
+	"log"
 )
 
 var (
@@ -20,7 +22,7 @@ var (
 	netrc    = make(map[string]string)
 )
 
-func InitClient() {
+func init() {
 	if client == nil {
 		client = new(http.Client)
 		var err error
@@ -138,6 +140,39 @@ func checkResponse(res *http.Response, err error) error {
 	}
 	if res.StatusCode != 200 {
 		return fmt.Errorf("Http client return status code %d expected 200", res.StatusCode)
+	}
+	return nil
+}
+
+func DownloadSrc(url string) (err error) {
+	return download(url, cache)
+}
+
+func DownloadSig(url string) (err error) {
+	return download(url+".sig", cache)
+}
+
+func download(url string, dest string) (err error) {
+	file := filepath.Join(dest, filepath.Base(url))
+	_, err = os.Stat(file)
+	if err == nil {
+		log.Println("skipping download", file, "exists")
+		return nil
+	}
+	log.Println("downloading", url)
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return errors.New("HTTP returned " + res.Status)
+	}
+	fd, err := os.Create(file)
+	log.Println("saving to ", file)
+	_, err = io.Copy(fd, res.Body)
+	if err != nil {
+		return err
 	}
 	return nil
 }
