@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"exp/html"
 	"fmt"
+	gurl "github.com/str1ngs/gurl/pkg"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	gurl "github.com/str1ngs/gurl/pkg"
 )
 
 var (
@@ -117,31 +118,6 @@ func GetDownloadList() (list []string, err error) {
 	return list, err
 }
 
-func Download(file string) (err error) {
-	rawurl := fmt.Sprintf("%s/%s", filesUrl, file)
-	res, err := client.Get(rawurl)
-	if checkResponse(res, err) != nil {
-		return err
-	}
-	fd, err := os.Create(filepath.Base(file))
-	if err != nil {
-		return err
-	}
-	defer fd.Close()
-	_, err = io.Copy(fd, res.Body)
-	return err
-}
-
-func checkResponse(res *http.Response, err error) error {
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != 200 {
-		return fmt.Errorf("Http client return status code %d expected 200", res.StatusCode)
-	}
-	return nil
-}
-
 func DownloadSrc(url string) (err error) {
 	return download(url, cache)
 }
@@ -152,6 +128,12 @@ func DownloadSig(url string) (err error) {
 
 func download(url string, dest string) (err error) {
 	gurl := new(gurl.Client)
+	file := filepath.Base(url)
+	_, err = os.Stat(filepath.Join(cache, file))
+	if err == nil {
+		log.Println(file + " exists skipping")
+		return nil
+	}
 	return gurl.Download(cache, url)
 }
 
