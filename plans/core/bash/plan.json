@@ -1,0 +1,7 @@
+{
+	"Name": "bash",
+	"Version": "4.2",
+	"Mirror": "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz",
+	"File": "",
+	"Builder": ""
+}

@@ -1,0 +1,7 @@
+{
+	"Name": "ncdu",
+	"Version": "1.7",
+	"Mirror": "http://dev.yorhel.nl/download/ncdu-$version.tar.gz",
+	"File": "",
+	"Builder": ""
+}
