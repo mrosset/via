@@ -1,0 +1,6 @@
+{
+	"Name": "ncurses",
+	"Version": "5.9",
+	"Mirror": "http://192.168.2.125:8080",
+	"File": "ncurses-5.9.tar.gz"
+}

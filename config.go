@@ -1,4 +1,4 @@
-package main
+package via
 
 import (
 	"fmt"
@@ -6,24 +6,28 @@ import (
 	"path"
 	"path/filepath"
 	"util"
+	"util/file"
 )
 
 var (
-	config = &Config{cache: "cache", Root: "/usr/local", plans: "plans"}
+	config = &Config{cache: "cache", Prefix: "/usr/local", Root: "/", plans: "plans", Installed: "installed",Identity:"Mike Rosset <mike.rosset@gmail.com>"}
 )
 
 type Config struct {
-	OS    string
-	Arch  string
-	cache string
-	Root  string
-	plans string
+	OS        string
+	Arch      string
+	cache     string
+	Prefix    string
+	plans     string
+	Root      string
+	Installed string
+	Identity  string
 }
 
 func InitConfig() {
 	dirs := []string{config.Cache(), config.Sources(), config.Builds(), config.Packages(), config.Stages(), config.Plans()}
 	for _, d := range dirs {
-		if !util.FileExists(d) {
+		if !file.Exists(d) {
 			fmt.Printf("%-20s %s\n", "creating", d)
 			err := os.Mkdir(d, 0775)
 			util.CheckFatal(err)
@@ -33,7 +37,9 @@ func InitConfig() {
 		util.CheckFatal(err)
 		rel, err := filepath.Rel(wd, d)
 		util.CheckFatal(err)
-		fmt.Printf("%-20s %s\n", rel, "OK")
+		if Verbose {
+			fmt.Printf("%-20s %s\n", rel, "OK")
+		}
 	}
 }
 

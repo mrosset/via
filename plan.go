@@ -1,11 +1,9 @@
-package main
+package via
 
 import (
-	"errors"
 	"fmt"
-	"path"
 	"path/filepath"
-	"util"
+	"runtime"
 )
 
 type Plan struct {
@@ -39,10 +37,10 @@ func (this *Plan) Save() (err error) {
 
 func ReadPlan(name string) (plan *Plan, err error) {
 	plan = &Plan{}
-	jfile := path.Join(config.Plans(), name+".json")
-	if !util.FileExists(jfile) {
-		return nil, errors.New("Could not find plan " + name)
-	}
-	err = ReadJson(plan, jfile)
+	plan, err = ReadJson(name)
 	return plan, err
+}
+
+func (this *Plan) PackageFile() string {
+	return fmt.Sprintf("%s-%s-%s.tar.gz", this.NameVersion(), runtime.GOOS, runtime.GOARCH)
 }

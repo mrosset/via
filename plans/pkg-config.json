@@ -1,0 +1,6 @@
+{
+	"Name": "pkg-config",
+	"Version": "0.26",
+	"Mirror": "http://192.168.2.125:8080",
+	"File": "pkg-config-0.26.tar.gz"
+}

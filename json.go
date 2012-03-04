@@ -1,11 +1,14 @@
-package main
+package via
 
 import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
+	"path"
+	"util/file"
 )
 
 func WriteGzJson(v interface{}, file string) (err error) {
@@ -70,11 +73,20 @@ func WriteJson(v interface{}, path string) (err error) {
 	return err
 }
 
-func ReadJson(v interface{}, path string) (err error) {
+func ReadJson(name string) (plan *Plan, err error) {
+	plan = new(Plan)
+	path := path.Join(config.Plans(), name+".json")
+	if !file.Exists(path) {
+		return nil, errors.New("Could not find plan " + name)
+	}
 	fd, err := os.Open(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer fd.Close()
-	return json.NewDecoder(fd).Decode(v)
+	err = json.NewDecoder(fd).Decode(plan)
+	if err != nil {
+		return nil, err
+	}
+	return plan, err
 }
