@@ -75,7 +75,7 @@ func WriteJson(v interface{}, path string) (err error) {
 
 func ReadJson(name string) (plan *Plan, err error) {
 	plan = new(Plan)
-	path := path.Join(config.Plans(), name+".json")
+	path := path.Join(config.Plans, name+".json")
 	if !file.Exists(path) {
 		return nil, errors.New("Could not find plan " + name)
 	}

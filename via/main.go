@@ -19,7 +19,6 @@ func main() {
 	flag.Parse()
 	via.Verbose = *verbose
 	util.Verbose = *verbose
-	via.InitConfig()
 	cmd := flag.Arg(0)
 	args := flag.Args()[1:]
 	switch cmd {

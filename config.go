@@ -1,89 +1,80 @@
 package via
 
 import (
-	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"util"
 	"util/file"
+	"util/json"
 )
 
 var (
-	config = &Config{cache: "/Users/strings/cache", Prefix: "/usr/local", Root: "/", plans: "/Users/strings/plans", Installed: "installed", Identity: "Mike Rosset <mike.rosset@gmail.com>"}
+	config = &Config{}
 	checkf = util.CheckFatal
 )
 
 type Config struct {
-	OS        string
-	Arch      string
-	cache     string
-	Prefix    string
-	plans     string
-	Root      string
-	Installed string
-	Identity  string
+	Arch     string
+	Identity string
+	OS       string
+	Prefix   string
+	Repo     string
+	Root     string
+	Cache    Cache
+	Plans    string
 }
 
 func init() {
 	checkf(os.Setenv("CC", "ccache gcc"))
-}
-
-func InitConfig() {
-	dirs := []string{config.Cache(), config.Sources(), config.Builds(), config.Packages(), config.Stages(), config.Plans()}
-	for _, d := range dirs {
-		if !file.Exists(d) {
-			fmt.Printf("%-20s %s\n", "creating", d)
-			err := os.Mkdir(d, 0775)
-			util.CheckFatal(err)
-			continue
-		}
-		wd, err := os.Getwd()
-		util.CheckFatal(err)
-		rel, err := filepath.Rel(wd, d)
-		util.CheckFatal(err)
-		if Verbose {
-			fmt.Printf("%-20s %s\n", rel, "OK")
-		}
-	}
-}
-
-func (c *Config) Cache() string {
-	dir, err := filepath.Abs(c.cache)
-	util.CheckFatal(err)
-	return dir
-}
-
-func (c *Config) Plans() string {
-	dir, err := filepath.Abs(c.plans)
-	util.CheckFatal(err)
-	return dir
-}
-
-func (c *Config) Sources() string {
-	return path.Join(c.Cache(), "sources")
-}
-
-func (c *Config) Builds() string {
-	return path.Join(c.Cache(), "builds")
-}
-
-func (c *Config) Stages() string {
-	return path.Join(c.Cache(), "stages")
-}
-
-func (c *Config) Packages() string {
-	return path.Join(c.Cache(), "packages")
+	checkf(json.Read(&config, "config.json"))
+	config.Cache.Create()
 }
 
 func (c *Config) GetStageDir(name string) string {
-	return path.Join(c.Stages(), name)
+	return path.Join(c.Cache.Stages(), name)
 }
 
 func (c *Config) GetBuildDir(name string) string {
-	return path.Join(c.Builds(), name)
+	return path.Join(c.Cache.Builds(), name)
 }
 
 func (c *Config) GetPackageDir(name string) string {
-	return path.Join(c.Packages(), name)
+	return path.Join(c.Cache.Packages(), name)
+}
+
+type Cache string
+
+func (c Cache) Builds() string {
+	return path.Join(string(c), "builds")
+}
+
+func (c Cache) Stages() string {
+	return path.Join(string(c), "stages")
+}
+
+func (c Cache) Sources() string {
+	return path.Join(string(c), "sources")
+}
+
+func (c Cache) Packages() string {
+	return path.Join(string(c), "packages")
+}
+
+func (c Cache) Create() error {
+	paths := []string{
+		string(c),
+		string(c.Builds()),
+		string(c.Stages()),
+		string(c.Sources()),
+		string(c.Packages()),
+	}
+	for _, d := range paths {
+		if !file.Exists(d) {
+			info("mkdir", d)
+			if err := os.Mkdir(d, 0755); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

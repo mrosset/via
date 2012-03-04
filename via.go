@@ -21,21 +21,21 @@ var (
 type BuildFnc func(*Plan) error
 
 func DownloadSrc(plan *Plan) (err error) {
-	if file.Exists(path.Join(config.Sources(), plan.File)) {
+	if file.Exists(path.Join(config.Cache.Sources(), plan.File)) {
 		return nil
 	}
 	info("DownloadSrc", plan.Url())
-	return gurl.Download(plan.Url(), config.Sources())
+	return gurl.Download(plan.Url(), config.Cache.Sources())
 }
 
 func Stage(plan *Plan) (err error) {
 	info("Stage", plan.File)
-	fd, err := os.Open(path.Join(config.Sources(), plan.File))
+	fd, err := os.Open(path.Join(config.Cache.Sources(), plan.File))
 	util.CheckFatal(err)
 	defer fd.Close()
 	gz, err := gzip.NewReader(fd)
 	util.CheckFatal(err)
-	return Untar(gz, config.Stages())
+	return Untar(gz, config.Cache.Stages())
 }
 
 func GnuBuild(plan *Plan) (err error) {
@@ -56,7 +56,7 @@ func GnuBuild(plan *Plan) (err error) {
 }
 
 func Build(plan *Plan) (err error) {
-	configure := path.Join(config.Stages(), plan.NameVersion(), "configure")
+	configure := path.Join(config.Cache.Stages(), plan.NameVersion(), "configure")
 	switch {
 	case file.Exists(configure):
 		info("GnuBuild", plan.NameVersion())

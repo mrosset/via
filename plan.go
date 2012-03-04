@@ -32,7 +32,7 @@ func (this *Plan) Print() {
 }
 
 func (this *Plan) Save() (err error) {
-	return WriteJson(this, filepath.Join(config.Plans(), this.Name+".json"))
+	return WriteJson(this, filepath.Join(config.Plans, this.Name+".json"))
 }
 
 func ReadPlan(name string) (plan *Plan, err error) {
