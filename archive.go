@@ -161,7 +161,6 @@ func mkDir(path string, mode int64) (err error) {
 	if file.Exists(path) {
 		return
 	}
-	info("mkdir", path)
 	err = os.Mkdir(path, os.FileMode(mode))
 	if err != nil {
 		return err

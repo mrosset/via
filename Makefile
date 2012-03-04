@@ -1,7 +1,8 @@
 test:
 	go install via/via
-	via build which
-	via install which
+	via build ccache bash
+	via sign
+	via install ccache bash
 	#via install bash which
 	#via remove bash which
 

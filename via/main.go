@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 	"util"
 	"via"
@@ -11,6 +12,7 @@ import (
 
 var (
 	verbose = flag.Bool("v", false, "verbose output")
+	checkf  = util.CheckFatal
 )
 
 func main() {
@@ -39,32 +41,30 @@ func build(args []string) {
 	for _, arg := range args {
 		start := time.Now()
 		plan, err := via.ReadPlan(arg)
-		util.CheckFatal(err)
-		util.CheckFatal(via.DownloadSrc(plan))
-		util.CheckFatal(via.Stage(plan))
-		util.CheckFatal(via.Build(plan))
-		util.CheckFatal(via.MakeInstall(plan))
-		util.CheckFatal(via.Package(plan))
-		util.CheckFatal(via.Sign(plan.PackageFile()))
+		checkf(err)
+		checkf(via.DownloadSrc(plan))
+		checkf(via.Stage(plan))
+		checkf(via.Build(plan))
+		checkf(via.MakeInstall(plan))
+		checkf(via.Package(plan))
 		fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
 	}
 }
 
 func sign(args []string) {
-	for _, arg := range args {
-		err := via.Sign(args)
-		util.CheckFatal(err)
-	}
+	tarballs, err := filepath.Glob("*.tar.gz")
+	checkf(err)
+	checkf(via.Sign(tarballs))
 }
 
 func install(args []string) {
 	for _, arg := range args {
-		util.CheckFatal(via.Install(arg))
+		checkf(via.Install(arg))
 	}
 }
 
 func remove(args []string) {
 	for _, arg := range args {
-		util.CheckFatal(via.Remove(arg))
+		checkf(via.Remove(arg))
 	}
 }

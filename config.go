@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	config = &Config{cache: "cache", Prefix: "/usr/local", Root: "/", plans: "plans", Installed: "installed",Identity:"Mike Rosset <mike.rosset@gmail.com>"}
+	config = &Config{cache: "/Users/strings/cache", Prefix: "/usr/local", Root: "/", plans: "/Users/strings/plans", Installed: "installed", Identity: "Mike Rosset <mike.rosset@gmail.com>"}
+	checkf = util.CheckFatal
 )
 
 type Config struct {
@@ -22,6 +23,10 @@ type Config struct {
 	Root      string
 	Installed string
 	Identity  string
+}
+
+func init() {
+	checkf(os.Setenv("CC", "ccache gcc"))
 }
 
 func InitConfig() {
