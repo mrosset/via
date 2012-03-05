@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 	"util"
 	"via"
@@ -28,8 +27,6 @@ func main() {
 		install(args)
 	case "remove":
 		remove(args)
-	case "sign":
-		sign(args)
 	default:
 		flag.Usage()
 		os.Exit(1)
@@ -46,14 +43,9 @@ func build(args []string) {
 		checkf(via.Build(plan))
 		checkf(via.MakeInstall(plan))
 		checkf(via.Package(plan))
+		checkf(via.Sign(plan))
 		fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
 	}
-}
-
-func sign(args []string) {
-	tarballs, err := filepath.Glob("*.tar.gz")
-	checkf(err)
-	checkf(via.Sign(tarballs))
 }
 
 func install(args []string) {

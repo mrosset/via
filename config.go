@@ -26,8 +26,13 @@ type Config struct {
 
 func init() {
 	checkf(os.Setenv("CC", "ccache gcc"))
-	checkf(json.Read(&config, "config.json"))
+	cfile := path.Join(os.Getenv("HOME"), ".via.json")
+	checkf(json.Read(&config, cfile))
 	config.Cache.Create()
+	if !file.Exists(config.Repo) {
+		info("mkdir", config.Repo)
+		checkf(os.Mkdir(config.Repo, 0755))
+	}
 }
 
 func (c *Config) GetStageDir(name string) string {
@@ -66,6 +71,7 @@ func (c Cache) Create() error {
 		string(c.Builds()),
 		string(c.Stages()),
 		string(c.Sources()),
+		string(c.Packages()),
 		string(c.Packages()),
 	}
 	for _, d := range paths {

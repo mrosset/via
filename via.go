@@ -81,7 +81,8 @@ func Package(plan *Plan) (err error) {
 			return err
 		}
 	}
-	fd, err := os.Create(plan.PackageFile())
+	pfile := path.Join(config.Repo, plan.PackageFile())
+	fd, err := os.Create(pfile)
 	if err != nil {
 		return err
 	}
@@ -97,11 +98,12 @@ func Install(name string) (err error) {
 		return err
 	}
 	info("Installing", plan.NameVersion())
-	err = CheckSig(plan.PackageFile())
+	pfile := path.Join(config.Repo, plan.PackageFile())
+	err = CheckSig(pfile)
 	if err != nil {
 		return err
 	}
-	fd, err := os.Open(plan.PackageFile())
+	fd, err := os.Open(pfile)
 	if err != nil {
 		return err
 	}
@@ -123,8 +125,9 @@ func Remove(name string) (err error) {
 	if err != nil {
 		return err
 	}
+	pfile := path.Join(config.Repo, plan.PackageFile())
 	info("Removing", plan.NameVersion())
-	err = RmTar(plan.PackageFile(), config.Root)
+	err = RmTar(pfile, config.Root)
 	if err != nil {
 		return err
 	}

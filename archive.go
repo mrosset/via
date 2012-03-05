@@ -184,7 +184,9 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 		info("Write", path)
 	}
 	//pb := console.NewProgressBarWriter(filepath.Base(path), hdr.Size, fd)
-	_, err = io.Copy(fd, tr)
+	if _, err = io.Copy(fd, tr); err != nil {
+		return err
+	}
 	fd.Close()
 	if err != nil {
 		return err

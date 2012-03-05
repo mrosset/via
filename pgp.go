@@ -1,16 +1,16 @@
 package via
 
 import (
+	"exp/terminal"
 	"fmt"
 	"openpgp"
 	"os"
 	"path/filepath"
-	"util"
 )
 
 var keyring = filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
 
-func Sign(paths []string) (err error) {
+func Sign(plan *Plan) (err error) {
 	var (
 		entity   *openpgp.Entity
 		identity *openpgp.Identity
@@ -31,29 +31,33 @@ func Sign(paths []string) (err error) {
 		}
 	}
 	if entity.PrivateKey.Encrypted {
+		_ = identity.Name
 		pw := ""
 		fmt.Printf("%s Password: ", identity.Name)
 		_, err := fmt.Scanln(&pw)
-		util.CheckFatal(err)
+		if err != nil {
+			return err
+		}
 		err = entity.PrivateKey.Decrypt([]byte(pw))
-		util.CheckFatal(err)
+		if err != nil {
+			return err
+		}
 	}
-	for _, path := range paths {
-		pkg, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer pkg.Close()
-		sig, err := os.Create(path + ".sig")
-		if err != nil {
-			return err
-		}
-		defer sig.Close()
-		fmt.Println("Signing", path)
-		err = openpgp.DetachSign(sig, entity, pkg)
-		if err != nil {
-			return err
-		}
+	ppath := filepath.Join(config.Repo, plan.PackageFile())
+	pkg, err := os.Open(ppath)
+	if err != nil {
+		return err
+	}
+	defer pkg.Close()
+	sig, err := os.Create(ppath + ".sig")
+	if err != nil {
+		return err
+	}
+	defer sig.Close()
+	fmt.Println("Signing", ppath)
+	err = openpgp.DetachSign(sig, entity, pkg)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -81,4 +85,19 @@ func CheckSig(path string) (err error) {
 		return err
 	}
 	return nil
+}
+
+func ReadPassword() (string, error) {
+	fd, err := os.OpenFile("/dev/ttys001", os.O_RDWR, 0)
+	if err != nil {
+		return "", err
+	}
+	defer fd.Close()
+	term := terminal.NewTerminal(fd, "$")
+	line, err := term.ReadPassword("Password: ")
+	fmt.Println("got here")
+	if err != nil {
+		return "", err
+	}
+	return line, nil
 }
