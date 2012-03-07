@@ -20,6 +20,30 @@ var (
 	ErrorTarHeader = errors.New("Unknown tar header")
 )
 
+type TarGzReader struct {
+	fd *os.File
+	gz *gzip.Reader
+	Tr *tar.Reader
+}
+
+func (tgzr *TarGzReader) Close() {
+	tgzr.gz.Close()
+	tgzr.fd.Close()
+}
+
+func NewTarGzReader(pfile string) (tgzr *TarGzReader, err error) {
+	fd, err := os.Open(pfile)
+	if err != nil {
+		return nil, err
+	}
+	gz, err := gzip.NewReader(fd)
+	if err != nil {
+		return nil, err
+	}
+	tr := tar.NewReader(gz)
+	return &TarGzReader{fd, gz, tr}, nil
+}
+
 func Peek(cr io.Reader) (dir string, err error) {
 	tr := tar.NewReader(cr)
 	hdr, err := tr.Next()

@@ -5,36 +5,48 @@ import (
 	"util"
 )
 
-var bash = &Plan{}
+var test = &Plan{}
 
 func init() {
-	util.CheckFatal(ReadJson(bash, config.Plans()+"/bash.json"))
+	var err error
+	test, err = ReadPlan("ccache")
+	util.Verbose = false
+	util.CheckFatal(err)
 }
 
 func TestDownload(t *testing.T) {
-	err := DownloadSrc(bash)
+	err := DownloadSrc(test)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestStage(t *testing.T) {
-	err := Stage(bash)
+	err := Stage(test)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestBuild(t *testing.T) {
-	err := Build(bash)
+	err := Build(test)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestInstall(t *testing.T) {
-	err := Install(bash)
+func TestManifest(t *testing.T) {
+	_, err := TarManifest(test)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
+
+/*
+func TestInstall(t *testing.T) {
+	err := Install(test.Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+*/

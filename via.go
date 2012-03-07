@@ -21,16 +21,18 @@ var (
 type BuildFnc func(*Plan) error
 
 func DownloadSrc(plan *Plan) (err error) {
-	if file.Exists(path.Join(config.Cache.Sources(), plan.File)) {
+	sfile := path.Join(config.Cache.Sources(), path.Base(plan.Url))
+	fmt.Println(file.Exists(sfile))
+	if file.Exists(sfile) {
 		return nil
 	}
-	info("DownloadSrc", plan.Url())
-	return gurl.Download(plan.Url(), config.Cache.Sources())
+	info("DownloadSrc", plan.Url)
+	return gurl.Download(plan.Url, config.Cache.Sources())
 }
 
 func Stage(plan *Plan) (err error) {
-	info("Stage", plan.File)
-	fd, err := os.Open(path.Join(config.Cache.Sources(), plan.File))
+	info("Stage", path.Base(plan.Url))
+	fd, err := os.Open(path.Join(config.Cache.Sources(), path.Base(plan.Url)))
 	util.CheckFatal(err)
 	defer fd.Close()
 	gz, err := gzip.NewReader(fd)

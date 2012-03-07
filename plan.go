@@ -7,18 +7,13 @@ import (
 )
 
 type Plan struct {
-	Name    string "name"
-	Version string "version"
-	Mirror  string "mirror"
-	File    string "file"
+	Name    string
+	Version string
+	Url     string
 }
 
 func (this *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", this.Name, this.Version)
-}
-
-func (this *Plan) Url() string {
-	return fmt.Sprintf("%s/%s", this.Mirror, this.File)
 }
 
 func (this *Plan) Print() {
@@ -27,8 +22,7 @@ func (this *Plan) Print() {
 	}
 	pp("Name", this.Name)
 	pp("Version", this.Version)
-	pp("File", this.File)
-	pp("Mirror", this.Mirror)
+	pp("Url", this.Url)
 }
 
 func (this *Plan) Save() (err error) {

@@ -1,7 +1,7 @@
 test:
 	@go install via/via
-	@via build ccache bash bash-completion
-	@via install ccache bash bash-completion
+	@via build ccache
+	@via install ccache
 
 all:
 	via build bash ncurses pkg-config which

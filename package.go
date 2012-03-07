@@ -2,6 +2,9 @@ package via
 
 import (
 	"archive/tar"
+	"fmt"
+	"io"
+	"path"
 )
 
 type Manifest struct {
@@ -11,6 +14,22 @@ type Manifest struct {
 
 func TarManifest(plan *Plan) (man *Manifest, err error) {
 	man = &Manifest{Plan: plan}
+	pfile := path.Join(config.Repo, plan.PackageFile())
+	tr, err := NewTarGzReader(pfile)
+	if err != nil {
+		return nil, err
+	}
+	defer tr.Close()
+	for {
+		hdr, err := tr.Tr.Next()
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
+		if hdr == nil {
+			break
+		}
+		fmt.Println(hdr.Name)
+	}
 	return man, nil
 }
 
