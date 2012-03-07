@@ -1,4 +1,0 @@
-name="libxslt"
-version="1.1.26"
-source="ftp://xmlsoft.org/libxslt/libxslt-1.1.26.tar.gz"
-verify="55dd52b42861f8a02989d701ef716d6280bfa02971e967c285016f99c66e3db1"

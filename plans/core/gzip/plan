@@ -1,5 +1,0 @@
-name="gzip"
-version="1.4"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--bindir=$ROOT/bin"
-verify="gnu_verify"

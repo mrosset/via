@@ -1,5 +1,0 @@
-name="libxfont"
-version="1.4.3"
-source="http://xorg.freedesktop.org//archive/individual/lib/libXfont-$version.tar.bz2"
-build_name="libXfont-$version"
-verify="f79245652901d20092092e942155d32b8dde15527637db3c09a1adc83672e9cc"

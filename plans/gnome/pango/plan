@@ -1,5 +1,0 @@
-name="pango"
-version="1.28.4"
-source="http://ftp.gnome.org/pub/gnome/sources/pango/1.28/pango-1.28.4.tar.bz2"
-build_args="--with-included-modules=basic-fc"
-verify="7eb035bcc10dd01569a214d5e2bc3437de95d9ac1cfa9f50035a687c45f05a9f"

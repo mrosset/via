@@ -1,4 +1,0 @@
-name="libassuan"
-version="2.0.1"
-source="ftp://ftp.gnupg.org/gcrypt/libassuan/libassuan-2.0.1.tar.bz2"
-verify="gnu_verify"

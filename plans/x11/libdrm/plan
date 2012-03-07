@@ -1,5 +1,0 @@
-name="libdrm"
-version="2.4.25"
-source="http://dri.freedesktop.org/libdrm/libdrm-$version.tar.bz2"
-build_args="--enable-nouveau-experimental-api"
-verify="51f99a815a18876977991bbc6f190607791d25a6e47a3269880ce7679dbd0e9f"

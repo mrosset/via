@@ -1,4 +1,0 @@
-name="util-macros"
-version="1.15.0"
-source="http://xorg.freedesktop.org//releases/individual/util/util-macros-$version.tar.bz2"
-verify="b31c6d39014e537ff95609661a4f8258f7c4a4f3b8bdfdad3d69bdd5cb80f40e"

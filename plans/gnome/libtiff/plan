@@ -1,5 +1,0 @@
-name="libtiff"
-version="3.9.5"
-source="ftp://ftp.remotesensing.org/pub/libtiff/tiff-$version.tar.gz"
-build_name="tiff-$version"
-verify="ecf2e30582698dbc61d269203bbd1e701a1a50fb26c87d709e10d89669badb33"

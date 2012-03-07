@@ -1,6 +1,0 @@
-name="alsa-utils"
-version="1.0.24.2"
-source="ftp://ftp.alsa-project.org/pub/utils/alsa-utils-1.0.24.2.tar.bz2"
-verify="95127f740291086486c06c28118cabca0814bde48fd14dac041a9812a5ac1be2"
-build_args="--disable-xmlto"
-builder="relocate_build"

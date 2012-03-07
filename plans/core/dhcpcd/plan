@@ -1,5 +1,0 @@
-name="dhcpcd"
-version="5.2.12"
-source="http://roy.marples.name/downloads/dhcpcd/dhcpcd-5.2.12.tar.bz2"
-verify="55da7dcf64cd3dda5217d0e01748a3d980ab0cd625bae0efc00420eadd7f559b"
-builder="relocate_build"

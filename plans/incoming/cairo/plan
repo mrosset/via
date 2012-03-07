@@ -1,4 +1,0 @@
-name="cairo"
-version="1.10.2"
-source="http://cairographics.org/releases/cairo-$version.tar.gz"
-verify="32018c7998358eebc2ad578ff8d8559d34fc80252095f110a572ed23d989fc41"

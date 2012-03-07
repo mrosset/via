@@ -1,4 +1,0 @@
-name="desktop-file-utils"
-version="0.18"
-source="http://www.freedesktop.org/software/desktop-file-utils/releases/desktop-file-utils-$version.tar.bz2"
-verify="d9449956c1c8caa75281a3322b2bb433db42610942f0ceeaa65ccd9636c04231"

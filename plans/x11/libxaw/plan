@@ -1,5 +1,0 @@
-name="libxaw"
-version="1.0.9"
-source="http://xorg.freedesktop.org//releases/individual/lib/libXaw-$version.tar.bz2"
-build_name="libXaw-$version"
-verify="a83977546b78e24ac5dca86affc10b6404a87c16272405b05386feca1a2db037"

@@ -1,4 +1,0 @@
-name="libpciaccess"
-version="0.12.1"
-source="http://xorg.freedesktop.org//releases/individual/lib/libpciaccess-0.12.1.tar.bz2"
-verify="cc47d7f0e48cf4eed972916b536fdc97788d7521915e3ae1cc92d540776d7344"

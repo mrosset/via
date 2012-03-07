@@ -1,5 +1,0 @@
-name="gmp"
-version="5.0.2"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--enable-cxx --enable-mpbsd"
-verify="gnu_verify"

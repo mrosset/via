@@ -1,5 +1,0 @@
-name="sqlite3"
-version="3.7.7.1"
-source="http://www.sqlite.org/sqlite-autoconf-3070701.tar.gz"
-build_name="sqlite-autoconf-3070701"
-verify="7dcc36b25f7bcbe2938d0ea2baea5b706f0af93473d02a3f612d7ab39e386edf"

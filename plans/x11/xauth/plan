@@ -1,4 +1,0 @@
-name="xauth"
-version="1.0.6"
-source="http://xorg.freedesktop.org//releases/individual/app/xauth-$version.tar.bz2"
-verify="a686406951f0ed6be45bc26182a1423e2cdffad2d492b33ff3fbf72f7bcb6b0b"

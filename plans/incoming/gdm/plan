@@ -1,4 +1,0 @@
-name="gdm"
-version="3.0.4"
-source="http://ftp.gnome.org/pub/gnome/sources/gdm/3.0/gdm-$version.tar.xz"
-verify="7d2947fbc96c43cc94fd5915882655820c5453a1b1b11643b3c1be361f4288fd"

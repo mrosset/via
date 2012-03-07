@@ -1,5 +1,0 @@
-name="libxss"
-version="1.2.1"
-source="http://xorg.freedesktop.org//releases/individual/lib/libXScrnSaver-$version.tar.bz2"
-build_name="libXScrnSaver-$version"
-verify="ce3a66e2f6fa85b22280ab9cc1b2a113a2cb0ade9470914c7c3d6ac1d44b259a"

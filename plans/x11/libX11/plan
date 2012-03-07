@@ -1,4 +1,0 @@
-name="libX11"
-version="1.4.3"
-source="http://xorg.freedesktop.org//releases/individual/lib/libX11-$version.tar.bz2"
-verify="38b5ddd93291714a46a02cb8a5dd94b995a04ed76a608551c44d1598e113635a"

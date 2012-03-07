@@ -1,4 +1,0 @@
-name="xproto"
-version="7.0.22"
-source="http://xorg.freedesktop.org//releases/individual/proto/xproto-$version.tar.bz2"
-verify="ad8397dd2a3de7249d2f3fb3a49444fef71483d43681285936c11911663817a8"

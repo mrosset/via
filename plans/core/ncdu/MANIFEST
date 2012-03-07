@@ -1,9 +1,0 @@
-.
-./MANIFEST
-./usr
-./usr/bin
-./usr/bin/ncdu
-./usr/share
-./usr/share/man
-./usr/share/man/man1
-./usr/share/man/man1/ncdu.1

@@ -1,4 +1,0 @@
-name="libpipeline"
-version="1.2.0"
-source="http://download.savannah.gnu.org/releases/libpipeline/libpipeline-$version.tar.gz"
-verify="b1c83ad98fb58542594ba631a4e6c70cdb090bb6798e6eb26afe9cc39babbb8e"

@@ -1,4 +1,0 @@
-name="m4"
-version="1.4.16"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-verify="gnu_verify"

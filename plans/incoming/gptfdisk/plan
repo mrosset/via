@@ -1,9 +1,0 @@
-name="gptfdisk"
-version="0.7.2"
-source="http://downloads.sourceforge.net/project/gptfdisk/gptfdisk/$version/gptfdisk-0.7.2.tar.gz"
-verify="d4dcdfdcbaf57ffb435b71a5a67b91d18bcf57e8e965c1324cc267012e2ea5c4"
-
-custom_install() {
-  mkdir -p $DESTDIR/sbin
-  install -t "$DESTDIR/sbin" gdisk sgdisk fixparts
-}

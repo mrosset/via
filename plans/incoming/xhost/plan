@@ -1,4 +1,0 @@
-name="xhost"
-version="1.0.4"
-source="http://xorg.freedesktop.org/archive/individual/app/xhost-$version.tar.bz2"
-verify="5e02c06caeb7a258f3621bf11459a7820cfeaf9bf269c1f8da86d7071346a594"

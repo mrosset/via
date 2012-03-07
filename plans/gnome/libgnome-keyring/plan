@@ -1,4 +1,0 @@
-name="libgnome-keyring"
-version="3.0.3"
-source="http://ftp.gnome.org/pub/gnome/sources/libgnome-keyring/3.0/libgnome-keyring-3.0.3.tar.bz2"
-verify="a0cc08bcd431070d3f01c2741903c2bd8b0231ee73de709d28e722e28575fdf8"

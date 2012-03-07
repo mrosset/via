@@ -1,4 +1,0 @@
-name="gdk-pixbuf"
-version="2.23.5"
-source="ftp://ftp.gnome.org/pub/gnome/sources/gdk-pixbuf/2.23/gdk-pixbuf-$version.tar.bz2"
-verify="16171a1d6c85cafb64328066c3726c08b1c6621d4aba8990f97b26a2c8a6463a"

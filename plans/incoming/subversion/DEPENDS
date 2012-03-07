@@ -1,7 +1,0 @@
-apr
-eglibc
-util
-neon
-zlib
-expat
-sqlite3

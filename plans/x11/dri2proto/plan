@@ -1,4 +1,0 @@
-name="dri2proto"
-version="2.3"
-source="http://xorg.freedesktop.org//releases/individual/proto/dri2proto-$version.tar.bz2"
-verify="b2141892a0db35feffa5e952ff5e1d2727c4436b07d7e2e9dd2ed89c8bb3e677"

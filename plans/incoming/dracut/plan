@@ -1,5 +1,0 @@
-name="dracut"
-version="011"
-source="http://www.kernel.org/pub/linux/boot/dracut/dracut-$version.tar.bz2"
-package_args="sysconfdir=/etc"
-verify="sign_verify"

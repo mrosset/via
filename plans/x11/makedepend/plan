@@ -1,4 +1,0 @@
-name="makedepend"
-version="1.0.2"
-source="http://xorg.freedesktop.org/releases/individual/util/makedepend-$version.tar.bz2"
-verify="41a2b090a32d7c5b2654783772248aba472702686e30018cfd9907137a967657"

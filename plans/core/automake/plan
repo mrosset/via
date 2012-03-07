@@ -1,5 +1,0 @@
-name="automake"
-version="1.11.1"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--docdir=/usr/share/doc/automake-1.11.1"
-verify="gnu_verify"

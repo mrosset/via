@@ -1,4 +1,0 @@
-name="apr"
-version="1.4.5"
-source="http://www.apache.org/dist/apr/apr-$version.tar.bz2"
-verify="38c61cacb39be649411cdab212979c71ce29495549c249c2e9a1b0d12480c93e"

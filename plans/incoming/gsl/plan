@@ -1,4 +1,0 @@
-name="gsl"
-version="1.15"
-source="http://ftp.belnet.be/mirror/ftp.gnu.org/gnu/gsl/gsl-$version.tar.gz"
-verify="85b907e57902e2b7606ef3aef960302ffdd13bd9dc5b8fcbfa75e4f0bf340ea3"

@@ -1,5 +1,0 @@
-name="libjpeg"
-version="8b"
-source="http://www.ijg.org/files/jpegsrc.v8b.tar.gz"
-build_name="jpeg-$version"
-verify="36e6208edec591bae8f2fc370ea4f991447badb6377a125c211ffa7b503174a7"

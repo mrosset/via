@@ -1,4 +1,0 @@
-name="popt"
-version="1.16"
-source="http://rpm5.org/files/popt/popt-$version.tar.gz"
-verify="e728ed296fe9f069a0e005003c3d6b2dde3d9cad453422a10d6558616d304cc8"

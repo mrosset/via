@@ -1,5 +1,0 @@
-name="gconf"
-version="2.32.4"
-source="http://ftp.gnome.org/pub/gnome/sources/GConf/2.32/GConf-2.32.4.tar.xz"
-build_name="GConf-$version"
-verify="f36f4a01a5ac898b5ec49a04a43b051d3809f07c3d0841188fd6a5c512389025"

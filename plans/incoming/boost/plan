@@ -1,5 +1,0 @@
-name="boost"
-version="1.46.1"
-source="http://downloads.sourceforge.net/sourceforge/boost/boost_1_46_1.tar.gz"
-verify="68f555b7f1bcaa8e1e3b5464fcefdd9464b421546b80e2bbb8a843687ef84002"
-build_name="boost_1_46_1"

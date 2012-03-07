@@ -1,5 +1,0 @@
-name="libice"
-version="1.0.7"
-source="http://xorg.freedesktop.org//releases/individual/lib/libICE-$version.tar.bz2"
-build_name="libICE-$version"
-verify="a8b1692f151a473cee8733df9aefe98f7e5f64dfe6d4213cb6231d7bf855b901"

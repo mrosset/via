@@ -1,5 +1,0 @@
-name="libpcap"
-version="1.1.1"
-source="http://www.tcpdump.org/release/libpcap-$version.tar.gz"
-verify="508cca15547e55d1318498b838456a21770c450beb2dc7d7d4a96d90816e5a85"
-build_args="--disable-protochain --with-pcap=linux ac_cv_linux_vers=2"

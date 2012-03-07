@@ -1,4 +1,0 @@
-name="psmisc"
-version="22.14"
-source="http://prdownloads.sourceforge.net/psmisc/psmisc-$version.tar.gz"
-verify="22bbf4561837af475c0d8d14e3b9cab453998c787212c107fac7faf2f281e26e"

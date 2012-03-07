@@ -1,5 +1,0 @@
-name="tar"
-version="1.26"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="FORCE_UNSAFE_CONFIGURE=1 --bindir=$ROOT/bin --libexecdir=$ROOT/sbin"
-verify="gnu_verify"

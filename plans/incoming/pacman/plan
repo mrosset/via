@@ -1,4 +1,0 @@
-name="pacman"
-version="3.5.3"
-source="ftp://ftp.archlinux.org/other/pacman/pacman-$version.tar.gz"
-verify="ef0bccaad3fb2a082bc6fcb755256428f7481af5f8d791f4f9d254daa6d7c20d"

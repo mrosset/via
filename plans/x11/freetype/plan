@@ -1,4 +1,0 @@
-name="freetype"
-version="2.4.4"
-source="http://downloads.sourceforge.net/sourceforge/freetype/freetype-$version.tar.bz2"
-verify="4b8281c7dc4d375c6b65d3c6f4808e488a313fab47d7be82aad2c871c8480fef"

@@ -1,4 +1,0 @@
-name="tcl"
-version="8.5.10"
-source="http://downloads.sourceforge.net/sourceforge/tcl/tcl$version-src.tar.gz"
-verify="f582063edd5419a39ee8f7b5c8f95d557b5daad13efb0ed2f0967ca185613bb7"

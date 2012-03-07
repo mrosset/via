@@ -1,7 +1,0 @@
-name="xkeyboard-config"
-version="2.2.1"
-source="http://xorg.freedesktop.org/releases/individual/data/xkeyboard-config/xkeyboard-config-2.2.1.tar.bz2"
-build_args="--with-xkb-base=/usr/share/X11/xkb \
---with-xkb-rules-symlink=xorg \
---enable-compat-rules=yes"
-verify="642feb6e39096be1e081c5ba952c93fdfd93d41355dd6f88c20458a8251c6bd0"

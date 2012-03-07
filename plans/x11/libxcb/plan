@@ -1,4 +1,0 @@
-name="libxcb"
-version="1.7"
-source="http://xcb.freedesktop.org//dist/libxcb-1.7.tar.bz2"
-verify="e776dc35e2a66094e7308ce2e045fb4e27cf3ca30ab1813a8fc08538140724df"

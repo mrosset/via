@@ -1,5 +1,0 @@
-name="libxpm"
-version="3.5.9"
-source="http://xorg.freedesktop.org//releases/individual/lib/libXpm-$version.tar.bz2"
-build_name="libXpm-$version"
-verify="8add01029cab0598ca86e01a2f7781a636f74b757abe6b50ba61b2a6e2fd621e"

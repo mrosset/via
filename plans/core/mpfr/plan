@@ -1,5 +1,0 @@
-name="mpfr"
-version="3.0.1"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--enable-thread-safe --docdir=/usr/share/doc/mpfr-3.0.1"
-verify="gnu_verify"

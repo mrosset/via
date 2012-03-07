@@ -1,9 +1,0 @@
-name="htop"
-version="0.9"
-source="http://downloads.sourceforge.net/htop/htop-0.9.tar.gz"
-verify="4de65c38e1886bccd30ed692b30eb9bf195240680781bfe1eaf5faf84ee6fbfd"
-
-
-cross_build() {
-	echo 'AC_CHECK_FILE=no' > config.cache
-}

@@ -1,4 +1,0 @@
-name="libtool"
-version="2.4"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-verify="gnu_verify"

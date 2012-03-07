@@ -1,4 +1,0 @@
-name="alsa-plugins"
-version="1.0.24"
-source="ftp://ftp.alsa-project.org/pub/plugins/alsa-plugins-$version.tar.bz2"
-verify="fa8e12eb2dfeac083f117c03b3708a017531426ba542a8a729e4801d37861263"

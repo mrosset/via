@@ -1,5 +1,0 @@
-name="kbd"
-version="1.15.2"
-source="http://www.kernel.org/pub/linux/utils/kbd/kbd-$version.tar.gz"
-build_args="--datadir=/lib/kbd"
-verify="525cb13bf9f1dcb845f2e5fab89039dabe88f6f782a685408f668d663c39c639"

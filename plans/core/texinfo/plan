@@ -1,5 +1,0 @@
-name="texinfo"
-version="4.13a"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_name="texinfo-4.13"
-verify="gnu_verify"

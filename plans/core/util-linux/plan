@@ -1,6 +1,0 @@
-name="util-linux"
-version="2.19.1"
-source="http://www.kernel.org/pub/linux/utils/util-linux/v2.19/util-linux-$version.tar.bz2"
-builder="relocate_build"
-build_args="--enable-arch --enable-partx --enable-write"
-verify="d3eac4afcc687b3ae1ffedcab2dc12df84c7ba7045cce31386d2b7040a011c7d"

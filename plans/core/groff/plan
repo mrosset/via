@@ -1,4 +1,0 @@
-name="groff"
-version="1.21"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-verify="gnu_verify"

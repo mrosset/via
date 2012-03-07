@@ -1,5 +1,0 @@
-name="gtk2"
-version="2.24.5"
-source="http://ftp.gnome.org/pub/gnome/sources/gtk+/2.24/gtk+-$version.tar.xz"
-build_name="gtk+-$version"
-verify="d6b30889efbb9fab9aa598092d08887826a7b2a3069b3bd5155dede28d9866f3"

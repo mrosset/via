@@ -1,9 +1,0 @@
-name="glib"
-version="2.28.8"
-source="http://ftp.gnome.org/pub/GNOME/sources/glib/2.28/glib-$version.tar.bz2"
-build_args="--with-pcre=system"
-verify="222f3055d6c413417b50901008c654865e5a311c73f0ae918b0a9978d1f9466f"
-
-custom_build() {
-	PCRE_LIBS="-L/usr/lib -lpcre" PCRE_CFLAGS="-I/usr/include" gnu_build
-}

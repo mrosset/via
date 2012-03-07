@@ -1,4 +1,0 @@
-name="nvidia"
-version="275.19"
-source="ftp://download.nvidia.com/XFree86/Linux-x86_64/275.19/NVIDIA-Linux-x86_64-275.19-no-compat32.run"
-verify="aca1e44e7666dd299350a2ed6d066ff6ae5f820eabf5ca2c612f358444dd51dd"

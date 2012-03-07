@@ -1,4 +1,0 @@
-name="pygtk"
-version="2.24.0"
-source="http://ftp.gnome.org/pub/gnome/sources/pygtk/2.24/pygtk-$version.tar.bz2"
-verify="cd1c1ea265bd63ff669e92a2d3c2a88eb26bcd9e5363e0f82c896e649f206912"

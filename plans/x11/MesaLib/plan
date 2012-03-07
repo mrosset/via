@@ -1,6 +1,0 @@
-name="MesaLib"
-version="7.10.3"
-source="ftp://ftp.freedesktop.org/pub/mesa/$version/MesaLib-$version.zip"
-build_name="Mesa-$version"
-builder="relocate_build"
-verify="43c9e70ca0575e13e0546256a24e2ffaa436af89b6a2a05b64f23a46d521116e"

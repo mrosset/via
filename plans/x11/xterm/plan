@@ -1,7 +1,0 @@
-name="xterm"
-version="270"
-source="ftp://invisible-island.net/xterm/xterm-270.tgz"
-build_args="--libdir=/etc \
---enable-256-color \
---with-app-defaults=/usr/share/X11/app-defaults"
-verify="598ddceba914a7a418f91c1879edb4627a8bf272dddb77a4d0e964e212958f3c"

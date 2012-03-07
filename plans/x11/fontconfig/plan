@@ -1,4 +1,0 @@
-name="fontconfig"
-version="2.8.0"
-source="http://www.fontconfig.org/release/fontconfig-2.8.0.tar.gz"
-verify="fa2a1c6eea654d9fce7a4b1220f10c99cdec848dccaf1625c01f076b31382335"

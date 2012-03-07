@@ -1,9 +1,0 @@
-name="pcre"
-version="8.12"
-source="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$version.tar.bz2"
-build_args="--docdir=/usr/share/doc/pcre-8.12 \
---enable-utf8 \
---enable-unicode-properties \
---enable-pcregrep-libz \
---enable-pcregrep-libbz2"
-verify="c63070d461edc451ec9457f2324e152a531e907d5c5d2d8f8121e725acd1aeec"

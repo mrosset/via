@@ -1,5 +1,0 @@
-name="libxi"
-version="1.4.3"
-source="http://xorg.freedesktop.org/releases/individual/lib/libXi-$version.tar.bz2"
-build_name="libXi-$version"
-verify="08c9d89a404740592621e6f5078414df86ccc78ca876e3da1af15639d81c74e0"

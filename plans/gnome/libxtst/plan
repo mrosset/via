@@ -1,5 +1,0 @@
-name="libxtst"
-version="1.2.0"
-source="http://xorg.freedesktop.org//releases/individual/lib/libXtst-$version.tar.bz2"
-build_name="libXtst-$version"
-verify="7a2e0912b521f6bd8c392189874ba4a3b8168b0bba4c2143e073de53d8e85408"

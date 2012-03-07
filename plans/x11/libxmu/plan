@@ -1,5 +1,0 @@
-name="libxmu"
-version="1.1.0"
-source="http://xorg.freedesktop.org//releases/individual/lib/libXmu-$version.tar.bz2"
-build_name="libXmu-$version"
-verify="0fa91f303b70decc1ef6201c88c8a5f0b4ecd68c6c88bdcc891ecd1a689d36ad"

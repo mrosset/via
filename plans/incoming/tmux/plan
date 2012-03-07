@@ -1,5 +1,0 @@
-name="tmux"
-version="1.5"
-source="http://downloads.sourceforge.net/tmux/tmux-1.5.tar.gz"
-build="relocate_build"
-verify="eb8215b57c05b765d2446d9acb2bc5edcdb3eb4ea31af89ee127a27e90056306"

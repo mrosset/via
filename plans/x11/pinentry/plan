@@ -1,4 +1,0 @@
-name="pinentry"
-version="0.8.1"
-source="ftp://ftp.gnupg.org/gcrypt/pinentry/pinentry-0.8.1.tar.gz"
-verify="3e17e1d410686d197f96b61b04e3fad28bd6bcb029077bdfd902780934de9132"

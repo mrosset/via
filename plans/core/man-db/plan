@@ -1,8 +1,0 @@
-name="man-db"
-version="2.6.0.2"
-source="http://download.savannah.gnu.org/releases/man-db/man-db-$version.tar.gz"
-build_args="--libexecdir=/usr/lib \
---docdir=/usr/share/doc/man-db-2.6.0.2 \
---disable-setuid --with-browser=/usr/bin/lynx \
---with-vgrind=/usr/bin/vgrind --with-grap=/usr/bin/grap"
-verify="537bdb60b12c7d34aa21c397024a6d604c5130b61f9aff5554ab443329b728a7"

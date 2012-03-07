@@ -1,4 +1,0 @@
-name="libksba"
-version="1.0.8"
-source="ftp://ftp.gnupg.org/gcrypt/libksba/libksba-1.0.8.tar.bz2"
-verify="gnu_verify"

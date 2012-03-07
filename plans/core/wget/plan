@@ -1,4 +1,0 @@
-name="wget"
-version="1.12"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-verify="gnu_verify"

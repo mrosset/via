@@ -1,5 +1,0 @@
-name="gawk"
-version="4.0.0"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--libexecdir=/usr/lib"
-verify="gnu_verify"

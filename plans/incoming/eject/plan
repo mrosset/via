@@ -1,6 +1,0 @@
-name="eject"
-version="2.1.5"
-builder="relocate_build"
-build_name="eject"
-source="ftp://ftp.archlinux.org/other/eject/eject-$version.tar.bz2"
-verify="58b49f72b1456651278d0a3ff64444f4d5463b3c5b8ffdda8d1f61126995d1b2"

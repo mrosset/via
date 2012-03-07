@@ -1,4 +1,0 @@
-name="less"
-version="444"
-source="http://www.greenwoodsoftware.com/less/less-$version.tar.gz"
-verify="be64ad3e22d6d4aa19fe7024d998563a1ce1671ee3625f8851d26b16dedcdeeb"

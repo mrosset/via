@@ -1,5 +1,0 @@
-name="gtk"
-version="3.0.12"
-build_name="gtk+-$version"
-source="http://ftp.gnome.org/pub/gnome/sources/gtk+/3.0/gtk+-$version.tar.xz"
-verify="219fdea120897981840e909fac40d4d433fe061a37b12b9402e215c819ebeae9"

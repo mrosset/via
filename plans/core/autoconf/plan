@@ -1,4 +1,0 @@
-name="autoconf"
-version="2.68"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-verify="gnu_verify"

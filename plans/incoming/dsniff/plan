@@ -1,9 +1,0 @@
-name="dsniff"
-version="2.4b1"
-build_name="dsniff-2.4"
-source="http://www.monkey.org/~dugsong/dsniff/beta/dsniff-$version.tar.gz"
-verify="a9803a7a02ddfe5fb9704ce86f0ffc48453c321e88db85810db411ba0841152a"
-
-custom_build() {
-	./configure --prefix=$PREFIX
-}

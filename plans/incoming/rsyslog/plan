@@ -1,9 +1,0 @@
-name="rsyslog"
-version="5.8.2"
-source="http://www.rsyslog.com/files/download/rsyslog/rsyslog-5.8.2.tar.gz"
-build_args="--with-systemdsystemunitdir=/lib/systemd/system"
-verify="8cdf3531370b6231dae6095f7c09d72e00b4508d7f985fde472a9741818d6ff4"
-
-post_hook() {
-  install -D -m644 $stages/$name-$version/$name.conf etc/$name.conf
-}

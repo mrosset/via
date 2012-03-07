@@ -1,9 +1,0 @@
-name="sudo"
-version="1.8.1p2"
-source="http://www.sudo.ws/sudo/dist/sudo-$version.tar.gz"
-build_args="--libexecdir=/usr/lib \
---with-ignore-dot --with-all-insults \
---enable-shell-sets-home --disable-root-sudo \
---with-logfac=auth --without-pam --without-sendmail"
-verify="281f90c80547cf22132e351e7f61c25ba4ba9cf393438468f318f9a7884026fb"
-unset MAKEFLAGS

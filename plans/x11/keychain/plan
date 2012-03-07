@@ -1,9 +1,0 @@
-name="keychain"
-version="2.7.1"
-source="http://www.funtoo.org/archive/keychain/keychain-$version.tar.bz2"
-verify="1107fe3f78f6429d4861d64c5666f068f159326d22ab80a8ed0948cb25375191"
-
-custom_install() {
-	install -Dm755 keychain $DESTDIR/usr/bin/keychain
-	install -Dm644 keychain.1 $DESTDIR/usr/share/man/man1/keychain.1
-}

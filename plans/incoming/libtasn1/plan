@@ -1,4 +1,0 @@
-name="libtasn1"
-version="2.9"
-source="ftp://ftp.gnu.org/gnu/libtasn1/libtasn1-$version.tar.gz"
-verify="fac46855fac8b08cf6f5a1b60cebad8e090bac1f06c335a044e84110d0b412c4"

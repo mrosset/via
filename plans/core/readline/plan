@@ -1,5 +1,0 @@
-name="readline"
-version="6.2"
-source="http://mirrors.kernel.org/gnu/$name/$name-$version.tar.gz"
-build_args="--libdir=$PREFIX/lib"
-verify="gnu_verify"

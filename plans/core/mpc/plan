@@ -1,4 +1,0 @@
-name="mpc"
-version="0.9"
-source="http://www.multiprecision.org/mpc/download/mpc-$version.tar.gz"
-verify="fd3efe422f0d454592059e80f2c00d1a2e381bf2beda424c5094abd4deb049ac"
