@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"util"
 	"util/file"
 )
@@ -22,11 +23,11 @@ type BuildFnc func(*Plan) error
 
 func DownloadSrc(plan *Plan) (err error) {
 	sfile := path.Join(config.Cache.Sources(), path.Base(plan.Url))
-	fmt.Println(file.Exists(sfile))
 	if file.Exists(sfile) {
 		return nil
 	}
 	info("DownloadSrc", plan.Url)
+	defer fmt.Println()
 	return gurl.Download(plan.Url, config.Cache.Sources())
 }
 
@@ -134,6 +135,49 @@ func Remove(name string) (err error) {
 		return err
 	}
 	return
+}
+
+// libtorrent-0.13.0.tar.gz
+
+func FullBuild(plan *Plan) (err error) {
+	if err := DownloadSrc(plan); err != nil {
+		return err
+	}
+	if err := Stage(plan); err != nil {
+		return err
+	}
+	if err := Build(plan); err != nil {
+		return err
+	}
+	if err := MakeInstall(plan); err != nil {
+		return err
+	}
+	if err := Package(plan); err != nil {
+		return err
+	}
+	return Sign(plan)
+}
+
+func Create(url string) (err error) {
+	var (
+		file    = path.Base(url)
+		name    = regexp.MustCompile("[a-z]+").FindString(file)
+		truple  = regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+").FindString(file)
+		double  = regexp.MustCompile("[0-9]+.[0-9]+").FindString(file)
+		version string
+	)
+	switch {
+	case truple != "":
+		version = truple
+	case double != "":
+		version = double
+	}
+	plan := &Plan{Name: name, Version: version, Url: url}
+	err = plan.Save()
+	if err != nil {
+		return err
+	}
+	return FullBuild(plan)
 }
 
 func info(prefix string, msg string) {

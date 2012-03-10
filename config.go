@@ -25,7 +25,7 @@ type Config struct {
 }
 
 func init() {
-	checkf(os.Setenv("CC", "ccache gcc"))
+	checkf(os.Setenv("CC", "gcc"))
 	cfile := path.Join(os.Getenv("HOME"), ".via.json")
 	checkf(json.Read(&config, cfile))
 	config.Cache.Create()

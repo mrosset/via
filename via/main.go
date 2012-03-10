@@ -18,6 +18,10 @@ func main() {
 	flag.Parse()
 	via.Verbose = *verbose
 	util.Verbose = *verbose
+	if len(flag.Args()) == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
 	cmd := flag.Arg(0)
 	args := flag.Args()[1:]
 	switch cmd {
@@ -27,9 +31,17 @@ func main() {
 		install(args)
 	case "remove":
 		remove(args)
+	case "create":
+		create(args)
 	default:
 		flag.Usage()
 		os.Exit(1)
+	}
+}
+
+func create(args []string) {
+	for _, arg := range args {
+		checkf(via.Create(arg))
 	}
 }
 
@@ -38,12 +50,7 @@ func build(args []string) {
 		start := time.Now()
 		plan, err := via.ReadPlan(arg)
 		checkf(err)
-		checkf(via.DownloadSrc(plan))
-		checkf(via.Stage(plan))
-		checkf(via.Build(plan))
-		checkf(via.MakeInstall(plan))
-		checkf(via.Package(plan))
-		checkf(via.Sign(plan))
+		checkf(via.FullBuild(plan))
 		fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
 	}
 }

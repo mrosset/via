@@ -1,9 +1,10 @@
 package via
 
 import (
+	"code.google.com/p/go.crypto/openpgp"
+	"code.google.com/p/go.crypto/openpgp/packet"
 	"exp/terminal"
 	"fmt"
-	"openpgp"
 	"os"
 	"path/filepath"
 )
@@ -55,7 +56,7 @@ func Sign(plan *Plan) (err error) {
 	}
 	defer sig.Close()
 	fmt.Println("Signing", ppath)
-	err = openpgp.DetachSign(sig, entity, pkg)
+	err = openpgp.DetachSign(sig, entity, pkg, new(packet.Config))
 	if err != nil {
 		return err
 	}
@@ -95,7 +96,6 @@ func ReadPassword() (string, error) {
 	defer fd.Close()
 	term := terminal.NewTerminal(fd, "$")
 	line, err := term.ReadPassword("Password: ")
-	fmt.Println("got here")
 	if err != nil {
 		return "", err
 	}
