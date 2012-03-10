@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"util"
 	"util/file"
+	"util/file/magic"
 )
 
 var (
@@ -32,13 +33,17 @@ func DownloadSrc(plan *Plan) (err error) {
 }
 
 func Stage(plan *Plan) (err error) {
+	if file.Exists(config.GetStageDir(plan.NameVersion())) {
+		info("Stage", "skipping")
+		return nil
+	}
 	info("Stage", path.Base(plan.Url))
-	fd, err := os.Open(path.Join(config.Cache.Sources(), path.Base(plan.Url)))
-	util.CheckFatal(err)
-	defer fd.Close()
-	gz, err := gzip.NewReader(fd)
-	util.CheckFatal(err)
-	return Untar(gz, config.Cache.Stages())
+	path := path.Join(config.Cache.Sources(), path.Base(plan.Url))
+	r, err := magic.GetReader(path)
+	if err != nil {
+		return err
+	}
+	return Untar(r, config.Cache.Stages())
 }
 
 func GnuBuild(plan *Plan) (err error) {
@@ -71,7 +76,7 @@ func Build(plan *Plan) (err error) {
 }
 
 func MakeInstall(plan *Plan) (err error) {
-	info("Install", plan.NameVersion())
+	info("MakeInstall", plan.NameVersion())
 	return util.Run("make", config.GetBuildDir(plan.NameVersion()), "install", "DESTDIR="+config.GetPackageDir(plan.NameVersion()))
 }
 
@@ -92,7 +97,11 @@ func Package(plan *Plan) (err error) {
 	defer fd.Close()
 	gz := gzip.NewWriter(fd)
 	defer gz.Close()
-	return Tar(gz, config.GetPackageDir(plan.NameVersion()))
+	err = Tar(gz, plan)
+	if err != nil {
+		return err
+	}
+	return plan.Save()
 }
 
 func Install(name string) (err error) {

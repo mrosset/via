@@ -1,10 +1,12 @@
-cmd: 
-	@go install via/via
-
 test: cmd
 	#@via build ccache
 	#@via install ccache
-	@via create http://mirrors.kernel.org/gnu/wget/wget-1.13.tar.gz
+	@via -v create http://mirrors.kernel.org/gnu/gcc/gcc-4.6.3/gcc-4.6.3.tar.gz
+	#@via create http://mirrors.kernel.org/gnu/wget/wget-1.13.tar.gz
+	cat ~/via/plans/wget.json
+
+cmd: 
+	@go install via/via
 
 all:
 	via build bash ncurses pkg-config which

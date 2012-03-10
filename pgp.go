@@ -31,6 +31,9 @@ func Sign(plan *Plan) (err error) {
 			identity = i
 		}
 	}
+	if entity == nil || identity == nil {
+		return fmt.Errorf("Could not find entitry or identiry for %s", config.Identity)
+	}
 	if entity.PrivateKey.Encrypted {
 		_ = identity.Name
 		pw := ""

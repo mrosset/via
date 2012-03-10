@@ -2,6 +2,7 @@ package via
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -89,11 +90,11 @@ func RmTar(file, dest string) (err error) {
 }
 
 // Decompress Reader to destination directory
-func Untar(cr io.Reader, dest string) (err error) {
+func Untar(r io.Reader, dest string) (err error) {
 	if !file.Exists(dest) {
 		return fmt.Errorf("Directory %s does not exists.", dest)
 	}
-	tr := tar.NewReader(cr)
+	tr := tar.NewReader(r)
 	for {
 		hdr, err := tr.Next()
 		if err != nil && err != io.EOF {
@@ -103,15 +104,36 @@ func Untar(cr io.Reader, dest string) (err error) {
 			break
 		}
 		// Switch through header Typeflag and handle tar entry accordingly 
-		switch hdr.Typeflag {
+		switch {
 		// Handles Directories
-		case tar.TypeDir:
+		case hdr.Typeflag == tar.TypeDir:
 			path := path.Join(dest, hdr.Name)
 			if err := mkDir(path, hdr.Mode); err != nil {
 				return err
 			}
 			continue
-		case tar.TypeReg, tar.TypeRegA:
+		case string(hdr.Typeflag) == "L":
+			lfile := new(bytes.Buffer)
+			// Get longlink path from tar file data
+			lfile.ReadFrom(tr)
+			fpath := path.Join(dest, lfile.String())
+			// Read next iteration for file data
+			hdr, err := tr.Next()
+			if hdr.Typeflag == tar.TypeDir {
+				err := mkDir(fpath, hdr.Mode)
+				if err != nil {
+					return err
+				}
+				continue
+			}
+			if err != nil && err != io.EOF {
+				return err
+			}
+			// Write long file data to disk
+			if err := writeFile(fpath, hdr, tr); err != nil {
+				return err
+			}
+		case hdr.Typeflag == tar.TypeReg, hdr.Typeflag == tar.TypeRegA:
 			path := path.Join(dest, hdr.Name)
 			if err := writeFile(path, hdr, tr); err != nil {
 				return err
@@ -120,11 +142,13 @@ func Untar(cr io.Reader, dest string) (err error) {
 		default:
 			fmt.Println(hdr.Name, "*** Unknown Header Type ***")
 		}
+		continue
 	}
 	return
 }
 
-func Tar(wr io.Writer, dir string) (err error) {
+func Tar(wr io.Writer, plan *Plan) (err error) {
+	dir := config.GetPackageDir(plan.NameVersion())
 	tw := tar.NewWriter(wr)
 	defer tw.Close()
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -132,6 +156,7 @@ func Tar(wr io.Writer, dir string) (err error) {
 		if spath == "" {
 			return nil
 		}
+		fe := File{Path: spath}
 		spath = spath[1:]
 		fi, err := os.Stat(path)
 		hdr := fiToHeader(spath, fi)
@@ -141,7 +166,10 @@ func Tar(wr io.Writer, dir string) (err error) {
 		}
 		switch {
 		case hdr.Typeflag == tar.TypeDir:
+			fe.Type = TypeDir
+
 		default:
+			fe.Type = TypeFile
 			fd, err := os.Open(path)
 			if err != nil {
 				return err
@@ -152,6 +180,7 @@ func Tar(wr io.Writer, dir string) (err error) {
 				return err
 			}
 		}
+		plan.Files = append(plan.Files, fe)
 		return nil
 	}
 	return filepath.Walk(dir, walkFn)

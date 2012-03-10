@@ -10,7 +10,21 @@ type Plan struct {
 	Name    string
 	Version string
 	Url     string
+	Files   []File
 }
+
+type File struct {
+	Path string
+	Type FileType
+}
+
+type FileType int
+
+const (
+	TypeFile FileType = iota
+	TypeDir
+	TypeLink
+)
 
 func (this *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", this.Name, this.Version)
