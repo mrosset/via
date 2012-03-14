@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 	"util/file"
+	"util/json"
 )
 
 var (
@@ -147,7 +148,8 @@ func Untar(r io.Reader, dest string) (err error) {
 	return
 }
 
-func Tar(wr io.Writer, plan *Plan) (err error) {
+func Package(wr io.Writer, plan *Plan) (err error) {
+	man := &Manifest{Plan: plan}
 	dir := config.GetPackageDir(plan.NameVersion())
 	tw := tar.NewWriter(wr)
 	defer tw.Close()
@@ -156,7 +158,7 @@ func Tar(wr io.Writer, plan *Plan) (err error) {
 		if spath == "" {
 			return nil
 		}
-		fe := File{Path: spath}
+		fe := &File{Path: spath}
 		spath = spath[1:]
 		fi, err := os.Stat(path)
 		hdr := fiToHeader(spath, fi)
@@ -180,10 +182,16 @@ func Tar(wr io.Writer, plan *Plan) (err error) {
 				return err
 			}
 		}
-		plan.Files = append(plan.Files, fe)
+		man.Files = append(man.Files, fe)
 		return nil
 	}
-	return filepath.Walk(dir, walkFn)
+	err = filepath.Walk(dir, walkFn)
+	if err != nil {
+		return err
+	}
+	json.Write(man, "manifest.json")
+	file.Cat("manifest.json")
+	return nil
 }
 
 func fiToHeader(name string, fi os.FileInfo) (hdr *tar.Header) {

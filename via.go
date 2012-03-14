@@ -80,7 +80,7 @@ func MakeInstall(plan *Plan) (err error) {
 	return util.Run("make", config.GetBuildDir(plan.NameVersion()), "install", "DESTDIR="+config.GetPackageDir(plan.NameVersion()))
 }
 
-func Package(plan *Plan) (err error) {
+func CreatePackage(plan *Plan) (err error) {
 	info("Package", plan.NameVersion())
 	dirfile := path.Join(config.GetPackageDir(plan.NameVersion()), config.Prefix, "share", "info", "dir")
 	if file.Exists(dirfile) {
@@ -97,11 +97,7 @@ func Package(plan *Plan) (err error) {
 	defer fd.Close()
 	gz := gzip.NewWriter(fd)
 	defer gz.Close()
-	err = Tar(gz, plan)
-	if err != nil {
-		return err
-	}
-	return plan.Save()
+	return Package(gz, plan)
 }
 
 func Install(name string) (err error) {
@@ -148,7 +144,7 @@ func Remove(name string) (err error) {
 
 // libtorrent-0.13.0.tar.gz
 
-func FullBuild(plan *Plan) (err error) {
+func BuildSteps(plan *Plan) (err error) {
 	if err := DownloadSrc(plan); err != nil {
 		return err
 	}
@@ -161,7 +157,7 @@ func FullBuild(plan *Plan) (err error) {
 	if err := MakeInstall(plan); err != nil {
 		return err
 	}
-	if err := Package(plan); err != nil {
+	if err := CreatePackage(plan); err != nil {
 		return err
 	}
 	return Sign(plan)
@@ -186,7 +182,7 @@ func Create(url string) (err error) {
 	if err != nil {
 		return err
 	}
-	return FullBuild(plan)
+	return BuildSteps(plan)
 }
 
 func info(prefix string, msg string) {

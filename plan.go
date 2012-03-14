@@ -4,27 +4,14 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"util/json"
 )
 
 type Plan struct {
 	Name    string
 	Version string
 	Url     string
-	Files   []File
 }
-
-type File struct {
-	Path string
-	Type FileType
-}
-
-type FileType int
-
-const (
-	TypeFile FileType = iota
-	TypeDir
-	TypeLink
-)
 
 func (this *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", this.Name, this.Version)
@@ -39,13 +26,17 @@ func (this *Plan) Print() {
 	pp("Url", this.Url)
 }
 
+func (this *Plan) File() string {
+	return filepath.Join(config.Plans, this.Name+".json")
+}
+
 func (this *Plan) Save() (err error) {
-	return WriteJson(this, filepath.Join(config.Plans, this.Name+".json"))
+	return json.Write(this, this.File())
 }
 
 func ReadPlan(name string) (plan *Plan, err error) {
-	plan = &Plan{}
-	plan, err = ReadJson(name)
+	plan = &Plan{Name: name}
+	err = json.Read(plan, plan.File())
 	return plan, err
 }
 
