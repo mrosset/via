@@ -50,7 +50,7 @@ func build(args []string) {
 		start := time.Now()
 		plan, err := via.ReadPlan(arg)
 		checkf(err)
-		checkf(via.FullBuild(plan))
+		checkf(via.BuildSteps(plan))
 		fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
 	}
 }

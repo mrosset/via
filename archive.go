@@ -15,7 +15,6 @@ import (
 	"syscall"
 	"time"
 	"util/file"
-	"util/json"
 )
 
 var (
@@ -189,8 +188,6 @@ func Package(wr io.Writer, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	json.Write(man, "manifest.json")
-	file.Cat("manifest.json")
 	return nil
 }
 
