@@ -22,16 +22,19 @@ type Config struct {
 	Root     string
 	Cache    Cache
 	Plans    string
+	DB       string
 }
 
 func init() {
 	checkf(os.Setenv("CC", "gcc"))
 	cfile := path.Join(os.Getenv("HOME"), ".via.json")
 	checkf(json.Read(&config, cfile))
-	config.Cache.Create()
-	if !file.Exists(config.Repo) {
-		info("mkdir", config.Repo)
-		checkf(os.Mkdir(config.Repo, 0755))
+	checkf(config.Cache.Create())
+	for _, dir := range []string{config.Repo, config.DB} {
+		if !file.Exists(dir) {
+			info("mkdir", dir)
+			checkf(os.MkdirAll(dir, 0755))
+		}
 	}
 }
 

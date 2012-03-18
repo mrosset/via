@@ -5,7 +5,7 @@ import (
 	"util"
 )
 
-var tests = []string{"ccache"}
+var tests = []string{"ccache", "coreutils"}
 
 func init() {
 	util.Verbose = false
@@ -17,8 +17,16 @@ func TestBuildSteps(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		err = BuildSteps(plan)
-		if err != nil {
+		if err := BuildSteps(plan); err != nil {
+			t.Error(err)
+		}
+		if err := Install(test); err != nil {
+			t.Error(err)
+		}
+		if err := List(test); err != nil {
+			t.Error(err)
+		}
+		if err := Remove(test); err != nil {
 			t.Error(err)
 		}
 	}

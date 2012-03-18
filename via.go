@@ -13,6 +13,7 @@ import (
 	"util"
 	"util/file"
 	"util/file/magic"
+	"util/json"
 )
 
 var (
@@ -43,7 +44,8 @@ func Stage(plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	return Untar(r, config.Cache.Stages())
+	_, err = Untar(r, config.Cache.Stages())
+	return
 }
 
 func GnuBuild(plan *Plan) (err error) {
@@ -103,43 +105,58 @@ func CreatePackage(plan *Plan) (err error) {
 func Install(name string) (err error) {
 	plan, err := ReadPlan(name)
 	if err != nil {
-		return err
+		return
 	}
 	info("Installing", plan.NameVersion())
 	pfile := path.Join(config.Repo, plan.PackageFile())
 	err = CheckSig(pfile)
 	if err != nil {
-		return err
+		return
 	}
 	fd, err := os.Open(pfile)
 	if err != nil {
-		return err
+		return
 	}
 	defer fd.Close()
 	gz, err := gzip.NewReader(fd)
 	if err != nil {
-		return err
+		return
 	}
 	defer gz.Close()
-	err = Untar(gz, config.Root)
+	man, err := Untar(gz, config.Root)
+	db := path.Join(config.DB, plan.Name)
+	err = os.Mkdir(db, 0755)
 	if err != nil {
-		return err
+		fmt.Println("*WARNING*", err)
 	}
-	return nil
+	return json.Write(man, path.Join(db, "manifest.json"))
+}
+
+func List(name string) (err error) {
+	man, err := ReadManifest(name)
+	fmt.Println(name)
+	if err != nil {
+		return
+	}
+	for _, f := range man.Files {
+		fmt.Println("file:", path.Join(config.Root, f))
+	}
+	return
 }
 
 func Remove(name string) (err error) {
-	plan, err := ReadPlan(name)
+	man, err := ReadManifest(name)
 	if err != nil {
 		return err
 	}
-	pfile := path.Join(config.Repo, plan.PackageFile())
-	info("Removing", plan.NameVersion())
-	err = RmTar(pfile, config.Root)
-	if err != nil {
-		return err
+	info("Removing", man.Plan.NameVersion())
+	for _, f := range man.Files {
+		err = os.Remove(path.Join(config.Root, f))
+		if err != nil {
+			return err
+		}
 	}
-	return
+	return os.RemoveAll(path.Join(config.DB, name))
 }
 
 // libtorrent-0.13.0.tar.gz
