@@ -195,11 +195,7 @@ func Create(url string) (err error) {
 		version = double
 	}
 	plan := &Plan{Name: name, Version: version, Url: url}
-	err = plan.Save()
-	if err != nil {
-		return err
-	}
-	return BuildSteps(plan)
+	return plan.Save()
 }
 
 func info(prefix string, msg string) {
