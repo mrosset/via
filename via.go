@@ -21,12 +21,6 @@ var (
 	Verbose = false
 )
 
-func Init() (err error) {
-	dir := path.Dir(config.Plans)
-	fmt.Println(dir)
-	return nil
-}
-
 func DownloadSrc(plan *Plan) (err error) {
 	sfile := path.Join(config.Cache.Sources(), path.Base(plan.Url))
 	if file.Exists(sfile) {
@@ -61,7 +55,7 @@ func GnuBuild(plan *Plan) (err error) {
 			return err
 		}
 	}
-	err = util.Run(sdir+"/configure", bdir, "--config-cache", "--prefix="+config.Prefix)
+	err = util.Run(sdir+"/configure", bdir, "--config-cache")
 	if err != nil {
 		return err
 	}
@@ -88,13 +82,6 @@ func MakeInstall(plan *Plan) (err error) {
 
 func CreatePackage(plan *Plan) (err error) {
 	info("Package", plan.NameVersion())
-	dirfile := path.Join(config.PackageDir(plan.NameVersion()), config.Prefix, "share", "info", "dir")
-	if file.Exists(dirfile) {
-		err := os.Remove(dirfile)
-		if err != nil {
-			return err
-		}
-	}
 	pfile := path.Join(config.Repo, plan.PackageFile())
 	fd, err := os.Create(pfile)
 	if err != nil {

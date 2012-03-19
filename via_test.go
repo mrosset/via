@@ -11,10 +11,6 @@ func init() {
 	util.Verbose = false
 }
 
-func TestInit(t *testing.T) {
-	Init()
-}
-
 func TestBuildSteps(t *testing.T) {
 	for _, test := range tests {
 		plan, err := ReadPlan(test)

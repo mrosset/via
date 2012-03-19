@@ -1,8 +1,6 @@
 package via
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"path"
 	"util"
@@ -11,35 +9,32 @@ import (
 )
 
 var (
-	config = &Config{}
-	checkf = util.CheckFatal
-	cache  *Cache
-	db     DB
+	home           = os.Getenv("HOME")
+	config         = &Config{}
+	checkf         = util.CheckFatal
+	cache          *Cache
+	db             DB
+	config_default = &Config{
+		Repo: path.Join(home, ".via.json"),
+	}
 )
 
 type Config struct {
-	Identity string
-	Prefix   string
-	Repo     string
-	Root     string
-	Plans    string
-	Cache    *Cache
-	DB       DB
-	Sync     string
+	Identity  string
+	Repo      string
+	Root      string
+	Plans     string
+	PlansRepo string
+	Cache     *Cache
+	DB        DB
 }
 
 func init() {
 	checkf(os.Setenv("CC", "gcc"))
 	cfile := path.Join(os.Getenv("HOME"), ".via.json")
 	checkf(json.Read(&config, cfile))
+	config.PlansRepo = "https://code.google.com/p/via.plans"
 	checkf(json.Write(&config, cfile))
-	cache := config.Cache
-	checkf(cache.Create())
-	if !file.Exists(config.Plans) {
-		log.Fatal(
-			fmt.Errorf("%s does not exsit. if you are using via command, use via init to sync", config.Plans),
-		)
-	}
 }
 
 func (c *Config) StageDir(name string) string {
