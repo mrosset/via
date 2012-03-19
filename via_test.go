@@ -18,16 +18,16 @@ func TestBuildSteps(t *testing.T) {
 			t.Fatal(err)
 		}
 		if err := BuildSteps(plan); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		if err := Install(test); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		if err := List(test); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		if err := Remove(test); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 	}
 }

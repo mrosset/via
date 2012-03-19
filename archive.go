@@ -123,7 +123,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 
 func Package(wr io.Writer, plan *Plan) (err error) {
 	man := &Manifest{Plan: plan}
-	dir := config.PackageDir(plan.NameVersion())
+	dir := packages.File(plan.NameVersion())
 	tw := tar.NewWriter(wr)
 	defer tw.Close()
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -214,6 +214,7 @@ func mkDir(path string, mode int64) (err error) {
 
 // Write file from tar reader
 func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
+	fmt.Println(path)
 	if file.Exists(path) {
 		err := os.Remove(path)
 		if err != nil {

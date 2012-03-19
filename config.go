@@ -4,68 +4,75 @@ import (
 	"os"
 	"path"
 	"util"
+	"util/file"
 	"util/json"
 )
 
 var (
-	home           = os.Getenv("HOME")
-	config         = &Config{}
-	checkf         = util.CheckFatal
-	cache          *Cache
-	db             DB
-	config_default = &Config{
-		Repo: path.Join(home, ".via.json"),
-	}
+	home   = os.Getenv("HOME")
+	config = ReadConfig()
+	checkf = util.CheckFatal
+
+	// dir aliases
+	builds    = config.Cache.Dir("builds")
+	stages    = config.Cache.Dir("stages")
+	packages  = config.Cache.Dir("packages")
+	sources   = config.Cache.Dir("sources")
+	installed = config.DB.Dir("installed")
+	plans     = config.Home.Dir("plans")
+	repo      = config.Home.Dir("repo")
 )
 
 type Config struct {
 	Identity  string
-	Repo      string
 	Root      string
-	Plans     string
 	PlansRepo string
-	Cache     *Cache
-	DB        DB
+	Cache     *Tree
+	DB        *Tree
+	Home      *Tree
 }
 
 func init() {
 	checkf(os.Setenv("CC", "gcc"))
-	cfile := path.Join(os.Getenv("HOME"), ".via.json")
+	cfile := path.Join(home, ".via.json")
 	checkf(json.Read(&config, cfile))
+	createDirs()
 }
 
-func (c *Config) StageDir(name string) string {
-	return path.Join(c.Cache.Stages(), name)
+func ReadConfig() *Config {
+	cfile := path.Join(home, ".via.json")
+	c := new(Config)
+	checkf(json.Read(&c, cfile))
+	return c
 }
 
-func (c *Config) BuildDir(name string) string {
-	return path.Join(c.Cache.Builds(), name)
+func createDirs() {
+	dirs := []Tree{
+		builds,
+		stages,
+		packages,
+		sources,
+		installed,
+		repo,
+	}
+	for _, d := range dirs {
+		if !file.Exists(d.String()) {
+			info("mkdir ", d.String())
+			checkf(os.MkdirAll(d.String(), 0755))
+		}
+	}
 }
 
-func (c *Config) PackageDir(name string) string {
-	return path.Join(c.Cache.Packages(), name)
+type Tree string
+
+func (t Tree) Dir(n string) Tree {
+	return Tree(path.Join(string(t), n))
 }
 
-type Cache string
-
-func (c Cache) Builds() string {
-	return path.Join(string(c), "builds")
+func (t Tree) String() string {
+	return string(t)
 }
 
-func (c Cache) Stages() string {
-	return path.Join(string(c), "stages")
-}
-
-func (c Cache) Sources() string {
-	return path.Join(string(c), "sources")
-}
-
-func (c Cache) Packages() string {
-	return path.Join(string(c), "packages")
-}
-
-type DB string
-
-func (d DB) Installed() string {
-	return path.Join(string(d), "installed")
+func (t Tree) File(n string) string {
+	return path.Join(string(t), n)
 }

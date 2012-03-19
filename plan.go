@@ -2,7 +2,6 @@ package via
 
 import (
 	"fmt"
-	"path/filepath"
 	"runtime"
 	"util/json"
 )
@@ -27,8 +26,7 @@ func (this *Plan) Print() {
 }
 
 func (this *Plan) File() string {
-	fmt.Println(config.Plans)
-	return filepath.Join(config.Plans, this.Name+".json")
+	return plans.File(this.Name + ".json")
 }
 
 func (this *Plan) Save() (err error) {

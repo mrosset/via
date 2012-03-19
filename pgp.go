@@ -47,7 +47,7 @@ func Sign(plan *Plan) (err error) {
 			return err
 		}
 	}
-	ppath := filepath.Join(config.Repo, plan.PackageFile())
+	ppath := config.Home.Dir("repo").File(plan.PackageFile())
 	pkg, err := os.Open(ppath)
 	if err != nil {
 		return err
