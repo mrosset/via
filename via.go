@@ -3,7 +3,6 @@ package via
 import (
 	"compress/gzip"
 	"errors"
-	"fmt"
 	"gurl/pkg"
 	"log"
 	"net/http"
@@ -26,18 +25,15 @@ func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(sfile) {
 		return nil
 	}
-	info("DownloadSrc", plan.Url)
-	defer fmt.Println()
+	defer util.Println()
 	return gurl.Download(plan.Url, sources.String())
 }
 
 func Stage(plan *Plan) (err error) {
 	dir := stages.File(plan.NameVersion())
 	if file.Exists(dir) {
-		info("Stage", "skipping")
 		return nil
 	}
-	info("Stage", path.Base(plan.Url))
 	sfile := sources.File(path.Base(plan.Url))
 	r, err := magic.GetReader(sfile)
 	if err != nil {
@@ -68,7 +64,6 @@ func Build(plan *Plan) (err error) {
 	configure := stages.Dir(plan.NameVersion()).File("configure")
 	switch {
 	case file.Exists(configure):
-		info("GnuBuild", plan.NameVersion())
 		return GnuBuild(plan)
 	default:
 		log.Fatal(errors.New("could not determine build type"))
@@ -77,14 +72,12 @@ func Build(plan *Plan) (err error) {
 }
 
 func MakeInstall(plan *Plan) (err error) {
-	info("MakeInstall", plan.NameVersion())
 	pdir := packages.File(plan.NameVersion())
 	bdir := builds.File(plan.NameVersion())
 	return util.Run("make", bdir, "install", "DESTDIR="+pdir)
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	info("Package", plan.NameVersion())
 	pfile := repo.File(plan.PackageFile())
 	fd, err := os.Create(pfile)
 	if err != nil {
@@ -101,7 +94,6 @@ func Install(name string) (err error) {
 	if err != nil {
 		return
 	}
-	info("Installing", plan.NameVersion())
 	pfile := repo.File(plan.PackageFile())
 	err = CheckSig(pfile)
 	if err != nil {
@@ -121,20 +113,9 @@ func Install(name string) (err error) {
 	db := installed.File(plan.Name)
 	err = os.MkdirAll(db, 0755)
 	if err != nil {
-		fmt.Println("*WARNING*", err)
-	}
-	return json.Write(man, path.Join(db, "manifest.json"))
-}
-
-func List(name string) (err error) {
-	man, err := ReadManifest(name)
-	if err != nil {
 		return
 	}
-	for _, f := range man.Files {
-		fmt.Println("file:", path.Join(config.Root, f))
-	}
-	return
+	return json.Write(man, path.Join(db, "manifest.json"))
 }
 
 func Remove(name string) (err error) {
@@ -142,7 +123,6 @@ func Remove(name string) (err error) {
 	if err != nil {
 		return err
 	}
-	info("Removing", man.Plan.NameVersion())
 	for _, f := range man.Files {
 		err = os.Remove(path.Join(config.Root, f))
 		if err != nil {
@@ -189,8 +169,4 @@ func Create(url string) (err error) {
 	}
 	plan := &Plan{Name: name, Version: version, Url: url}
 	return plan.Save()
-}
-
-func info(prefix string, msg string) {
-	fmt.Printf("%-20s %s\n", prefix, msg)
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"util"
 )
 
 var keyring = filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
@@ -32,7 +33,7 @@ func Sign(plan *Plan) (err error) {
 		}
 	}
 	if entity == nil || identity == nil {
-		return fmt.Errorf("Could not find entity or identity for %s", config.Identity)
+		return util.Errorf("Could not find entity or identity for %s", config.Identity)
 	}
 	if entity.PrivateKey.Encrypted {
 		_ = identity.Name
@@ -58,7 +59,6 @@ func Sign(plan *Plan) (err error) {
 		return err
 	}
 	defer sig.Close()
-	fmt.Println("Signing", ppath)
 	err = openpgp.DetachSign(sig, entity, pkg, new(packet.Config))
 	if err != nil {
 		return err

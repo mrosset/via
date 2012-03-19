@@ -23,9 +23,6 @@ func TestBuildSteps(t *testing.T) {
 		if err := Install(test); err != nil {
 			t.Fatal(err)
 		}
-		if err := List(test); err != nil {
-			t.Fatal(err)
-		}
 		if err := Remove(test); err != nil {
 			t.Fatal(err)
 		}

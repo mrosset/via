@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"util"
 	"util/file"
 	"util/json"
 )
@@ -58,7 +58,7 @@ func Peek(cr io.Reader) (dir string, err error) {
 // Decompress Reader to destination directory
 func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 	if !file.Exists(dest) {
-		return nil, fmt.Errorf("Directory %s does not exists.", dest)
+		return nil, util.Errorf("Directory %s does not exists.", dest)
 	}
 	man = new(Manifest)
 	tr := tar.NewReader(r)
@@ -114,7 +114,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 			}
 			continue
 		default:
-			fmt.Println(hdr.Name, "*** Unknown Header Type ***")
+			return nil, util.Errorf("Unknown tar header type for %s", hdr.Name)
 		}
 		continue
 	}
@@ -214,7 +214,6 @@ func mkDir(path string, mode int64) (err error) {
 
 // Write file from tar reader
 func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
-	fmt.Println(path)
 	if file.Exists(path) {
 		err := os.Remove(path)
 		if err != nil {
@@ -225,10 +224,6 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	if err != nil {
 		return err
 	}
-	if Verbose {
-		info("Write", path)
-	}
-	//pb := console.NewProgressBarWriter(filepath.Base(path), hdr.Size, fd)
 	if _, err = io.Copy(fd, tr); err != nil {
 		return err
 	}

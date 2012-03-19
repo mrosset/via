@@ -14,13 +14,14 @@ var (
 	checkf = util.CheckFatal
 
 	// dir aliases
-	builds    = config.Cache.Dir("builds")
-	stages    = config.Cache.Dir("stages")
-	packages  = config.Cache.Dir("packages")
-	sources   = config.Cache.Dir("sources")
-	installed = config.DB.Dir("installed")
-	plans     = config.Home.Dir("plans")
-	repo      = config.Home.Dir("repo")
+	builds      = config.Cache.Dir("builds")
+	stages      = config.Cache.Dir("stages")
+	packages    = config.Cache.Dir("packages")
+	sources     = config.Cache.Dir("sources")
+	installed   = config.DB.Dir("installed")
+	plans       = config.Home.Dir("plans")
+	repo        = config.Home.Dir("repo")
+	config_dirs = []Tree{}
 )
 
 type Config struct {
@@ -36,6 +37,8 @@ func init() {
 	checkf(os.Setenv("CC", "gcc"))
 	cfile := path.Join(home, ".via.json")
 	checkf(json.Read(&config, cfile))
+	checkf(json.Write(&config, cfile))
+	config_dirs = append(config_dirs, builds, stages, sources, installed, plans, repo)
 	createDirs()
 }
 
@@ -47,17 +50,8 @@ func ReadConfig() *Config {
 }
 
 func createDirs() {
-	dirs := []Tree{
-		builds,
-		stages,
-		packages,
-		sources,
-		installed,
-		repo,
-	}
-	for _, d := range dirs {
+	for _, d := range config_dirs {
 		if !file.Exists(d.String()) {
-			info("mkdir ", d.String())
 			checkf(os.MkdirAll(d.String(), 0755))
 		}
 	}
