@@ -89,11 +89,7 @@ func CreatePackage(plan *Plan) (err error) {
 	return Package(gz, plan)
 }
 
-func Install(name string) (err error) {
-	plan, err := ReadPlan(name)
-	if err != nil {
-		return
-	}
+func Install(plan *Plan) (err error) {
 	pfile := repo.File(plan.PackageFile())
 	err = CheckSig(pfile)
 	if err != nil {
@@ -118,8 +114,8 @@ func Install(name string) (err error) {
 	return json.Write(man, path.Join(db, "manifest.json"))
 }
 
-func Remove(name string) (err error) {
-	man, err := ReadManifest(name)
+func Remove(plan *Plan) (err error) {
+	man, err := ReadManifest(plan)
 	if err != nil {
 		return err
 	}
@@ -129,7 +125,7 @@ func Remove(name string) (err error) {
 			return err
 		}
 	}
-	return os.RemoveAll(installed.File(name))
+	return os.RemoveAll(installed.File(plan.Name))
 }
 
 // libtorrent-0.13.0.tar.gz

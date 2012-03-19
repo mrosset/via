@@ -33,8 +33,6 @@ func main() {
 		remove(args)
 	case "create":
 		create(args)
-	case "list":
-		list(args)
 	default:
 		flag.Usage()
 		os.Exit(1)
@@ -59,18 +57,16 @@ func build(args []string) {
 
 func install(args []string) {
 	for _, arg := range args {
-		checkf(via.Install(arg))
+		plan, err := via.ReadPlan(arg)
+		checkf(err)
+		checkf(via.Install(plan))
 	}
 }
 
 func remove(args []string) {
 	for _, arg := range args {
-		checkf(via.Remove(arg))
-	}
-}
-
-func list(args []string) {
-	for _, arg := range args {
-		checkf(via.List(arg))
+		plan, err := via.ReadPlan(arg)
+		checkf(err)
+		checkf(via.Remove(plan))
 	}
 }

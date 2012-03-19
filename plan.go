@@ -12,6 +12,9 @@ type Plan struct {
 	Url     string
 }
 
+func (this *Plan) String() string {
+	return util.Sprintf("%s-%s", this.Name, this.Version)
+}
 func (this *Plan) NameVersion() string {
 	return util.Sprintf("%s-%s", this.Name, this.Version)
 }
