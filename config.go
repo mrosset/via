@@ -4,7 +4,6 @@ import (
 	"os"
 	"path"
 	"util"
-	"util/file"
 	"util/json"
 )
 
@@ -33,8 +32,6 @@ func init() {
 	checkf(os.Setenv("CC", "gcc"))
 	cfile := path.Join(os.Getenv("HOME"), ".via.json")
 	checkf(json.Read(&config, cfile))
-	config.PlansRepo = "https://code.google.com/p/via.plans"
-	checkf(json.Write(&config, cfile))
 }
 
 func (c *Config) StageDir(name string) string {
@@ -65,26 +62,6 @@ func (c Cache) Sources() string {
 
 func (c Cache) Packages() string {
 	return path.Join(string(c), "packages")
-}
-
-func (c Cache) Create() error {
-	paths := []string{
-		string(c),
-		string(c.Builds()),
-		string(c.Stages()),
-		string(c.Sources()),
-		string(c.Packages()),
-		string(c.Packages()),
-	}
-	for _, d := range paths {
-		if !file.Exists(d) {
-			info("mkdir", d)
-			if err := os.MkdirAll(d, 0755); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 type DB string
