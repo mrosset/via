@@ -2,8 +2,10 @@ package via
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 	"runtime"
+	"util/file"
 	"util/json"
 )
 
@@ -36,6 +38,9 @@ func (this *Plan) Save() (err error) {
 
 func ReadPlan(name string) (plan *Plan, err error) {
 	plan = &Plan{Name: name}
+	if !file.Exists(path.Join(config.Plans, name+".json")) {
+		return nil, fmt.Errorf("Could not find plan %s.", name)
+	}
 	err = json.Read(plan, plan.File())
 	return plan, err
 }

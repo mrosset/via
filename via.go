@@ -21,9 +21,9 @@ var (
 	Verbose = false
 )
 
-//type BuildFnc func(*Plan) error
-
 func Init() (err error) {
+	dir := path.Dir(config.Plans)
+	fmt.Println(dir)
 	return nil
 }
 

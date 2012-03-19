@@ -1,7 +1,8 @@
 package via
 
 import (
-	"net/url"
+	"fmt"
+	"log"
 	"os"
 	"path"
 	"util"
@@ -24,7 +25,7 @@ type Config struct {
 	Plans    string
 	Cache    *Cache
 	DB       DB
-	Sync     *url.URL
+	Sync     string
 }
 
 func init() {
@@ -34,6 +35,11 @@ func init() {
 	checkf(json.Write(&config, cfile))
 	cache := config.Cache
 	checkf(cache.Create())
+	if !file.Exists(config.Plans) {
+		log.Fatal(
+			fmt.Errorf("%s does not exsit. if you are using via command, use via init to sync", config.Plans),
+		)
+	}
 }
 
 func (c *Config) StageDir(name string) string {
@@ -78,7 +84,7 @@ func (c Cache) Create() error {
 	for _, d := range paths {
 		if !file.Exists(d) {
 			info("mkdir", d)
-			if err := os.Mkdir(d, 0755); err != nil {
+			if err := os.MkdirAll(d, 0755); err != nil {
 				return err
 			}
 		}
