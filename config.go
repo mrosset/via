@@ -1,6 +1,7 @@
 package via
 
 import (
+	"net/url"
 	"os"
 	"path"
 	"util"
@@ -11,42 +12,39 @@ import (
 var (
 	config = &Config{}
 	checkf = util.CheckFatal
+	cache  *Cache
+	db     DB
 )
 
 type Config struct {
-	Arch     string
 	Identity string
-	OS       string
 	Prefix   string
 	Repo     string
 	Root     string
-	Cache    Cache
 	Plans    string
-	DB       string
+	Cache    *Cache
+	DB       DB
+	Sync     *url.URL
 }
 
 func init() {
 	checkf(os.Setenv("CC", "gcc"))
 	cfile := path.Join(os.Getenv("HOME"), ".via.json")
 	checkf(json.Read(&config, cfile))
-	checkf(config.Cache.Create())
-	for _, dir := range []string{config.Repo, config.DB} {
-		if !file.Exists(dir) {
-			info("mkdir", dir)
-			checkf(os.MkdirAll(dir, 0755))
-		}
-	}
+	checkf(json.Write(&config, cfile))
+	cache := config.Cache
+	checkf(cache.Create())
 }
 
-func (c *Config) GetStageDir(name string) string {
+func (c *Config) StageDir(name string) string {
 	return path.Join(c.Cache.Stages(), name)
 }
 
-func (c *Config) GetBuildDir(name string) string {
+func (c *Config) BuildDir(name string) string {
 	return path.Join(c.Cache.Builds(), name)
 }
 
-func (c *Config) GetPackageDir(name string) string {
+func (c *Config) PackageDir(name string) string {
 	return path.Join(c.Cache.Packages(), name)
 }
 
@@ -86,4 +84,10 @@ func (c Cache) Create() error {
 		}
 	}
 	return nil
+}
+
+type DB string
+
+func (d DB) Installed() string {
+	return path.Join(string(d), "installed")
 }

@@ -51,9 +51,9 @@ func build(args []string) {
 	for _, arg := range args {
 		start := time.Now()
 		plan, err := via.ReadPlan(arg)
+		defer fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
 		checkf(err)
 		checkf(via.BuildSteps(plan))
-		fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
 	}
 }
 

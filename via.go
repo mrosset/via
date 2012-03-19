@@ -21,7 +21,11 @@ var (
 	Verbose = false
 )
 
-type BuildFnc func(*Plan) error
+//type BuildFnc func(*Plan) error
+
+func Init() (err error) {
+	return nil
+}
 
 func DownloadSrc(plan *Plan) (err error) {
 	sfile := path.Join(config.Cache.Sources(), path.Base(plan.Url))
@@ -34,7 +38,7 @@ func DownloadSrc(plan *Plan) (err error) {
 }
 
 func Stage(plan *Plan) (err error) {
-	if file.Exists(config.GetStageDir(plan.NameVersion())) {
+	if file.Exists(config.StageDir(plan.NameVersion())) {
 		info("Stage", "skipping")
 		return nil
 	}
@@ -49,8 +53,8 @@ func Stage(plan *Plan) (err error) {
 }
 
 func GnuBuild(plan *Plan) (err error) {
-	bdir := config.GetBuildDir(plan.NameVersion())
-	sdir := config.GetStageDir(plan.NameVersion())
+	bdir := config.BuildDir(plan.NameVersion())
+	sdir := config.StageDir(plan.NameVersion())
 	if !file.Exists(bdir) {
 		err = os.Mkdir(bdir, 0775)
 		if err != nil {
@@ -79,12 +83,12 @@ func Build(plan *Plan) (err error) {
 
 func MakeInstall(plan *Plan) (err error) {
 	info("MakeInstall", plan.NameVersion())
-	return util.Run("make", config.GetBuildDir(plan.NameVersion()), "install", "DESTDIR="+config.GetPackageDir(plan.NameVersion()))
+	return util.Run("make", config.BuildDir(plan.NameVersion()), "install", "DESTDIR="+config.PackageDir(plan.NameVersion()))
 }
 
 func CreatePackage(plan *Plan) (err error) {
 	info("Package", plan.NameVersion())
-	dirfile := path.Join(config.GetPackageDir(plan.NameVersion()), config.Prefix, "share", "info", "dir")
+	dirfile := path.Join(config.PackageDir(plan.NameVersion()), config.Prefix, "share", "info", "dir")
 	if file.Exists(dirfile) {
 		err := os.Remove(dirfile)
 		if err != nil {
@@ -124,8 +128,8 @@ func Install(name string) (err error) {
 	}
 	defer gz.Close()
 	man, err := Untar(gz, config.Root)
-	db := path.Join(config.DB, plan.Name)
-	err = os.Mkdir(db, 0755)
+	db := path.Join(config.DB.Installed(), plan.Name)
+	err = os.MkdirAll(db, 0755)
 	if err != nil {
 		fmt.Println("*WARNING*", err)
 	}
@@ -156,7 +160,7 @@ func Remove(name string) (err error) {
 			return err
 		}
 	}
-	return os.RemoveAll(path.Join(config.DB, name))
+	return os.RemoveAll(path.Join(config.DB.Installed(), name))
 }
 
 // libtorrent-0.13.0.tar.gz

@@ -5,7 +5,7 @@ import (
 	"util"
 )
 
-var tests = []string{"ccache", "coreutils"}
+var tests = []string{"ccache"}
 
 func init() {
 	util.Verbose = false
