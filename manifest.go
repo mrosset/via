@@ -10,9 +10,9 @@ type Manifest struct {
 	Dirs  []string
 }
 
-func ReadManifest(plan *Plan) (man *Manifest, err error) {
+func ReadManifest(name string) (man *Manifest, err error) {
 	man = new(Manifest)
-	err = json.Read(man, installed.Dir(plan.Name).File("manifest.json"))
+	err = json.Read(man, join(inst, name, "manifest.json"))
 	if err != nil {
 		return
 	}

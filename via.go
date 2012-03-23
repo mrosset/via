@@ -3,7 +3,8 @@ package via
 import (
 	"compress/gzip"
 	"errors"
-	"gurl/pkg"
+	"fmt"
+	"gurl"
 	"log"
 	"net/http"
 	"os"
@@ -20,32 +21,39 @@ var (
 	Verbose = false
 )
 
+//type BuildFnc func(*Plan) error
+
+func Init() (err error) {
+	return nil
+}
+
 func DownloadSrc(plan *Plan) (err error) {
-	sfile := sources.File(path.Base(plan.Url))
+	sfile := path.Join(srcs, path.Base(plan.Url))
 	if file.Exists(sfile) {
 		return nil
 	}
-	defer util.Println()
-	return gurl.Download(plan.Url, sources.String())
+	info("DownloadSrc", plan.Url)
+	return gurl.Download(srcs, plan.Url)
 }
 
 func Stage(plan *Plan) (err error) {
-	dir := stages.File(plan.NameVersion())
-	if file.Exists(dir) {
+	if file.Exists(path.Join(plan.NameVersion())) {
+		info("Stage", "skipping")
 		return nil
 	}
-	sfile := sources.File(path.Base(plan.Url))
-	r, err := magic.GetReader(sfile)
+	info("Stage", path.Base(plan.Url))
+	path := path.Join(srcs, path.Base(plan.Url))
+	r, err := magic.GetReader(path)
 	if err != nil {
 		return err
 	}
-	_, err = Untar(r, stages.String())
+	_, err = Untar(r, stgs)
 	return
 }
 
 func GnuBuild(plan *Plan) (err error) {
-	bdir := builds.File(plan.NameVersion())
-	sdir := stages.File(plan.NameVersion())
+	bdir := path.Join(blds, plan.NameVersion())
+	sdir := path.Join(stgs, plan.NameVersion())
 	if !file.Exists(bdir) {
 		err = os.Mkdir(bdir, 0775)
 		if err != nil {
@@ -61,9 +69,10 @@ func GnuBuild(plan *Plan) (err error) {
 }
 
 func Build(plan *Plan) (err error) {
-	configure := stages.Dir(plan.NameVersion()).File("configure")
+	configure := path.Join(stgs, plan.NameVersion(), "configure")
 	switch {
 	case file.Exists(configure):
+		info("GnuBuild", plan.NameVersion())
 		return GnuBuild(plan)
 	default:
 		log.Fatal(errors.New("could not determine build type"))
@@ -72,13 +81,16 @@ func Build(plan *Plan) (err error) {
 }
 
 func MakeInstall(plan *Plan) (err error) {
-	pdir := packages.File(plan.NameVersion())
-	bdir := builds.File(plan.NameVersion())
-	return util.Run("make", bdir, "install", "DESTDIR="+pdir)
+	info("MakeInstall", plan.NameVersion())
+	dir := path.Join(blds, plan.NameVersion())
+	pdir := path.Join(pkgs, plan.NameVersion())
+	return util.Run("make", dir, "install", "DESTDIR="+pdir)
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	pfile := repo.File(plan.PackageFile())
+	info("Package", plan.NameVersion())
+	pfile := path.Join(config.Repo, plan.PackageFile())
+	fmt.Println(pfile)
 	fd, err := os.Create(pfile)
 	if err != nil {
 		return err
@@ -89,8 +101,13 @@ func CreatePackage(plan *Plan) (err error) {
 	return Package(gz, plan)
 }
 
-func Install(plan *Plan) (err error) {
-	pfile := repo.File(plan.PackageFile())
+func Install(name string) (err error) {
+	plan, err := ReadPlan(name)
+	if err != nil {
+		return
+	}
+	info("Installing", plan.NameVersion())
+	pfile := path.Join(config.Repo, plan.PackageFile())
 	err = CheckSig(pfile)
 	if err != nil {
 		return
@@ -106,26 +123,38 @@ func Install(plan *Plan) (err error) {
 	}
 	defer gz.Close()
 	man, err := Untar(gz, config.Root)
-	db := installed.File(plan.Name)
+	db := path.Join(inst, plan.Name)
 	err = os.MkdirAll(db, 0755)
 	if err != nil {
-		return
+		fmt.Println("*WARNING*", err)
 	}
 	return json.Write(man, path.Join(db, "manifest.json"))
 }
 
-func Remove(plan *Plan) (err error) {
-	man, err := ReadManifest(plan)
+func List(name string) (err error) {
+	man, err := ReadManifest(name)
+	if err != nil {
+		return
+	}
+	for _, f := range man.Files {
+		fmt.Println("file:", path.Join(config.Root, f))
+	}
+	return
+}
+
+func Remove(name string) (err error) {
+	man, err := ReadManifest(name)
 	if err != nil {
 		return err
 	}
+	info("Removing", man.Plan.NameVersion())
 	for _, f := range man.Files {
 		err = os.Remove(path.Join(config.Root, f))
 		if err != nil {
 			return err
 		}
 	}
-	return os.RemoveAll(installed.File(plan.Name))
+	return os.RemoveAll(path.Join(inst, name))
 }
 
 // libtorrent-0.13.0.tar.gz
@@ -165,4 +194,8 @@ func Create(url string) (err error) {
 	}
 	plan := &Plan{Name: name, Version: version, Url: url}
 	return plan.Save()
+}
+
+func info(prefix string, msg string) {
+	fmt.Printf("%-20s %s\n", prefix, msg)
 }

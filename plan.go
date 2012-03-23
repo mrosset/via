@@ -1,8 +1,9 @@
 package via
 
 import (
+	"fmt"
+	"path/filepath"
 	"runtime"
-	"util"
 	"util/json"
 )
 
@@ -12,15 +13,21 @@ type Plan struct {
 	Url     string
 }
 
-func (this *Plan) String() string {
-	return util.Sprintf("%s-%s", this.Name, this.Version)
-}
 func (this *Plan) NameVersion() string {
-	return util.Sprintf("%s-%s", this.Name, this.Version)
+	return fmt.Sprintf("%s-%s", this.Name, this.Version)
+}
+
+func (this *Plan) Print() {
+	pp := func(f, v string) {
+		fmt.Printf("%-10.10s = %s\n", f, v)
+	}
+	pp("Name", this.Name)
+	pp("Version", this.Version)
+	pp("Url", this.Url)
 }
 
 func (this *Plan) File() string {
-	return plans.File(this.Name + ".json")
+	return filepath.Join(config.Plans, this.Name+".json")
 }
 
 func (this *Plan) Save() (err error) {
@@ -34,5 +41,5 @@ func ReadPlan(name string) (plan *Plan, err error) {
 }
 
 func (this *Plan) PackageFile() string {
-	return util.Sprintf("%s-%s-%s.tar.gz", this.NameVersion(), runtime.GOOS, runtime.GOARCH)
+	return fmt.Sprintf("%s-%s-%s.tar.gz", this.NameVersion(), runtime.GOOS, runtime.GOARCH)
 }
