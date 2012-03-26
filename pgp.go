@@ -6,6 +6,7 @@ import (
 	"exp/terminal"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -47,7 +48,7 @@ func Sign(plan *Plan) (err error) {
 			return err
 		}
 	}
-	ppath := filepath.Join(config.Repo, plan.PackageFile())
+	ppath := path.Join(config.Repo, plan.PackageFile())
 	pkg, err := os.Open(ppath)
 	if err != nil {
 		return err

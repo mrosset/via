@@ -10,21 +10,17 @@ import (
 
 var (
 	config   *Config
-	blds     string
-	inst     string
-	pkgs     string
-	srcs     string
-	stgs     string
+	cache    Cache
 	home     = os.Getenv("HOME")
 	cfile    = path.Join(home, "via.json")
 	defaults = &Config{
-		Cache:     "/home/strings/via/cache",
-		DB:        "/usr/local/via",
 		Identity:  "test user <test@test.com>",
-		Plans:     "/home/strings/via/plans",
-		PlansRepo: "https://code.google.com/p/via.plans",
-		Repo:      "/home/strings/via/repo",
 		Root:      "/",
+		PlansRepo: "https://code.google.com/p/via.plans",
+		Cache:     "$HOME/via/cache",
+		DB:        "/usr/local/via",
+		Plans:     "$HOME/via/plans",
+		Repo:      "$HOME/via/repo",
 	}
 	join = path.Join
 )
@@ -42,20 +38,43 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	blds = join(config.Cache, "builds")
-	inst = join(config.DB, "installed")
-	pkgs = join(config.Cache, "packages")
-	srcs = join(config.Cache, "sources")
-	stgs = join(config.Cache, "stages")
+	cache = Cache(os.ExpandEnv(string(config.Cache)))
+	config.Plans = os.ExpandEnv(config.Plans)
+	config.Repo = os.ExpandEnv(config.Repo)
 }
 
 type Config struct {
-	Cache     string
-	DB        string
 	Identity  string
-	Plans     string
-	PlansRepo string
-	Repo      string
 	Root      string
+	PlansRepo string
+
+	// Paths
+	Cache Cache
+	DB    DB
+	Plans string
+	Repo  string
+}
+
+type DB string
+
+func (d DB) Installed() string {
+	return path.Join(string(d))
+}
+
+type Cache string
+
+func (c Cache) Pkgs() string {
+	return path.Join("pkg")
+}
+
+func (c Cache) Srcs() string {
+	return path.Join(string(c), "src")
+}
+
+func (c Cache) Builds() string {
+	return path.Join(string(c), "bld")
+}
+
+func (c Cache) Stages() string {
+	return path.Join(string(c), "stg")
 }

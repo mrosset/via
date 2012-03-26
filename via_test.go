@@ -5,7 +5,10 @@ import (
 	"util"
 )
 
-var tests = []string{"ccache"}
+var (
+	tests = []string{"ccache"}
+	turl  = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
+)
 
 func init() {
 	util.Verbose = false
@@ -29,5 +32,12 @@ func TestBuildSteps(t *testing.T) {
 		if err := Remove(test); err != nil {
 			t.Error(err)
 		}
+	}
+}
+
+func TestCreate(t *testing.T) {
+	err := Create(turl)
+	if err != nil {
+		t.Error(err)
 	}
 }

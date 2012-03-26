@@ -28,12 +28,12 @@ func Init() (err error) {
 }
 
 func DownloadSrc(plan *Plan) (err error) {
-	sfile := path.Join(srcs, path.Base(plan.Url))
+	sfile := path.Join(cache.Srcs(), path.Base(plan.Url))
 	if file.Exists(sfile) {
 		return nil
 	}
 	info("DownloadSrc", plan.Url)
-	return gurl.Download(srcs, plan.Url)
+	return gurl.Download(cache.Srcs(), plan.Url)
 }
 
 func Stage(plan *Plan) (err error) {
@@ -42,18 +42,18 @@ func Stage(plan *Plan) (err error) {
 		return nil
 	}
 	info("Stage", path.Base(plan.Url))
-	path := path.Join(srcs, path.Base(plan.Url))
+	path := path.Join(cache.Srcs(), path.Base(plan.Url))
 	r, err := magic.GetReader(path)
 	if err != nil {
 		return err
 	}
-	_, err = Untar(r, stgs)
+	_, err = Untar(r, cache.Stages())
 	return
 }
 
 func GnuBuild(plan *Plan) (err error) {
-	bdir := path.Join(blds, plan.NameVersion())
-	sdir := path.Join(stgs, plan.NameVersion())
+	bdir := path.Join(cache.Builds(), plan.NameVersion())
+	sdir := path.Join(cache.Stages(), plan.NameVersion())
 	if !file.Exists(bdir) {
 		err = os.Mkdir(bdir, 0775)
 		if err != nil {
@@ -69,7 +69,7 @@ func GnuBuild(plan *Plan) (err error) {
 }
 
 func Build(plan *Plan) (err error) {
-	configure := path.Join(stgs, plan.NameVersion(), "configure")
+	configure := path.Join(cache.Stages(), plan.NameVersion(), "configure")
 	switch {
 	case file.Exists(configure):
 		info("GnuBuild", plan.NameVersion())
@@ -82,15 +82,14 @@ func Build(plan *Plan) (err error) {
 
 func MakeInstall(plan *Plan) (err error) {
 	info("MakeInstall", plan.NameVersion())
-	dir := path.Join(blds, plan.NameVersion())
-	pdir := path.Join(pkgs, plan.NameVersion())
+	dir := path.Join(cache.Builds(), plan.NameVersion())
+	pdir := path.Join(cache.Pkgs(), plan.NameVersion())
 	return util.Run("make", dir, "install", "DESTDIR="+pdir)
 }
 
 func CreatePackage(plan *Plan) (err error) {
 	info("Package", plan.NameVersion())
-	pfile := path.Join(config.Repo, plan.PackageFile())
-	fmt.Println(pfile)
+	pfile := path.Join(string(config.Repo), plan.PackageFile())
 	fd, err := os.Create(pfile)
 	if err != nil {
 		return err
@@ -123,7 +122,7 @@ func Install(name string) (err error) {
 	}
 	defer gz.Close()
 	man, err := Untar(gz, config.Root)
-	db := path.Join(inst, plan.Name)
+	db := path.Join(config.DB.Installed(), plan.Name)
 	err = os.MkdirAll(db, 0755)
 	if err != nil {
 		fmt.Println("*WARNING*", err)
@@ -154,7 +153,7 @@ func Remove(name string) (err error) {
 			return err
 		}
 	}
-	return os.RemoveAll(path.Join(inst, name))
+	return os.RemoveAll(path.Join(config.DB.Installed(), name))
 }
 
 // libtorrent-0.13.0.tar.gz
