@@ -122,6 +122,9 @@ func Install(name string) (err error) {
 	}
 	defer gz.Close()
 	man, err := Untar(gz, config.Root)
+	if err != nil {
+		return err
+	}
 	db := path.Join(config.DB.Installed(), plan.Name)
 	err = os.MkdirAll(db, 0755)
 	if err != nil {

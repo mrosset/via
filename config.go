@@ -64,7 +64,7 @@ func (d DB) Installed() string {
 type Cache string
 
 func (c Cache) Pkgs() string {
-	return path.Join("pkg")
+	return path.Join(string(c), "pkg")
 }
 
 func (c Cache) Srcs() string {
