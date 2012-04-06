@@ -1,8 +1,8 @@
 package via
 
 import (
+	"github.com/str1ngs/util/json"
 	"path"
-	"util/json"
 )
 
 type Manifest struct {

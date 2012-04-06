@@ -6,6 +6,8 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"github.com/str1ngs/util/file"
+	"github.com/str1ngs/util/json"
 	"io"
 	"log"
 	"os"
@@ -14,8 +16,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"util/file"
-	"util/json"
 )
 
 var (
@@ -223,9 +223,6 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	fd, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, os.FileMode(hdr.Mode))
 	if err != nil {
 		return err
-	}
-	if Verbose {
-		info("Write", path)
 	}
 	//pb := console.NewProgressBarWriter(filepath.Base(path), hdr.Size, fd)
 	if _, err = io.Copy(fd, tr); err != nil {

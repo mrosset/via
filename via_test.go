@@ -1,8 +1,9 @@
 package via
 
 import (
+	"fmt"
+	"github.com/str1ngs/util"
 	"testing"
-	"util"
 )
 
 var (
@@ -26,9 +27,7 @@ func TestBuildSteps(t *testing.T) {
 		if err := Install(test); err != nil {
 			t.Fatal(err)
 		}
-		if err := List(test); err != nil {
-			t.Fatal(err)
-		}
+		fmt.Println("Removing\t", plan.NameVersion())
 		if err := Remove(test); err != nil {
 			t.Error(err)
 		}

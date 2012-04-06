@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"util"
-	"via"
+	"github.com/str1ngs/util"
+	"code.google.com/p/via"
 )
 
 var (

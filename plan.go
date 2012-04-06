@@ -2,9 +2,9 @@ package via
 
 import (
 	"fmt"
+	"github.com/str1ngs/util/json"
 	"path"
 	"runtime"
-	"util/json"
 )
 
 type Plan struct {

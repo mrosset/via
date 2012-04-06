@@ -4,16 +4,16 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
-	"gurl"
+	"github.com/str1ngs/gurl"
+	"github.com/str1ngs/util"
+	"github.com/str1ngs/util/file"
+	"github.com/str1ngs/util/file/magic"
+	"github.com/str1ngs/util/json"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"regexp"
-	"util"
-	"util/file"
-	"util/file/magic"
-	"util/json"
 )
 
 var (
@@ -32,16 +32,13 @@ func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(sfile) {
 		return nil
 	}
-	info("DownloadSrc", plan.Url)
 	return gurl.Download(cache.Srcs(), plan.Url)
 }
 
 func Stage(plan *Plan) (err error) {
 	if file.Exists(path.Join(plan.NameVersion())) {
-		info("Stage", "skipping")
 		return nil
 	}
-	info("Stage", path.Base(plan.Url))
 	path := path.Join(cache.Srcs(), path.Base(plan.Url))
 	r, err := magic.GetReader(path)
 	if err != nil {
@@ -72,7 +69,6 @@ func Build(plan *Plan) (err error) {
 	configure := path.Join(cache.Stages(), plan.NameVersion(), "configure")
 	switch {
 	case file.Exists(configure):
-		info("GnuBuild", plan.NameVersion())
 		return GnuBuild(plan)
 	default:
 		log.Fatal(errors.New("could not determine build type"))
@@ -81,14 +77,12 @@ func Build(plan *Plan) (err error) {
 }
 
 func MakeInstall(plan *Plan) (err error) {
-	info("MakeInstall", plan.NameVersion())
 	dir := path.Join(cache.Builds(), plan.NameVersion())
 	pdir := path.Join(cache.Pkgs(), plan.NameVersion())
 	return util.Run("make", dir, "install", "DESTDIR="+pdir)
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	info("Package", plan.NameVersion())
 	pfile := path.Join(string(config.Repo), plan.PackageFile())
 	fd, err := os.Create(pfile)
 	if err != nil {
@@ -105,7 +99,6 @@ func Install(name string) (err error) {
 	if err != nil {
 		return
 	}
-	info("Installing", plan.NameVersion())
 	pfile := path.Join(config.Repo, plan.PackageFile())
 	err = CheckSig(pfile)
 	if err != nil {
@@ -149,7 +142,6 @@ func Remove(name string) (err error) {
 	if err != nil {
 		return err
 	}
-	info("Removing", man.Plan.NameVersion())
 	for _, f := range man.Files {
 		err = os.Remove(path.Join(config.Root, f))
 		if err != nil {
@@ -159,24 +151,28 @@ func Remove(name string) (err error) {
 	return os.RemoveAll(path.Join(config.DB.Installed(), name))
 }
 
-// libtorrent-0.13.0.tar.gz
-
 func BuildSteps(plan *Plan) (err error) {
+	fmt.Println("Downloading\t", plan.Url)
 	if err := DownloadSrc(plan); err != nil {
 		return err
 	}
+	fmt.Println("Stageing\t", plan.NameVersion())
 	if err := Stage(plan); err != nil {
 		return err
 	}
+	fmt.Println("Building\t", plan.NameVersion())
 	if err := Build(plan); err != nil {
 		return err
 	}
+	fmt.Println("Installing\t", plan.NameVersion())
 	if err := MakeInstall(plan); err != nil {
 		return err
 	}
+	fmt.Println("Packageing\t", plan.NameVersion())
 	if err := CreatePackage(plan); err != nil {
 		return err
 	}
+	fmt.Println("Signing\t\t", plan.NameVersion())
 	return Sign(plan)
 }
 
@@ -196,8 +192,4 @@ func Create(url string) (err error) {
 	}
 	plan := &Plan{Name: name, Version: version, Url: url}
 	return plan.Save()
-}
-
-func info(prefix string, msg string) {
-	fmt.Printf("%-20s %s\n", prefix, msg)
 }

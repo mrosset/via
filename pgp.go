@@ -3,7 +3,6 @@ package via
 import (
 	"code.google.com/p/go.crypto/openpgp"
 	"code.google.com/p/go.crypto/openpgp/packet"
-	"exp/terminal"
 	"fmt"
 	"os"
 	"path"
@@ -59,7 +58,6 @@ func Sign(plan *Plan) (err error) {
 		return err
 	}
 	defer sig.Close()
-	fmt.Println("Signing", ppath)
 	err = openpgp.DetachSign(sig, entity, pkg, new(packet.Config))
 	if err != nil {
 		return err
@@ -90,18 +88,4 @@ func CheckSig(path string) (err error) {
 		return err
 	}
 	return nil
-}
-
-func ReadPassword() (string, error) {
-	fd, err := os.OpenFile("/dev/ttys001", os.O_RDWR, 0)
-	if err != nil {
-		return "", err
-	}
-	defer fd.Close()
-	term := terminal.NewTerminal(fd, "$")
-	line, err := term.ReadPassword("Password: ")
-	if err != nil {
-		return "", err
-	}
-	return line, nil
 }
