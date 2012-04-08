@@ -126,17 +126,6 @@ func Install(name string) (err error) {
 	return json.Write(man, path.Join(db, "manifest.json"))
 }
 
-func List(name string) (err error) {
-	man, err := ReadManifest(name)
-	if err != nil {
-		return
-	}
-	for _, f := range man.Files {
-		fmt.Println("file:", path.Join(config.Root, f))
-	}
-	return
-}
-
 func Remove(name string) (err error) {
 	man, err := ReadManifest(name)
 	if err != nil {
@@ -151,31 +140,37 @@ func Remove(name string) (err error) {
 	return os.RemoveAll(path.Join(config.DB.Installed(), name))
 }
 
-func BuildSteps(plan *Plan) (err error) {
-	fmt.Println("Downloading\t", plan.Url)
-	if err := DownloadSrc(plan); err != nil {
-		return err
-	}
-	fmt.Println("Stageing\t", plan.NameVersion())
-	if err := Stage(plan); err != nil {
-		return err
-	}
-	fmt.Println("Building\t", plan.NameVersion())
-	if err := Build(plan); err != nil {
-		return err
-	}
-	fmt.Println("Installing\t", plan.NameVersion())
-	if err := MakeInstall(plan); err != nil {
-		return err
-	}
-	fmt.Println("Packageing\t", plan.NameVersion())
-	if err := CreatePackage(plan); err != nil {
-		return err
-	}
-	fmt.Println("Signing\t\t", plan.NameVersion())
-	return Sign(plan)
+type Step struct {
+	Name string
+	Run  func(*Plan) error
 }
 
+type Steps []Step
+
+func (this Steps) Run(p *Plan) (err error) {
+	for _, s := range this {
+		fmt.Printf("%-20.20s %s\n", s.Name, p.NameVersion())
+		if err = s.Run(p); err != nil {
+			return
+		}
+	}
+	return nil
+}
+
+// Run all of the functions required to build a package
+func BuildSteps(plan *Plan) (err error) {
+	steps := Steps{
+		Step{"download", DownloadSrc},
+		Step{"stage", Stage},
+		Step{"build", Build},
+		Step{"make install", MakeInstall},
+		Step{"package", CreatePackage},
+		Step{"sign", Sign},
+	}
+	return steps.Run(plan)
+}
+
+// Creates a new plan from a give Url
 func Create(url string) (err error) {
 	var (
 		file    = path.Base(url)

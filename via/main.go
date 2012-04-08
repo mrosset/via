@@ -1,12 +1,12 @@
 package main
 
 import (
+	"code.google.com/p/via"
 	"flag"
 	"fmt"
-	"os"
-	"time"
 	"github.com/str1ngs/util"
-	"code.google.com/p/via"
+	"github.com/str1ngs/util/console/command"
+	"time"
 )
 
 var (
@@ -15,40 +15,23 @@ var (
 )
 
 func main() {
-	flag.Parse()
 	via.Verbose = *verbose
 	util.Verbose = *verbose
-	if len(flag.Args()) == 0 {
-		flag.Usage()
-		os.Exit(1)
-	}
-	cmd := flag.Arg(0)
-	args := flag.Args()[1:]
-	switch cmd {
-	case "build":
-		build(args)
-	case "install":
-		install(args)
-	case "remove":
-		remove(args)
-	case "create":
-		create(args)
-	case "list":
-		list(args)
-	default:
-		flag.Usage()
-		os.Exit(1)
-	}
+	command.Add("build", build, "build plan")
+	command.Add("install", install, "install package")
+	command.Add("remove", install, "remove package")
+	command.Add("create", install, "create plan from URL")
+	command.Run()
 }
 
-func create(args []string) {
-	for _, arg := range args {
+func create() {
+	for _, arg := range command.Args() {
 		checkf(via.Create(arg))
 	}
 }
 
-func build(args []string) {
-	for _, arg := range args {
+func build() {
+	for _, arg := range command.Args() {
 		start := time.Now()
 		plan, err := via.ReadPlan(arg)
 		defer fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
@@ -57,20 +40,10 @@ func build(args []string) {
 	}
 }
 
-func install(args []string) {
-	for _, arg := range args {
-		checkf(via.Install(arg))
-	}
+func install() {
+	command.ArgsDo(via.Install)
 }
 
-func remove(args []string) {
-	for _, arg := range args {
-		checkf(via.Remove(arg))
-	}
-}
-
-func list(args []string) {
-	for _, arg := range args {
-		checkf(via.List(arg))
-	}
+func remove() {
+	command.ArgsDo(via.Remove)
 }
