@@ -122,8 +122,11 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 }
 
 func Package(wr io.Writer, plan *Plan) (err error) {
-	man := &Manifest{Plan: plan}
 	dir := path.Join(cache.Pkgs(), plan.NameVersion())
+	err = CreateManifest(dir, plan)
+	if err != nil {
+		return err
+	}
 	tw := tar.NewWriter(wr)
 	defer tw.Close()
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -140,7 +143,6 @@ func Package(wr io.Writer, plan *Plan) (err error) {
 		}
 		switch {
 		case hdr.Typeflag == tar.TypeDir:
-			man.Dirs = append(man.Dirs, spath)
 		default:
 			fd, err := os.Open(path)
 			if err != nil {
@@ -151,30 +153,10 @@ func Package(wr io.Writer, plan *Plan) (err error) {
 			if err != nil {
 				return err
 			}
-			man.Files = append(man.Files, spath)
 		}
 		return nil
 	}
-	err = filepath.Walk(dir, walkFn)
-	if err != nil {
-		return err
-	}
-	gzm := new(bytes.Buffer)
-	if err = json.WriteGzIo(man, gzm); err != nil {
-		return
-	}
-	hdr := new(tar.Header)
-	hdr.Name = "manifest.json.gz"
-	hdr.Size = int64(len(gzm.Bytes()))
-	hdr.Mode = 0644
-	hdr.ChangeTime = time.Now()
-	hdr.AccessTime = time.Now()
-	hdr.ModTime = time.Now()
-	if err = tw.WriteHeader(hdr); err != nil {
-		return err
-	}
-	_, err = io.Copy(tw, gzm)
-	return
+	return filepath.Walk(dir, walkFn)
 }
 
 func fiToHeader(name string, fi os.FileInfo) (hdr *tar.Header) {

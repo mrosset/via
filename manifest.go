@@ -1,14 +1,46 @@
 package via
 
 import (
+	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
+	"os"
 	"path"
+	"path/filepath"
 )
 
 type Manifest struct {
 	Plan  *Plan
 	Files []string
-	Dirs  []string
+}
+
+func CreateManifest(dir string, plan *Plan) (err error) {
+	mfile := filepath.Join(dir, "manifest.json.gz")
+	man := Manifest{Plan: plan}
+	if file.Exists(mfile) {
+		err := os.Remove(mfile)
+		if err != nil {
+			return err
+		}
+	}
+	walkFn := func(path string, info os.FileInfo, err error) error {
+		if path == dir {
+			return nil
+		}
+		spath := path[len(dir)+1:]
+		stat, err := os.Stat(path)
+		if err != nil {
+			return err
+		}
+		if !stat.IsDir() {
+			man.Files = append(man.Files, spath)
+		}
+		return nil
+	}
+	err = filepath.Walk(dir, walkFn)
+	if err != nil {
+		return err
+	}
+	return json.WriteGzJson(&man, mfile)
 }
 
 func ReadManifest(name string) (man *Manifest, err error) {

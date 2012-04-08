@@ -99,6 +99,10 @@ func Install(name string) (err error) {
 	if err != nil {
 		return
 	}
+	db := path.Join(config.DB.Installed(), plan.Name)
+	if file.Exists(db) {
+		return fmt.Errorf("%s is already installed", name)
+	}
 	pfile := path.Join(config.Repo, plan.PackageFile())
 	err = CheckSig(pfile)
 	if err != nil {
@@ -118,7 +122,6 @@ func Install(name string) (err error) {
 	if err != nil {
 		return err
 	}
-	db := path.Join(config.DB.Installed(), plan.Name)
 	err = os.MkdirAll(db, 0755)
 	if err != nil {
 		fmt.Println("*WARNING*", err)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/str1ngs/util"
 	"github.com/str1ngs/util/console/command"
+	"log"
 	"time"
 )
 
@@ -19,18 +20,25 @@ func main() {
 	util.Verbose = *verbose
 	command.Add("build", build, "build plan")
 	command.Add("install", install, "install package")
-	command.Add("remove", install, "remove package")
-	command.Add("create", install, "create plan from URL")
-	command.Run()
-}
-
-func create() {
-	for _, arg := range command.Args() {
-		checkf(via.Create(arg))
+	command.Add("remove", remove, "remove package")
+	command.Add("create", create, "create plan from URL")
+	err := command.Run()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func build() {
+func create() error {
+	for _, arg := range command.Args() {
+		err := via.Create(arg)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func build() error {
 	for _, arg := range command.Args() {
 		start := time.Now()
 		plan, err := via.ReadPlan(arg)
@@ -38,12 +46,13 @@ func build() {
 		checkf(err)
 		checkf(via.BuildSteps(plan))
 	}
+	return nil
 }
 
-func install() {
-	command.ArgsDo(via.Install)
+func install() error {
+	return command.ArgsDo(via.Install)
 }
 
-func remove() {
-	command.ArgsDo(via.Remove)
+func remove() error {
+	return command.ArgsDo(via.Remove)
 }

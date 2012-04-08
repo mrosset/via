@@ -58,7 +58,7 @@ type Config struct {
 type DB string
 
 func (d DB) Installed() string {
-	return path.Join(string(d))
+	return path.Join(string(d), "installed")
 }
 
 type Cache string
