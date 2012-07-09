@@ -19,13 +19,8 @@ import (
 var (
 	client  = new(http.Client)
 	Verbose = false
+	elog    = log.New(os.Stderr, "via: ", log.Lshortfile)
 )
-
-//type BuildFnc func(*Plan) error
-
-func Init() (err error) {
-	return nil
-}
 
 func DownloadSrc(plan *Plan) (err error) {
 	sfile := path.Join(cache.Srcs(), path.Base(plan.Url))
@@ -45,6 +40,10 @@ func Stage(plan *Plan) (err error) {
 		return err
 	}
 	_, err = Untar(r, cache.Stages())
+	if err != nil {
+		elog.Println(err)
+		return err
+	}
 	return
 }
 

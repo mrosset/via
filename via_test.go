@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	tests = []string{"wget", "bash"}
+	tests = []string{"ccache"}
 	turl  = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 

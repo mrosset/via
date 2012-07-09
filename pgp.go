@@ -35,7 +35,6 @@ func Sign(plan *Plan) (err error) {
 		return fmt.Errorf("Could not find entity or identity for %s", config.Identity)
 	}
 	if entity.PrivateKey.Encrypted {
-		_ = identity.Name
 		pw := ""
 		fmt.Printf("%s Password: ", identity.Name)
 		_, err := fmt.Scanln(&pw)

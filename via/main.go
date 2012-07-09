@@ -7,6 +7,8 @@ import (
 	"github.com/str1ngs/util"
 	"github.com/str1ngs/util/console/command"
 	"log"
+	"os"
+	"os/exec"
 	"time"
 )
 
@@ -19,13 +21,27 @@ func main() {
 	via.Verbose = *verbose
 	util.Verbose = *verbose
 	command.Add("build", build, "build plan")
+	command.Add("create", create, "create plan from URL")
+	command.Add("edit", edit, "calls EDITOR to edit plan")
 	command.Add("install", install, "install package")
 	command.Add("remove", remove, "remove package")
-	command.Add("create", create, "create plan from URL")
 	err := command.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func edit() error {
+	editor := os.Getenv("EDITOR")
+	plan, err := via.ReadPlan(command.Args()[0])
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(editor, plan.File())
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func create() error {
