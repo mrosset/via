@@ -1,18 +1,20 @@
 package via
 
 import (
+	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
 	"github.com/str1ngs/gurl"
-	"github.com/str1ngs/util"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/json"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 )
 
@@ -31,10 +33,10 @@ func DownloadSrc(plan *Plan) (err error) {
 }
 
 func Stage(plan *Plan) (err error) {
-	if file.Exists(path.Join(plan.NameVersion())) {
+	if file.Exists(join(cache.Stages(), plan.stageDir())) {
 		return nil
 	}
-	path := path.Join(cache.Srcs(), path.Base(plan.Url))
+	path := join(cache.Srcs(), path.Base(plan.Url))
 	r, err := magic.GetReader(path)
 	if err != nil {
 		return err
@@ -49,23 +51,31 @@ func Stage(plan *Plan) (err error) {
 
 func GnuBuild(plan *Plan) (err error) {
 	bdir := path.Join(cache.Builds(), plan.NameVersion())
-	sdir := path.Join(cache.Stages(), plan.NameVersion())
+	sdir := path.Join(cache.Stages(), plan.stageDir())
 	if !file.Exists(bdir) {
 		err = os.Mkdir(bdir, 0775)
 		if err != nil {
 			return err
 		}
 	}
-	err = util.Run(sdir+"/configure", bdir, "--config-cache")
+	flags := config.Flags
+	if plan.Flags != nil {
+		flags = append(flags, plan.Flags...)
+	}
+	cmd := exec.Command(join(sdir, "configure"), flags...)
+	cmd.Dir = bdir
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
 	if err != nil {
 		return err
 	}
-
-	return util.Run("make", bdir)
+	//err := util.RunIn(bdir, "make")
+	return nil
 }
 
 func Build(plan *Plan) (err error) {
-	configure := path.Join(cache.Stages(), plan.NameVersion(), "configure")
+	configure := path.Join(cache.Stages(), plan.stageDir(), "configure")
 	switch {
 	case file.Exists(configure):
 		return GnuBuild(plan)
@@ -75,10 +85,36 @@ func Build(plan *Plan) (err error) {
 	return
 }
 
-func MakeInstall(plan *Plan) (err error) {
-	dir := path.Join(cache.Builds(), plan.NameVersion())
-	pdir := path.Join(cache.Pkgs(), plan.NameVersion())
-	return util.Run("make", dir, "install", "DESTDIR="+pdir)
+func Package(plan *Plan) (err error) {
+	bdir := join(cache.Builds(), plan.NameVersion())
+	pdir := join(cache.Pkgs(), plan.NameVersion())
+	os.Setenv("PKGDIR", pdir)
+	if file.Exists(pdir) {
+		err := os.RemoveAll(pdir)
+		if err != nil {
+			return err
+		}
+	}
+	err = os.Mkdir(pdir, 0755)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	for _, j := range plan.Package {
+		s := os.ExpandEnv(j)
+		buf := new(bytes.Buffer)
+		buf.WriteString(s)
+		cmd := exec.Command("sh")
+		cmd.Dir = bdir
+		cmd.Stdin = buf
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		err = cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func CreatePackage(plan *Plan) (err error) {
@@ -90,7 +126,7 @@ func CreatePackage(plan *Plan) (err error) {
 	defer fd.Close()
 	gz := gzip.NewWriter(fd)
 	defer gz.Close()
-	return Package(gz, plan)
+	return TarBall(gz, plan)
 }
 
 func Install(name string) (err error) {
@@ -165,8 +201,8 @@ func BuildSteps(plan *Plan) (err error) {
 		Step{"download", DownloadSrc},
 		Step{"stage", Stage},
 		Step{"build", Build},
-		Step{"make install", MakeInstall},
-		Step{"package", CreatePackage},
+		Step{"package", Package},
+		Step{"tarball", CreatePackage},
 		Step{"sign", Sign},
 	}
 	return steps.Run(plan)
@@ -189,4 +225,24 @@ func Create(url string) (err error) {
 	}
 	plan := &Plan{Name: name, Version: version, Url: url}
 	return plan.Save()
+}
+
+func Lint() (err error) {
+	e, err := filepath.Glob(join(config.Plans, "*.json"))
+	if err != nil {
+		return err
+	}
+	for _, j := range e {
+		plan, err := ReadPath(j)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		err = plan.Save()
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+	return nil
 }

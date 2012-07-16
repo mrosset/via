@@ -14,7 +14,6 @@ import (
 
 var (
 	verbose = flag.Bool("v", false, "verbose output")
-	checkf  = util.CheckFatal
 )
 
 func main() {
@@ -59,8 +58,13 @@ func build() error {
 		start := time.Now()
 		plan, err := via.ReadPlan(arg)
 		defer fmt.Printf("%-20s %s\n", plan.NameVersion(), time.Now().Sub(start))
-		checkf(err)
-		checkf(via.BuildSteps(plan))
+		if err != nil {
+			log.Fatal(err)
+		}
+		err := via.BuildSteps(plan)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	return nil
 }

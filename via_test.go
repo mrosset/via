@@ -8,11 +8,19 @@ import (
 
 var (
 	tests = []string{"ccache"}
-	turl  = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
+	//tests = []string{"eglibc"}
+	turl = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 
 func init() {
 	util.Verbose = false
+}
+
+func TestLint(t *testing.T) {
+	err := Lint()
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestBuildSteps(t *testing.T) {

@@ -121,7 +121,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 	return
 }
 
-func Package(wr io.Writer, plan *Plan) (err error) {
+func TarBall(wr io.Writer, plan *Plan) (err error) {
 	dir := path.Join(cache.Pkgs(), plan.NameVersion())
 	err = CreateManifest(dir, plan)
 	if err != nil {

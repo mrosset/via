@@ -6,14 +6,14 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 )
 
 var (
-	config   *Config
-	cache    Cache
-	home     = os.Getenv("HOME")
-	cfile    = path.Join(home, "via.json")
-	defaults = &Config{
+	cache  Cache
+	home   = os.Getenv("HOME")
+	cfile  = path.Join(home, "via.json")
+	config = &Config{
 		Identity:  "test user <test@test.com>",
 		Root:      "/",
 		PlansRepo: "https://code.google.com/p/via.plans",
@@ -21,18 +21,23 @@ var (
 		DB:        "/usr/local/via",
 		Plans:     "$HOME/via/plans",
 		Repo:      "$HOME/via/repo",
+		Flags: []string{
+			"--host=arm-linux-gnueabi",
+			"--prefix=/data/data/gnuoid",
+			"-q",
+		},
 	}
 	join = path.Join
 )
 
 func init() {
+	os.Setenv("CC", "arm-linux-gnueabi-gcc")
+	os.Setenv("PATH", os.Getenv("PATH")+":/opt/tools/bin")
 	if !file.Exists(cfile) {
-		err := json.Write(&defaults, cfile)
+		err := json.Write(&config, cfile)
 		if err != nil {
 			log.Fatal(err)
 		}
-		config = defaults
-		return
 	}
 	err := json.Read(&config, cfile)
 	if err != nil {
@@ -53,6 +58,15 @@ type Config struct {
 	DB    DB
 	Plans string
 	Repo  string
+
+	// Gnu
+	Flags Flags
+}
+
+type Flags []string
+
+func (f Flags) String() string {
+	return strings.Join(f, " ")
 }
 
 type DB string

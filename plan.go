@@ -5,41 +5,63 @@ import (
 	"github.com/str1ngs/util/json"
 	"path"
 	"runtime"
+	"strings"
 )
 
 type Plan struct {
-	Name    string
-	Version string
-	Url     string
+	Name     string
+	StageDir string
+	Version  string
+	Url      string
+	Flags    Flags
+	Build    []string
+	Package  []string
 }
 
-func (this *Plan) NameVersion() string {
-	return fmt.Sprintf("%s-%s", this.Name, this.Version)
+func (p *Plan) NameVersion() string {
+	return fmt.Sprintf("%s-%s", p.Name, p.Version)
 }
 
-func (this *Plan) Print() {
+func (p *Plan) Print() {
 	pp := func(f, v string) {
 		fmt.Printf("%-10.10s = %s\n", f, v)
 	}
-	pp("Name", this.Name)
-	pp("Version", this.Version)
-	pp("Url", this.Url)
+	pp("Name", p.Name)
+	pp("Version", p.Version)
+	pp("Url", p.Url)
+	pp("Flags", p.Flags.String())
 }
 
-func (this *Plan) File() string {
-	return path.Join(config.Plans, this.Name+".json")
+func (p *Plan) Path() string {
+	return path.Join(config.Plans, p.Name+".json")
 }
 
-func (this *Plan) Save() (err error) {
-	return json.Write(this, this.File())
+// TODO: make this atomic
+func (p *Plan) Save() (err error) {
+	return json.Write(p, p.Path())
 }
 
-func ReadPlan(name string) (plan *Plan, err error) {
-	plan = &Plan{Name: name}
-	err = json.Read(plan, plan.File())
+func ReadPlan(n string) (plan *Plan, err error) {
+	plan = &Plan{Name: n}
+	err = json.Read(plan, plan.Path())
 	return plan, err
 }
 
-func (this *Plan) PackageFile() string {
-	return fmt.Sprintf("%s-%s-%s.tar.gz", this.NameVersion(), runtime.GOOS, runtime.GOARCH)
+func ReadPath(p string) (plan *Plan, err error) {
+	s := strings.Split(path.Base(p), ".")
+	if len(s) != 2 {
+		return nil, fmt.Errorf("expected {name}.json got %v", s)
+	}
+	return ReadPlan(s[0])
+}
+
+func (p *Plan) PackageFile() string {
+	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), runtime.GOOS, runtime.GOARCH)
+}
+
+func (p Plan) stageDir() string {
+	if p.StageDir != "" {
+		return p.StageDir
+	}
+	return p.NameVersion()
 }
