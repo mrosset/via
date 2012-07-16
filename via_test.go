@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	tests = []string{"ccache"}
-	//tests = []string{"eglibc"}
+	tests = []string{"ccache", "eglibc"}
+	//tests = []string{"ccache"}
 	turl = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 
@@ -35,7 +35,7 @@ func TestBuildSteps(t *testing.T) {
 		if err := Install(test); err != nil {
 			t.Fatal(err)
 		}
-		fmt.Printf("%-20.20s %s\n", "removing", plan.NameVersion())
+		fmt.Printf(lfmt, "removing", plan.NameVersion())
 		if err := Remove(test); err != nil {
 			t.Error(err)
 		}

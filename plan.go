@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"github.com/str1ngs/util/json"
 	"path"
-	"runtime"
 	"strings"
 )
 
 type Plan struct {
 	Name     string
-	StageDir string
 	Version  string
 	Url      string
+	StageDir string
 	Flags    Flags
 	Build    []string
 	Package  []string
+	Files    []string
 }
 
 func (p *Plan) NameVersion() string {
@@ -56,7 +56,7 @@ func ReadPath(p string) (plan *Plan, err error) {
 }
 
 func (p *Plan) PackageFile() string {
-	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), runtime.GOOS, runtime.GOARCH)
+	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
 }
 
 func (p Plan) stageDir() string {

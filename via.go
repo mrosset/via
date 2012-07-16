@@ -3,7 +3,6 @@ package via
 import (
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"github.com/str1ngs/gurl"
 	"github.com/str1ngs/util/file"
@@ -22,6 +21,7 @@ var (
 	client  = new(http.Client)
 	Verbose = false
 	elog    = log.New(os.Stderr, "via: ", log.Lshortfile)
+	lfmt    = "%-20.20s %s\n"
 )
 
 func DownloadSrc(plan *Plan) (err error) {
@@ -49,46 +49,38 @@ func Stage(plan *Plan) (err error) {
 	return
 }
 
-func GnuBuild(plan *Plan) (err error) {
-	bdir := path.Join(cache.Builds(), plan.NameVersion())
-	sdir := path.Join(cache.Stages(), plan.stageDir())
-	if !file.Exists(bdir) {
-		err = os.Mkdir(bdir, 0775)
-		if err != nil {
-			return err
-		}
-	}
+func Build(plan *Plan) (err error) {
 	flags := config.Flags
 	if plan.Flags != nil {
 		flags = append(flags, plan.Flags...)
 	}
-	cmd := exec.Command(join(sdir, "configure"), flags...)
-	cmd.Dir = bdir
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	err = cmd.Run()
-	if err != nil {
-		return err
-	}
-	//err := util.RunIn(bdir, "make")
-	return nil
+	os.Setenv("SRCDIR", join(cache.Stages(), plan.stageDir()))
+	os.Setenv("Flags", flags.String())
+	bdir := join(cache.Builds(), plan.NameVersion())
+	return doCommands(bdir, plan.Build)
 }
 
-func Build(plan *Plan) (err error) {
-	configure := path.Join(cache.Stages(), plan.stageDir(), "configure")
-	switch {
-	case file.Exists(configure):
-		return GnuBuild(plan)
-	default:
-		log.Fatal(errors.New("could not determine build type"))
+func doCommands(dir string, cmds []string) (err error) {
+	for _, j := range cmds {
+		s := os.ExpandEnv(j)
+		buf := new(bytes.Buffer)
+		buf.WriteString(s)
+		cmd := exec.Command("sh")
+		cmd.Dir = dir
+		cmd.Stdin = buf
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		err = cmd.Run()
+		if err != nil {
+			return err
+		}
 	}
-	return
+	return nil
 }
 
 func Package(plan *Plan) (err error) {
 	bdir := join(cache.Builds(), plan.NameVersion())
 	pdir := join(cache.Pkgs(), plan.NameVersion())
-	os.Setenv("PKGDIR", pdir)
 	if file.Exists(pdir) {
 		err := os.RemoveAll(pdir)
 		if err != nil {
@@ -100,21 +92,8 @@ func Package(plan *Plan) (err error) {
 		log.Println(err)
 		return err
 	}
-	for _, j := range plan.Package {
-		s := os.ExpandEnv(j)
-		buf := new(bytes.Buffer)
-		buf.WriteString(s)
-		cmd := exec.Command("sh")
-		cmd.Dir = bdir
-		cmd.Stdin = buf
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-		err = cmd.Run()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	os.Setenv("PKGDIR", pdir)
+	return doCommands(bdir, plan.Package)
 }
 
 func CreatePackage(plan *Plan) (err error) {
@@ -169,8 +148,9 @@ func Remove(name string) (err error) {
 	if err != nil {
 		return err
 	}
-	for _, f := range man.Files {
-		err = os.Remove(path.Join(config.Root, f))
+	for _, f := range man.Plan.Files {
+		//fmt.Printf(lfmt, "file", join("- ", config.Root, f))
+		err = os.Remove(join(config.Root, f))
 		if err != nil {
 			return err
 		}
@@ -187,7 +167,7 @@ type Steps []Step
 
 func (this Steps) Run(p *Plan) (err error) {
 	for _, s := range this {
-		fmt.Printf("%-20.20s %s\n", s.Name, p.NameVersion())
+		fmt.Printf(lfmt, s.Name, p.NameVersion())
 		if err = s.Run(p); err != nil {
 			return
 		}
@@ -199,9 +179,9 @@ func (this Steps) Run(p *Plan) (err error) {
 func BuildSteps(plan *Plan) (err error) {
 	steps := Steps{
 		Step{"download", DownloadSrc},
-		Step{"stage", Stage},
-		Step{"build", Build},
-		Step{"package", Package},
+		//Step{"stage", Stage},
+		//Step{"build", Build},
+		//Step{"package", Package},
 		Step{"tarball", CreatePackage},
 		Step{"sign", Sign},
 	}

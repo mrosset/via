@@ -14,13 +14,15 @@ var (
 	home   = os.Getenv("HOME")
 	cfile  = path.Join(home, "via.json")
 	config = &Config{
-		Identity:  "test user <test@test.com>",
-		Root:      "/",
-		PlansRepo: "https://code.google.com/p/via.plans",
+		Arch:      "arm",
+		OS:        "linux",
 		Cache:     "$HOME/via/cache",
-		DB:        "/usr/local/via",
+		DB:        "/data/data/gnuoid/var/db/via",
+		Identity:  "test user <test@test.com>",
 		Plans:     "$HOME/via/plans",
+		PlansRepo: "https://code.google.com/p/via.plans",
 		Repo:      "$HOME/via/repo",
+		Root:      "/",
 		Flags: []string{
 			"--host=arm-linux-gnueabi",
 			"--prefix=/data/data/gnuoid",
@@ -33,6 +35,7 @@ var (
 func init() {
 	os.Setenv("CC", "arm-linux-gnueabi-gcc")
 	os.Setenv("PATH", os.Getenv("PATH")+":/opt/tools/bin")
+	os.Setenv("MAKEFLAGS", "-j3  -sw")
 	if !file.Exists(cfile) {
 		err := json.Write(&config, cfile)
 		if err != nil {
@@ -43,6 +46,11 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// TODO: provide Lint for master config
+	err = json.Write(&config, cfile)
+	if err != nil {
+		log.Fatal(err)
+	}
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	config.Plans = os.ExpandEnv(config.Plans)
 	config.Repo = os.ExpandEnv(config.Repo)
@@ -50,6 +58,8 @@ func init() {
 
 type Config struct {
 	Identity  string
+	Arch      string
+	OS        string
 	Root      string
 	PlansRepo string
 

@@ -9,13 +9,13 @@ import (
 )
 
 type Manifest struct {
-	Plan  *Plan
-	Files []string
+	Plan *Plan
 }
 
 func CreateManifest(dir string, plan *Plan) (err error) {
 	mfile := filepath.Join(dir, "manifest.json.gz")
 	man := Manifest{Plan: plan}
+	files := []string{}
 	if file.Exists(mfile) {
 		err := os.Remove(mfile)
 		if err != nil {
@@ -32,7 +32,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 			return err
 		}
 		if !stat.IsDir() {
-			man.Files = append(man.Files, spath)
+			files = append(files, spath)
 		}
 		return nil
 	}
@@ -40,6 +40,8 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
+	plan.Files = files
+	plan.Save()
 	return json.WriteGzJson(&man, mfile)
 }
 

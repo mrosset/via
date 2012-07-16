@@ -36,7 +36,7 @@ func edit() error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(editor, plan.File())
+	cmd := exec.Command(editor, plan.Path())
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -61,7 +61,7 @@ func build() error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err := via.BuildSteps(plan)
+		err = via.BuildSteps(plan)
 		if err != nil {
 			log.Fatal(err)
 		}

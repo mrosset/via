@@ -110,7 +110,8 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 				continue
 			}
 			if err := writeFile(path, hdr, tr); err != nil {
-				return nil, err
+				log.Println(err)
+				continue
 			}
 			continue
 		default:
@@ -206,10 +207,13 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	if err != nil {
 		return err
 	}
+
+	//fmt.Printf(lfmt, "file", join("+ ", path))
 	//pb := console.NewProgressBarWriter(filepath.Base(path), hdr.Size, fd)
 	if _, err = io.Copy(fd, tr); err != nil {
 		return err
 	}
+	//pb.Close()
 	fd.Close()
 	if err != nil {
 		return err
