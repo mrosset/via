@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	tests = []string{"ccache", "eglibc"}
-	//tests = []string{"ccache"}
-	turl = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
+	//tests = []string{"ccache", "eglibc"}
+	tests = []string{"ccache"}
+	turl  = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 
 func init() {

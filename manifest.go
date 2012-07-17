@@ -3,6 +3,7 @@ package via
 import (
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,6 +20,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if file.Exists(mfile) {
 		err := os.Remove(mfile)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}
@@ -27,8 +29,9 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 			return nil
 		}
 		spath := path[len(dir)+1:]
-		stat, err := os.Stat(path)
+		stat, err := os.Lstat(path)
 		if err != nil {
+			log.Println(err, path)
 			return err
 		}
 		if !stat.IsDir() {
@@ -38,6 +41,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	}
 	err = filepath.Walk(dir, walkFn)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	plan.Files = files

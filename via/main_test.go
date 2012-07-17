@@ -7,8 +7,14 @@ import (
 
 var clean = os.Args
 
-func TestBuild(t *testing.T) {
+func testBuild(t *testing.T) {
 	args := []string{"build", "ccache"}
-	os.Args = append(os.Args, args...)
+	os.Args = append(clean, args...)
+	main()
+}
+
+func TestLint(t *testing.T) {
+	args := []string{"lint"}
+	os.Args = append(clean, args...)
 	main()
 }

@@ -15,13 +15,14 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 )
 
 var (
 	client  = new(http.Client)
 	Verbose = false
 	elog    = log.New(os.Stderr, "via: ", log.Lshortfile)
-	lfmt    = "%-20.20s %s\n"
+	lfmt    = "%-20.20s %v\n"
 )
 
 func DownloadSrc(plan *Plan) (err error) {
@@ -33,7 +34,8 @@ func DownloadSrc(plan *Plan) (err error) {
 }
 
 func Stage(plan *Plan) (err error) {
-	if file.Exists(join(cache.Stages(), plan.stageDir())) {
+	sdir := join(cache.Stages(), plan.stageDir())
+	if file.Exists(sdir) {
 		return nil
 	}
 	path := join(cache.Srcs(), path.Base(plan.Url))
@@ -50,6 +52,10 @@ func Stage(plan *Plan) (err error) {
 }
 
 func Build(plan *Plan) (err error) {
+	pfile := join(config.Repo, plan.PackageFile())
+	if file.Exists(pfile) {
+		log.Printf("FIXME: (short flags)  package %s exists building anyways. ", plan.PackageFile())
+	}
 	flags := config.Flags
 	if plan.Flags != nil {
 		flags = append(flags, plan.Flags...)
@@ -57,6 +63,9 @@ func Build(plan *Plan) (err error) {
 	os.Setenv("SRCDIR", join(cache.Stages(), plan.stageDir()))
 	os.Setenv("Flags", flags.String())
 	bdir := join(cache.Builds(), plan.NameVersion())
+	if !file.Exists(bdir) {
+		os.Mkdir(bdir, 0755)
+	}
 	return doCommands(bdir, plan.Build)
 }
 
@@ -97,7 +106,7 @@ func Package(plan *Plan) (err error) {
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	pfile := path.Join(string(config.Repo), plan.PackageFile())
+	pfile := join(string(config.Repo), plan.PackageFile())
 	fd, err := os.Create(pfile)
 	if err != nil {
 		return err
@@ -177,11 +186,14 @@ func (this Steps) Run(p *Plan) (err error) {
 
 // Run all of the functions required to build a package
 func BuildSteps(plan *Plan) (err error) {
+	if file.Exists(plan.PackageFile()) {
+		return fmt.Errorf("package %s exists", plan.PackageFile())
+	}
 	steps := Steps{
 		Step{"download", DownloadSrc},
-		//Step{"stage", Stage},
-		//Step{"build", Build},
-		//Step{"package", Package},
+		Step{"stage", Stage},
+		Step{"build", Build},
+		Step{"package", Package},
 		Step{"tarball", CreatePackage},
 		Step{"sign", Sign},
 	}
@@ -218,6 +230,8 @@ func Lint() (err error) {
 			log.Println(err)
 			return err
 		}
+		fmt.Printf(lfmt, "lint", plan.NameVersion())
+		sort.Strings(plan.Flags)
 		err = plan.Save()
 		if err != nil {
 			log.Println(err)

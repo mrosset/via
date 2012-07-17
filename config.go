@@ -33,9 +33,10 @@ var (
 )
 
 func init() {
-	os.Setenv("CC", "arm-linux-gnueabi-gcc")
+	os.Setenv("CC", "arm-linux-gnueabi-gcc -pipe -O2")
 	os.Setenv("PATH", os.Getenv("PATH")+":/opt/tools/bin")
 	os.Setenv("MAKEFLAGS", "-j3  -sw")
+	os.Setenv("LDFLAGS", "-Wl,-rpath -Wl,/data/data/gnuoid/lib")
 	if !file.Exists(cfile) {
 		err := json.Write(&config, cfile)
 		if err != nil {
@@ -69,7 +70,7 @@ type Config struct {
 	Plans string
 	Repo  string
 
-	// Gnu
+	// Toolchain
 	Flags Flags
 }
 
