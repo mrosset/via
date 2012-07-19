@@ -61,13 +61,17 @@ func Depends(pname, base string, files []string) []string {
 		for _, k := range d {
 			o := owns(k)
 			if o == "" {
-				log.Println("WARNING", "can not resolve", k)
+				elog.Println("warning", "can not resolve", k)
+				continue
 			}
-			if contains(deps, o) || pname == o || o == "" {
+			if contains(deps, o) || pname == o {
 				continue
 			}
 			deps = append(deps, o)
 		}
+	}
+	if len(deps) == 0 {
+		return nil
 	}
 	return deps
 }

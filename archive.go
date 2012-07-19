@@ -3,14 +3,13 @@ package via
 import (
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"errors"
 	"fmt"
 	"github.com/str1ngs/util/file"
+	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/json"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -21,37 +20,13 @@ var (
 	ErrorTarHeader = errors.New("Unknown tar header")
 )
 
-type TarGzReader struct {
-	fd *os.File
-	gz *gzip.Reader
-	Tr *tar.Reader
-}
-
-func (tgzr *TarGzReader) Close() {
-	tgzr.gz.Close()
-	tgzr.fd.Close()
-}
-
-func NewTarGzReader(pfile string) (tgzr *TarGzReader, err error) {
-	fd, err := os.Open(pfile)
-	if err != nil {
-		return nil, err
-	}
-	gz, err := gzip.NewReader(fd)
-	if err != nil {
-		return nil, err
-	}
-	tr := tar.NewReader(gz)
-	return &TarGzReader{fd, gz, tr}, nil
-}
-
 func Peek(cr io.Reader) (dir string, err error) {
 	tr := tar.NewReader(cr)
 	hdr, err := tr.Next()
 	if err != nil && err != io.EOF {
 		return "", err
 	}
-	return path.Clean(hdr.Name), nil
+	return filepath.Clean(hdr.Name), nil
 }
 
 // TODO: rewrite this hackfest
@@ -62,7 +37,6 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 	}
 	man = new(Manifest)
 	tr := tar.NewReader(r)
-	c := 0
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
@@ -72,28 +46,15 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 			elog.Println(err)
 			return nil, err
 		}
-		// Some tarballs do not have a top directory so we need to make one.
-		if c == 0 && hdr.Typeflag != tar.TypeDir {
-			err = fmt.Errorf("unhandled: tar has no top directory.")
-			elog.Println(err)
-			return nil, err
-			dir := path.Dir(hdr.Name)
-			err = os.MkdirAll(join(dest, dir), 0755)
-			if err != nil {
-				elog.Println(err)
-				return nil, err
-			}
-		}
-		c++
 		path := join(dest, hdr.Name)
 		// Switch through header Typeflag and handle tar entry accordingly 
-		switch string(hdr.Typeflag) {
+		switch hdr.Typeflag {
 		// Handles Directories
-		case string(tar.TypeDir):
+		case tar.TypeDir:
 			if err := mkDir(path, hdr.Mode); err != nil {
 				return nil, err
 			}
-		case "L":
+		case 'L':
 			lfile := new(bytes.Buffer)
 			// Get longlink path from tar file data
 			lfile.ReadFrom(tr)
@@ -114,12 +75,12 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 			if err := writeFile(fpath, hdr, tr); err != nil {
 				return nil, err
 			}
-		case string(tar.TypeSymlink):
+		case tar.TypeSymlink:
 			err := os.Symlink(hdr.Linkname, path)
 			if err != nil {
 				elog.Fatal(err)
 			}
-		case string(tar.TypeReg), string(tar.TypeRegA):
+		case tar.TypeReg, tar.TypeRegA:
 			if hdr.Name == "manifest.json.gz" {
 				err := json.ReadGzIo(man, tr)
 				if err != nil {
@@ -127,9 +88,18 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 				}
 				continue
 			}
+			dir := filepath.Dir(path)
+			if !file.Exists(dir) {
+				fmt.Println(dir)
+				elog.Println("FIXME: (hdr permission) tar has no top directory.")
+				err = os.MkdirAll(dir, 0755)
+				if err != nil {
+					elog.Println(err)
+					return nil, err
+				}
+			}
 			if err := writeFile(path, hdr, tr); err != nil {
 				elog.Println(err)
-				continue
 			}
 			continue
 		default:
@@ -142,7 +112,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 
 // TODO: rewrite this hackfest
 func Tarball(wr io.Writer, plan *Plan) (err error) {
-	dir := path.Join(cache.Pkgs(), plan.NameVersion())
+	dir := join(cache.Pkgs(), plan.NameVersion())
 	err = CreateManifest(dir, plan)
 	if err != nil {
 		return err

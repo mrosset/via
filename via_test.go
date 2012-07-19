@@ -8,7 +8,7 @@ import (
 
 var (
 	//tests = []string{"ccache", "eglibc"}
-	tests = []string{"bash"}
+	tests = []string{"binutils"}
 	turl  = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 
@@ -19,7 +19,7 @@ func init() {
 func ExampleDepends() {
 	fmt.Println(Depends("bash", "/", []string{"bin/bash"}))
 	// output:
-	// [ncurses glibc]
+	// [readline ncurses glibc]
 }
 
 func TestLint(t *testing.T) {
@@ -29,6 +29,17 @@ func TestLint(t *testing.T) {
 	}
 }
 
+func TestStage(t *testing.T) {
+	for _, test := range tests {
+		plan, err := ReadPlan(test)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := Stage(plan); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
 func Testbuildsteps(t *testing.T) {
 	for _, test := range tests {
 		plan, err := ReadPlan(test)

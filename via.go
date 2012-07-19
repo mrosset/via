@@ -22,7 +22,7 @@ import (
 var (
 	client  = new(http.Client)
 	Verbose = false
-	elog    = log.New(os.Stderr, "via: ", log.Lshortfile)
+	elog    = log.New(os.Stderr, "", log.Lshortfile)
 	lfmt    = "%-20.20s %v\n"
 )
 
@@ -46,7 +46,6 @@ func Stage(plan *Plan) (err error) {
 	}
 	_, err = Untar(r, cache.Stages())
 	if err != nil {
-		elog.Println(err)
 		return err
 	}
 	return
