@@ -12,13 +12,8 @@ import (
 	"time"
 )
 
-type Manifest struct {
-	Plan *Plan
-}
-
 func CreateManifest(dir string, plan *Plan) (err error) {
 	mfile := filepath.Join(dir, "manifest.json.gz")
-	man := Manifest{Plan: plan}
 	files := []string{}
 	if file.Exists(mfile) {
 		err := os.Remove(mfile)
@@ -51,7 +46,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	plan.Files = files
 	plan.Date = time.Now()
 	plan.Save()
-	return json.WriteGzJson(&man, mfile)
+	return json.WriteGzJson(&plan, mfile)
 }
 
 func Depends(pname, base string, files []string) []string {
@@ -117,8 +112,8 @@ func owns(file string) string {
 	return ""
 }
 
-func ReadManifest(name string) (man *Manifest, err error) {
-	man = new(Manifest)
+func ReadManifest(name string) (man *Plan, err error) {
+	man = new(Plan)
 	err = json.Read(man, path.Join(config.DB.Installed(), name, "manifest.json"))
 	if err != nil {
 		return

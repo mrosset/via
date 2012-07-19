@@ -32,7 +32,7 @@ func main() {
 	command.Add("files", files, "lists files")
 	err := command.Run()
 	if err != nil {
-		os.Exit(0)
+		os.Exit(1)
 	}
 }
 

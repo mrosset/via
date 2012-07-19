@@ -3,6 +3,7 @@ package via
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"github.com/str1ngs/util/file"
@@ -19,11 +20,10 @@ var (
 
 // TODO: rewrite this hackfest
 // Decompress Reader to destination directory
-func Untar(r io.Reader, dest string) (man *Manifest, err error) {
+func Untar(dest string, r io.Reader) error {
 	if !file.Exists(dest) {
-		return nil, fmt.Errorf("%s does not exist.", dest)
+		return fmt.Errorf("%s does not exist.", dest)
 	}
-	man = new(Manifest)
 	tr := tar.NewReader(r)
 	for {
 		hdr, err := tr.Next()
@@ -32,7 +32,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 		}
 		if err != nil {
 			elog.Println(err)
-			return nil, err
+			return err
 		}
 		path := join(dest, hdr.Name)
 		// Switch through header Typeflag and handle tar entry accordingly 
@@ -40,7 +40,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 		// Handles Directories
 		case tar.TypeDir:
 			if err := mkDir(path, hdr.Mode); err != nil {
-				return nil, err
+				return err
 			}
 		case 'L':
 			lfile := new(bytes.Buffer)
@@ -52,16 +52,16 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 			if hdr.Typeflag == tar.TypeDir {
 				err := mkDir(fpath, hdr.Mode)
 				if err != nil {
-					return nil, err
+					return err
 				}
 				continue
 			}
 			if err != nil && err != io.EOF {
-				return nil, err
+				return err
 			}
 			// Write long file data to disk
 			if err := writeFile(fpath, hdr, tr); err != nil {
-				return nil, err
+				return err
 			}
 		case tar.TypeSymlink:
 			err := os.Symlink(hdr.Linkname, path)
@@ -69,13 +69,6 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 				elog.Fatal(err)
 			}
 		case tar.TypeReg, tar.TypeRegA:
-			if hdr.Name == "manifest.json.gz" {
-				err := json.ReadGzIo(man, tr)
-				if err != nil {
-					return nil, err
-				}
-				continue
-			}
 			dir := filepath.Dir(path)
 			if !file.Exists(dir) {
 				fmt.Println(dir)
@@ -83,7 +76,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 				err = os.MkdirAll(dir, 0755)
 				if err != nil {
 					elog.Println(err)
-					return nil, err
+					return err
 				}
 			}
 			if err := writeFile(path, hdr, tr); err != nil {
@@ -95,7 +88,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 		}
 		continue
 	}
-	return
+	return nil
 }
 
 // TODO: rewrite this hackfest
@@ -194,4 +187,45 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 		return err
 	}
 	return
+}
+
+func TarGzReader(p string) (*tar.Reader, error) {
+	fd, err := os.Open(p)
+	if err != nil {
+		elog.Println(err)
+		return nil, err
+	}
+	gz, err := gzip.NewReader(fd)
+	if err != nil {
+		elog.Println(err)
+		return nil, err
+	}
+	return tar.NewReader(gz), nil
+}
+func ReadPackManifest(p string) (*Plan, error) {
+	man := new(Plan)
+	tr, err := TarGzReader(p)
+	if err != nil {
+		elog.Println(err)
+		return nil, err
+	}
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			elog.Println(err)
+			return nil, err
+		}
+		if hdr.Name == "manifest.json.gz" {
+			err := json.ReadGzIo(man, tr)
+			if err != nil {
+				elog.Println(err)
+				return nil, err
+			}
+			return man, err
+		}
+	}
+	return nil, fmt.Errorf("%s: could not find manifest.", p)
 }

@@ -44,7 +44,7 @@ func Stage(plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = Untar(r, cache.Stages())
+	err = Untar(cache.Stages(), r)
 	if err != nil {
 		return err
 	}
@@ -93,6 +93,7 @@ func doCommands(dir string, cmds []string) (err error) {
 func Package(plan *Plan) (err error) {
 	bdir := join(cache.Builds(), plan.NameVersion())
 	pdir := join(cache.Pkgs(), plan.NameVersion())
+
 	if plan.BuildInStage {
 		bdir = join(cache.Stages(), plan.NameVersion())
 	}
@@ -157,6 +158,17 @@ func Install(name string) (err error) {
 	if err != nil {
 		return
 	}
+	man, err := ReadPackManifest(pfile)
+	if err != nil {
+		return err
+	}
+	errs := conflicts(man)
+	if len(errs) > 0 {
+		for _, e := range errs {
+			elog.Println(e)
+		}
+		return errs[0]
+	}
 	fd, err := os.Open(pfile)
 	if err != nil {
 		return
@@ -167,23 +179,29 @@ func Install(name string) (err error) {
 		return
 	}
 	defer gz.Close()
-	man, err := Untar(gz, config.Root)
+	err = Untar(config.Root, gz)
 	if err != nil {
 		return err
 	}
 	err = os.MkdirAll(db, 0755)
 	if err != nil {
-		fmt.Println("*WARNING*", err)
+		elog.Println(err)
+		return err
 	}
 	return json.Write(man, path.Join(db, "manifest.json"))
 }
 
 func Remove(name string) (err error) {
+	if !IsInstalled(name) {
+		err = fmt.Errorf("%s is not installed.", name)
+		elog.Println(err)
+		return err
+	}
 	man, err := ReadManifest(name)
 	if err != nil {
 		return err
 	}
-	for _, f := range man.Plan.Files {
+	for _, f := range man.Files {
 		err = os.Remove(join(config.Root, f))
 		if err != nil {
 			fmt.Println("FIXME:", f, "doesnt not exist")
@@ -199,8 +217,8 @@ type Step struct {
 
 type Steps []Step
 
-func (this Steps) Run(p *Plan) (err error) {
-	for _, s := range this {
+func (st Steps) Run(p *Plan) (err error) {
+	for _, s := range st {
 		fmt.Printf(lfmt, s.Name, p.NameVersion())
 		if err = s.Run(p); err != nil {
 			return
@@ -280,4 +298,13 @@ func List() {
 
 func PlanFiles() ([]string, error) {
 	return filepath.Glob(join(config.Plans, "*.json"))
+}
+
+func conflicts(man *Plan) (errs []error) {
+	for _, f := range man.Files {
+		if file.Exists(join(config.Root, f)) {
+			errs = append(errs, fmt.Errorf("%s already exists.", f))
+		}
+	}
+	return errs
 }
