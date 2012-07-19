@@ -15,6 +15,7 @@ type Plan struct {
 	Flags    Flags
 	Build    []string
 	Package  []string
+	Depends  []string
 	Files    []string
 }
 

@@ -1,6 +1,7 @@
 package via
 
 import (
+	"debug/elf"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"log"
@@ -44,9 +45,69 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		log.Println(err)
 		return err
 	}
+	plan.Depends = Depends(plan.Name, dir, files)
 	plan.Files = files
 	plan.Save()
 	return json.WriteGzJson(&man, mfile)
+}
+
+func Depends(pname, base string, files []string) []string {
+	deps := []string{}
+	for _, j := range files {
+		d := depends(join(base, j))
+		for _, k := range d {
+			o := owns(k)
+			if contains(deps, o) || pname == o {
+				continue
+			}
+			deps = append(deps, o)
+		}
+	}
+	return deps
+}
+
+func contains(sl []string, s string) bool {
+	for _, j := range sl {
+		if j == s {
+			return true
+		}
+	}
+	return false
+}
+
+func depends(file string) []string {
+	f, err := elf.Open(file)
+	if err != nil {
+		return nil
+	}
+	im, err := f.ImportedLibraries()
+	if err != nil {
+		return nil
+	}
+	return im
+}
+
+func owns(file string) string {
+	e, err := filepath.Glob(join(config.Plans, "*.json"))
+	if err != nil {
+		goto xerr
+	}
+	for _, j := range e {
+		p, err := ReadPath(j)
+		if err != nil {
+			goto xerr
+		}
+		for _, f := range p.Files {
+			if filepath.Base(f) == file {
+				return p.Name
+			}
+		}
+	}
+
+	return ""
+xerr:
+	log.Println(err)
+	return ""
 }
 
 func ReadManifest(name string) (man *Manifest, err error) {

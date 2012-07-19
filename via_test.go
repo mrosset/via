@@ -16,14 +16,20 @@ func init() {
 	util.Verbose = false
 }
 
-func TestLint(t *testing.T) {
+func ExampleDepends() {
+	fmt.Println(Depends("bash", "/", []string{"bin/bash"}))
+	// output:
+	// [ ncurses glibc]
+}
+
+func Testlint(t *testing.T) {
 	err := Lint()
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestBuildSteps(t *testing.T) {
+func TestBuildsteps(t *testing.T) {
 	for _, test := range tests {
 		plan, err := ReadPlan(test)
 		if err != nil {
@@ -42,7 +48,7 @@ func TestBuildSteps(t *testing.T) {
 	}
 }
 
-func TestCreate(t *testing.T) {
+func Testcreate(t *testing.T) {
 	err := Create(turl)
 	if err != nil {
 		t.Error(err)

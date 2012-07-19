@@ -122,6 +122,16 @@ func Install(name string) (err error) {
 	if err != nil {
 		return
 	}
+	for _, d := range plan.Depends {
+		if IsInstalled(d) {
+			continue
+		}
+		err := Install(d)
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Printf(lfmt, "installing", name)
 	db := path.Join(config.DB.Installed(), plan.Name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
@@ -158,7 +168,6 @@ func Remove(name string) (err error) {
 		return err
 	}
 	for _, f := range man.Plan.Files {
-		//fmt.Printf(lfmt, "file", join("- ", config.Root, f))
 		err = os.Remove(join(config.Root, f))
 		if err != nil {
 			fmt.Println("FIXME:", f, "doesnt not exist")
@@ -217,6 +226,10 @@ func Create(url string) (err error) {
 	}
 	plan := &Plan{Name: name, Version: version, Url: url}
 	return plan.Save()
+}
+
+func IsInstalled(name string) bool {
+	return file.Exists(join(config.DB.Installed(), name))
 }
 
 func Lint() (err error) {
