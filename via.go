@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 )
 
 var (
@@ -63,6 +64,9 @@ func Build(plan *Plan) (err error) {
 	os.Setenv("SRCDIR", join(cache.Stages(), plan.stageDir()))
 	os.Setenv("Flags", flags.String())
 	bdir := join(cache.Builds(), plan.NameVersion())
+	if plan.BuildInStage {
+		bdir = join(cache.Stages(), plan.NameVersion())
+	}
 	if !file.Exists(bdir) {
 		os.Mkdir(bdir, 0755)
 	}
@@ -90,6 +94,9 @@ func doCommands(dir string, cmds []string) (err error) {
 func Package(plan *Plan) (err error) {
 	bdir := join(cache.Builds(), plan.NameVersion())
 	pdir := join(cache.Pkgs(), plan.NameVersion())
+	if plan.BuildInStage {
+		bdir = join(cache.Stages(), plan.NameVersion())
+	}
 	if file.Exists(pdir) {
 		err := os.RemoveAll(pdir)
 		if err != nil {
@@ -98,15 +105,25 @@ func Package(plan *Plan) (err error) {
 	}
 	err = os.Mkdir(pdir, 0755)
 	if err != nil {
-		log.Println(err)
+		elog.Println(err)
 		return err
 	}
 	os.Setenv("PKGDIR", pdir)
-	return doCommands(bdir, plan.Package)
+	err = doCommands(bdir, plan.Package)
+	if err != nil {
+		elog.Println(err)
+		return err
+	}
+	err = CreatePackage(plan)
+	if err != nil {
+		elog.Println(err)
+		return err
+	}
+	return Sign(plan)
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	pfile := join(string(config.Repo), plan.PackageFile())
+	pfile := join(config.Repo, plan.PackageFile())
 	fd, err := os.Create(pfile)
 	if err != nil {
 		return err
@@ -131,7 +148,7 @@ func Install(name string) (err error) {
 			return err
 		}
 	}
-	fmt.Printf(lfmt, "installing", name)
+	fmt.Printf(lfmt, "installing", plan.NameVersion())
 	db := path.Join(config.DB.Installed(), plan.Name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
@@ -203,8 +220,6 @@ func BuildSteps(plan *Plan) (err error) {
 		Step{"stage", Stage},
 		Step{"build", Build},
 		Step{"package", Package},
-		Step{"tarball", CreatePackage},
-		Step{"sign", Sign},
 	}
 	return steps.Run(plan)
 }
@@ -233,23 +248,37 @@ func IsInstalled(name string) bool {
 }
 
 func Lint() (err error) {
-	e, err := filepath.Glob(join(config.Plans, "*.json"))
+	e, err := PlanFiles()
 	if err != nil {
 		return err
 	}
 	for _, j := range e {
 		plan, err := ReadPath(j)
 		if err != nil {
-			log.Println(err)
+			err = fmt.Errorf("%s %s", j, err)
+			elog.Println(err)
 			return err
 		}
 		fmt.Printf(lfmt, "lint", plan.NameVersion())
 		sort.Strings(plan.Flags)
 		err = plan.Save()
 		if err != nil {
-			log.Println(err)
+			elog.Println(err)
 			return err
 		}
 	}
 	return nil
+}
+
+func List() {
+	e, _ := PlanFiles()
+	for _, j := range e {
+		file := path.Base(j)
+		name := strings.Split(file, ".")[0]
+		fmt.Println(name)
+	}
+}
+
+func PlanFiles() ([]string, error) {
+	return filepath.Glob(join(config.Plans, "*.json"))
 }

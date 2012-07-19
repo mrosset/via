@@ -5,18 +5,21 @@ import (
 	"github.com/str1ngs/util/json"
 	"path"
 	"strings"
+	"time"
 )
 
 type Plan struct {
-	Name     string
-	Version  string
-	Url      string
-	StageDir string
-	Flags    Flags
-	Build    []string
-	Package  []string
-	Depends  []string
-	Files    []string
+	Name         string
+	Version      string
+	Url          string
+	StageDir     string
+	BuildInStage bool
+	Date         time.Time
+	Flags        Flags
+	Build        []string
+	Package      []string
+	Depends      []string
+	Files        []string
 }
 
 func (p *Plan) NameVersion() string {

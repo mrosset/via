@@ -3,7 +3,6 @@ package via
 import (
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
-	"log"
 	"os"
 	"path"
 	"strings"
@@ -24,9 +23,11 @@ var (
 		Repo:      "$HOME/via/repo",
 		Root:      "/home/strings/chroot",
 		Flags: []string{
+			"--disable-multilib",
 			"--disable-dependency-tracking",
 			"--disable-nls",
 			"--with-shared",
+			"--libdir=/usr/lib",
 			"--prefix=/usr",
 			"-q",
 		},
@@ -40,19 +41,23 @@ var (
 
 func init() {
 	if !file.Exists(cfile) {
+		elog.Printf("WARNING", "no config was found writing new one to ", cfile)
+		elog.Println("please review it.")
 		err := json.Write(&config, cfile)
 		if err != nil {
-			log.Fatal(err)
+			elog.Fatal(err)
 		}
+		return
 	}
+	config = &Config{}
 	err := json.Read(&config, cfile)
 	if err != nil {
-		log.Fatal(err)
+		elog.Fatal(err)
 	}
 	// TODO: provide Lint for master config
 	err = json.Write(&config, cfile)
 	if err != nil {
-		log.Fatal(err)
+		elog.Fatal(err)
 	}
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	config.Plans = os.ExpandEnv(config.Plans)

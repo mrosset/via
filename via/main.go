@@ -3,6 +3,7 @@ package main
 import (
 	"code.google.com/p/via"
 	"flag"
+	"fmt"
 	"github.com/str1ngs/util"
 	"github.com/str1ngs/util/console/command"
 	"github.com/str1ngs/util/json"
@@ -25,10 +26,13 @@ func main() {
 	command.Add("install", install, "install package")
 	command.Add("remove", remove, "remove package")
 	command.Add("lint", lint, "lint plans")
-	command.Add("cat", cat, "displays plan to stdout")
+	command.Add("show", xshow, "displays plan to stdout")
+	command.Add("list", list, "list all plans")
+	command.Add("pack", pack, "package plan")
+	command.Add("files", files, "lists files")
 	err := command.Run()
 	if err != nil {
-		log.Fatal(err)
+		os.Exit(0)
 	}
 }
 
@@ -75,6 +79,33 @@ func build() error {
 	return nil
 }
 
+func pack() error {
+	for _, arg := range command.Args() {
+		plan, err := via.ReadPlan(arg)
+		if err != nil {
+			return err
+		}
+		err = via.Package(plan)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func files() error {
+	for _, arg := range command.Args() {
+		plan, err := via.ReadPlan(arg)
+		if err != nil {
+			return err
+		}
+		for _, f := range plan.Files {
+			fmt.Println(f)
+		}
+	}
+	return nil
+}
+
 func install() error {
 	return command.ArgsDo(via.Install)
 }
@@ -87,16 +118,21 @@ func lint() error {
 	return via.Lint()
 }
 
-func cat() error {
+func xshow() error {
 	for _, arg := range command.Args() {
 		plan, err := via.ReadPlan(arg)
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = json.WritePretty(&plan, os.Stdout)
+		err = json.Clean(&plan, os.Stdout)
 		if err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+func list() error {
+	via.List()
 	return nil
 }

@@ -57,6 +57,7 @@ func Sign(plan *Plan) (err error) {
 		return err
 	}
 	defer sig.Close()
+	fmt.Printf(lfmt, "signing", plan.PackageFile())
 	err = openpgp.DetachSign(sig, entity, pkg, new(packet.Config))
 	if err != nil {
 		return err

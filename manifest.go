@@ -2,12 +2,14 @@ package via
 
 import (
 	"debug/elf"
+	"fmt"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 )
 
 type Manifest struct {
@@ -47,6 +49,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	}
 	plan.Depends = Depends(plan.Name, dir, files)
 	plan.Files = files
+	plan.Date = time.Now()
 	plan.Save()
 	return json.WriteGzJson(&man, mfile)
 }
@@ -57,7 +60,10 @@ func Depends(pname, base string, files []string) []string {
 		d := depends(join(base, j))
 		for _, k := range d {
 			o := owns(k)
-			if contains(deps, o) || pname == o {
+			if o == "" {
+				log.Println("WARNING", "can not resolve", k)
+			}
+			if contains(deps, o) || pname == o || o == "" {
 				continue
 			}
 			deps = append(deps, o)
@@ -90,12 +96,13 @@ func depends(file string) []string {
 func owns(file string) string {
 	e, err := filepath.Glob(join(config.Plans, "*.json"))
 	if err != nil {
-		goto xerr
+		elog.Println(err)
 	}
 	for _, j := range e {
 		p, err := ReadPath(j)
 		if err != nil {
-			goto xerr
+			elog.Println(fmt.Errorf("%s %s", j, err))
+			continue
 		}
 		for _, f := range p.Files {
 			if filepath.Base(f) == file {
@@ -103,10 +110,6 @@ func owns(file string) string {
 			}
 		}
 	}
-
-	return ""
-xerr:
-	log.Println(err)
 	return ""
 }
 

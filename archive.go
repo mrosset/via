@@ -9,7 +9,6 @@ import (
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -63,19 +62,34 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 	}
 	man = new(Manifest)
 	tr := tar.NewReader(r)
+	c := 0
 	for {
 		hdr, err := tr.Next()
-		if err != nil && err != io.EOF {
-			return nil, err
-		}
-		if hdr == nil {
+		if err == io.EOF {
 			break
 		}
+		if err != nil {
+			elog.Println(err)
+			return nil, err
+		}
+		// Some tarballs do not have a top directory so we need to make one.
+		if c == 0 && hdr.Typeflag != tar.TypeDir {
+			err = fmt.Errorf("unhandled: tar has no top directory.")
+			elog.Println(err)
+			return nil, err
+			dir := path.Dir(hdr.Name)
+			err = os.MkdirAll(join(dest, dir), 0755)
+			if err != nil {
+				elog.Println(err)
+				return nil, err
+			}
+		}
+		c++
+		path := join(dest, hdr.Name)
 		// Switch through header Typeflag and handle tar entry accordingly 
 		switch string(hdr.Typeflag) {
 		// Handles Directories
 		case string(tar.TypeDir):
-			path := path.Join(dest, hdr.Name)
 			if err := mkDir(path, hdr.Mode); err != nil {
 				return nil, err
 			}
@@ -83,7 +97,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 			lfile := new(bytes.Buffer)
 			// Get longlink path from tar file data
 			lfile.ReadFrom(tr)
-			fpath := path.Join(dest, lfile.String())
+			fpath := join(dest, lfile.String())
 			// Read next iteration for file data
 			hdr, err := tr.Next()
 			if hdr.Typeflag == tar.TypeDir {
@@ -101,13 +115,11 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 				return nil, err
 			}
 		case string(tar.TypeSymlink):
-			path := join(dest, hdr.Name)
 			err := os.Symlink(hdr.Linkname, path)
 			if err != nil {
-				log.Fatal(err)
+				elog.Fatal(err)
 			}
 		case string(tar.TypeReg), string(tar.TypeRegA):
-			path := path.Join(dest, hdr.Name)
 			if hdr.Name == "manifest.json.gz" {
 				err := json.ReadGzIo(man, tr)
 				if err != nil {
@@ -116,7 +128,7 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 				continue
 			}
 			if err := writeFile(path, hdr, tr); err != nil {
-				log.Println(err)
+				elog.Println(err)
 				continue
 			}
 			continue
@@ -149,7 +161,7 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 		}
 		hdr, err := tar.FileInfoHeader(fi, "")
 		if err != nil {
-			log.Println(err)
+			elog.Println(err)
 			return err
 		}
 		if hdr.Typeflag == tar.TypeSymlink {
@@ -162,7 +174,7 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 		hdr.Name = spath
 		err = tw.WriteHeader(hdr)
 		if err != nil {
-			log.Println(err)
+			elog.Println(err)
 			return err
 		}
 		switch hdr.Typeflag {
@@ -175,12 +187,12 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 			defer fd.Close()
 			_, err = io.Copy(tw, fd)
 			if err != nil {
-				log.Println(err)
+				elog.Println(err)
 				return err
 			}
 		default:
 			err = fmt.Errorf("%s: unhandled tar header type")
-			log.Println(err)
+			elog.Println(err)
 			return err
 		}
 		return nil
@@ -193,7 +205,7 @@ func fiToHeader(name string, fi os.FileInfo) (hdr *tar.Header) {
 	hdr.Name = name
 	stat, ok := fi.Sys().(*syscall.Stat_t)
 	if !ok {
-		log.Fatal(errors.New(fi.Name() + " is not a Unix file"))
+		elog.Fatal(errors.New(fi.Name() + " is not a Unix file"))
 	}
 	hdr.Mode = int64(stat.Mode)
 	hdr.Uid = int(stat.Uid)
@@ -237,7 +249,7 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	}
 
 	//fmt.Printf(lfmt, "file", join("+ ", path))
-	//pb := console.NewProgressBarWriter(filepath.Base(path), hdr.Size, fd)
+	//pb := console.NewProgressBarWriter(path, hdr.Size, fd)
 	if _, err = io.Copy(fd, tr); err != nil {
 		return err
 	}
