@@ -6,28 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"github.com/str1ngs/util/file"
-	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/json"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
-	"time"
 )
 
 var (
 	ErrorTarHeader = errors.New("Unknown tar header")
 )
-
-func Peek(cr io.Reader) (dir string, err error) {
-	tr := tar.NewReader(cr)
-	hdr, err := tr.Next()
-	if err != nil && err != io.EOF {
-		return "", err
-	}
-	return filepath.Clean(hdr.Name), nil
-}
 
 // TODO: rewrite this hackfest
 // Decompress Reader to destination directory
@@ -168,29 +156,6 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 		return nil
 	}
 	return filepath.Walk(dir, walkFn)
-}
-
-func fiToHeader(name string, fi os.FileInfo) (hdr *tar.Header) {
-	hdr = new(tar.Header)
-	hdr.Name = name
-	stat, ok := fi.Sys().(*syscall.Stat_t)
-	if !ok {
-		elog.Fatal(errors.New(fi.Name() + " is not a Unix file"))
-	}
-	hdr.Mode = int64(stat.Mode)
-	hdr.Uid = int(stat.Uid)
-	hdr.Gid = int(stat.Gid)
-	hdr.AccessTime = time.Now()
-	hdr.ModTime = time.Now()
-	hdr.ChangeTime = time.Now()
-	switch fi.IsDir() {
-	case true:
-		hdr.Typeflag = tar.TypeDir
-	case false:
-		hdr.Typeflag = tar.TypeReg
-		hdr.Size = stat.Size
-	}
-	return hdr
 }
 
 // Make directory with permission
