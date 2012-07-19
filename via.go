@@ -54,7 +54,7 @@ func Stage(plan *Plan) (err error) {
 func Build(plan *Plan) (err error) {
 	pfile := join(config.Repo, plan.PackageFile())
 	if file.Exists(pfile) {
-		log.Printf("FIXME: (short flags)  package %s exists building anyways. ", plan.PackageFile())
+		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackageFile())
 	}
 	flags := config.Flags
 	if plan.Flags != nil {
@@ -114,7 +114,7 @@ func CreatePackage(plan *Plan) (err error) {
 	defer fd.Close()
 	gz := gzip.NewWriter(fd)
 	defer gz.Close()
-	return TarBall(gz, plan)
+	return Tarball(gz, plan)
 }
 
 func Install(name string) (err error) {
@@ -161,7 +161,7 @@ func Remove(name string) (err error) {
 		//fmt.Printf(lfmt, "file", join("- ", config.Root, f))
 		err = os.Remove(join(config.Root, f))
 		if err != nil {
-			return err
+			fmt.Println("FIXME:", f, "doesnt not exist")
 		}
 	}
 	return os.RemoveAll(path.Join(config.DB.Installed(), name))
@@ -200,7 +200,7 @@ func BuildSteps(plan *Plan) (err error) {
 	return steps.Run(plan)
 }
 
-// Creates a new plan from a give Url
+// Creates a new plan from a given Url
 func Create(url string) (err error) {
 	var (
 		file    = path.Base(url)

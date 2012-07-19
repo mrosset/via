@@ -55,10 +55,11 @@ func Peek(cr io.Reader) (dir string, err error) {
 	return path.Clean(hdr.Name), nil
 }
 
+// TODO: rewrite this hackfest
 // Decompress Reader to destination directory
 func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 	if !file.Exists(dest) {
-		return nil, fmt.Errorf("Directory %s does not exists.", dest)
+		return nil, fmt.Errorf("%s does not exist.", dest)
 	}
 	man = new(Manifest)
 	tr := tar.NewReader(r)
@@ -71,15 +72,14 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 			break
 		}
 		// Switch through header Typeflag and handle tar entry accordingly 
-		switch {
+		switch string(hdr.Typeflag) {
 		// Handles Directories
-		case hdr.Typeflag == tar.TypeDir:
+		case string(tar.TypeDir):
 			path := path.Join(dest, hdr.Name)
 			if err := mkDir(path, hdr.Mode); err != nil {
 				return nil, err
 			}
-			continue
-		case string(hdr.Typeflag) == "L":
+		case "L":
 			lfile := new(bytes.Buffer)
 			// Get longlink path from tar file data
 			lfile.ReadFrom(tr)
@@ -100,7 +100,13 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 			if err := writeFile(fpath, hdr, tr); err != nil {
 				return nil, err
 			}
-		case hdr.Typeflag == tar.TypeReg, hdr.Typeflag == tar.TypeRegA:
+		case string(tar.TypeSymlink):
+			path := join(dest, hdr.Name)
+			err := os.Symlink(hdr.Linkname, path)
+			if err != nil {
+				log.Fatal(err)
+			}
+		case string(tar.TypeReg), string(tar.TypeRegA):
 			path := path.Join(dest, hdr.Name)
 			if hdr.Name == "manifest.json.gz" {
 				err := json.ReadGzIo(man, tr)
@@ -122,7 +128,8 @@ func Untar(r io.Reader, dest string) (man *Manifest, err error) {
 	return
 }
 
-func TarBall(wr io.Writer, plan *Plan) (err error) {
+// TODO: rewrite this hackfest
+func Tarball(wr io.Writer, plan *Plan) (err error) {
 	dir := path.Join(cache.Pkgs(), plan.NameVersion())
 	err = CreateManifest(dir, plan)
 	if err != nil {
@@ -136,15 +143,31 @@ func TarBall(wr io.Writer, plan *Plan) (err error) {
 			return nil
 		}
 		spath = spath[1:]
-		fi, err := os.Stat(path)
-		hdr := fiToHeader(spath, fi)
-		err = tw.WriteHeader(hdr)
+		fi, err := os.Lstat(path)
 		if err != nil {
 			return err
 		}
-		switch {
-		case hdr.Typeflag == tar.TypeDir:
-		default:
+		hdr, err := tar.FileInfoHeader(fi, "")
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		if hdr.Typeflag == tar.TypeSymlink {
+			ln, err := os.Readlink(path)
+			if err != nil {
+				return err
+			}
+			hdr.Linkname = ln
+		}
+		hdr.Name = spath
+		err = tw.WriteHeader(hdr)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		switch hdr.Typeflag {
+		case tar.TypeDir, tar.TypeSymlink:
+		case tar.TypeReg:
 			fd, err := os.Open(path)
 			if err != nil {
 				return err
@@ -152,8 +175,13 @@ func TarBall(wr io.Writer, plan *Plan) (err error) {
 			defer fd.Close()
 			_, err = io.Copy(tw, fd)
 			if err != nil {
+				log.Println(err)
 				return err
 			}
+		default:
+			err = fmt.Errorf("%s: unhandled tar header type")
+			log.Println(err)
+			return err
 		}
 		return nil
 	}

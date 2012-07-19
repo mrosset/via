@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	verbose = flag.Bool("v", false, "verbose output")
+	verbose  = flag.Bool("v", false, "verbose output")
+	finstall = flag.Bool("i", false, "install package after build")
 )
 
 func main() {
@@ -58,11 +59,17 @@ func build() error {
 	for _, arg := range command.Args() {
 		plan, err := via.ReadPlan(arg)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		err = via.BuildSteps(plan)
 		if err != nil {
-			log.Fatal(err)
+			return err
+		}
+		if *finstall {
+			err := via.Install(plan.Name)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -14,29 +14,31 @@ var (
 	home   = os.Getenv("HOME")
 	cfile  = path.Join(home, "via.json")
 	config = &Config{
-		Arch:      "arm",
+		Arch:      "x86_64",
 		OS:        "linux",
 		Cache:     "$HOME/via/cache",
-		DB:        "/data/data/gnuoid/var/db/via",
+		DB:        "var/db/via",
 		Identity:  "test user <test@test.com>",
 		Plans:     "$HOME/via/plans",
 		PlansRepo: "https://code.google.com/p/via.plans",
 		Repo:      "$HOME/via/repo",
-		Root:      "/",
+		Root:      "/home/strings/chroot",
 		Flags: []string{
-			"--host=arm-linux-gnueabi",
-			"--prefix=/data/data/gnuoid",
+			"--disable-dependency-tracking",
+			"--disable-nls",
+			"--with-shared",
+			"--prefix=/usr",
 			"-q",
+		},
+		Env: map[string]string{
+			"MAKEFLAGS": "-j3 -sw",
+			"CFLAGS":    "-pipe -O2",
 		},
 	}
 	join = path.Join
 )
 
 func init() {
-	os.Setenv("CC", "arm-linux-gnueabi-gcc -pipe -O2")
-	os.Setenv("PATH", os.Getenv("PATH")+":/opt/tools/bin")
-	os.Setenv("MAKEFLAGS", "-j3  -sw")
-	os.Setenv("LDFLAGS", "-Wl,-rpath -Wl,/data/data/gnuoid/lib")
 	if !file.Exists(cfile) {
 		err := json.Write(&config, cfile)
 		if err != nil {
@@ -55,6 +57,9 @@ func init() {
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	config.Plans = os.ExpandEnv(config.Plans)
 	config.Repo = os.ExpandEnv(config.Repo)
+	for i, j := range config.Env {
+		os.Setenv(i, j)
+	}
 }
 
 type Config struct {
@@ -72,6 +77,8 @@ type Config struct {
 
 	// Toolchain
 	Flags Flags
+
+	Env map[string]string
 }
 
 type Flags []string
@@ -83,7 +90,7 @@ func (f Flags) String() string {
 type DB string
 
 func (d DB) Installed() string {
-	return path.Join(string(d), "installed")
+	return join(config.Root, string(d), "installed")
 }
 
 type Cache string
