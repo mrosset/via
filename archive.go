@@ -75,8 +75,6 @@ func Untar(dest string, r io.Reader) error {
 		case tar.TypeReg, tar.TypeRegA:
 			dir := filepath.Dir(path)
 			if !file.Exists(dir) {
-				fmt.Println(dir)
-				elog.Println("FIXME: (hdr permission) tar has no top directory.")
 				err = os.MkdirAll(dir, 0755)
 				if err != nil {
 					elog.Println(err)

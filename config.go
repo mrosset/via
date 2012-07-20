@@ -28,6 +28,7 @@ var (
 			"--disable-nls",
 			"--with-shared",
 			"--libdir=/usr/lib",
+			"--libexecdir=/usr/lib",
 			"--prefix=/usr",
 			"-q",
 		},
@@ -35,7 +36,9 @@ var (
 			"MAKEFLAGS": "-j3 -sw",
 			"CFLAGS":    "-pipe -O2",
 		},
-		CleanFiles: []string{
+		Remove: []string{
+			"usr/lib/*.a",
+			"usr/share/doc",
 			"usr/share/info",
 			"usr/share/man",
 		},
@@ -87,8 +90,8 @@ type Config struct {
 	// Toolchain
 	Flags Flags
 
-	Env        map[string]string
-	CleanFiles []string
+	Env    map[string]string
+	Remove []string
 }
 
 type Flags []string

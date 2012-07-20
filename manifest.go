@@ -22,6 +22,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 			return err
 		}
 	}
+	var size int64
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if path == dir {
 			return nil
@@ -33,6 +34,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 			return err
 		}
 		if !stat.IsDir() {
+			size = size + stat.Size()
 			files = append(files, spath)
 		}
 		return nil
@@ -45,6 +47,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	plan.Depends = Depends(plan.Name, dir, files)
 	plan.Files = files
 	plan.Date = time.Now()
+	plan.Size = size
 	plan.Save()
 	return json.WriteGzJson(&plan, mfile)
 }

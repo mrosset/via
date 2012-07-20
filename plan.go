@@ -15,10 +15,12 @@ type Plan struct {
 	StageDir     string
 	BuildInStage bool
 	Date         time.Time
+	Size         int64
+	Depends      []string
 	Flags        Flags
 	Build        []string
 	Package      []string
-	Depends      []string
+	Remove       []string
 	//Move         map[string]string
 	Files []string
 }

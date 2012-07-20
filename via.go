@@ -7,6 +7,7 @@ import (
 	"github.com/str1ngs/gurl"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/file/magic"
+	"github.com/str1ngs/util/human"
 	"github.com/str1ngs/util/json"
 	"log"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
-	"strings"
 )
 
 var (
@@ -24,8 +24,12 @@ var (
 	Verbose = false
 	elog    = log.New(os.Stderr, "", log.Lshortfile)
 	lfmt    = "%-20.20s %v\n"
+	debug   = false
 )
 
+func SetDebug(b bool) {
+	debug = b
+}
 func DownloadSrc(plan *Plan) (err error) {
 	sfile := path.Join(cache.Srcs(), path.Base(plan.Url))
 	if file.Exists(sfile) {
@@ -114,23 +118,36 @@ func Package(plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
-	for _, f := range config.CleanFiles {
-		fmt.Println("cleaning", f)
-		f = join(pdir, f)
-		if file.Exists(f) {
-			err := os.RemoveAll(f)
-			if err != nil {
-				elog.Println(err)
-				return err
-			}
-		}
-	}
+	cleanPkg(pdir, append(config.Remove, plan.Remove...))
+
 	err = CreatePackage(plan)
 	if err != nil {
 		elog.Println(err)
 		return err
 	}
 	return Sign(plan)
+}
+
+func cleanPkg(dir string, s []string) error {
+	for _, j := range s {
+		glob, err := filepath.Glob(join(dir, j))
+		if err != nil {
+			return err
+		}
+		for _, f := range glob {
+			spath := f[len(dir)+1:]
+			fmt.Printf(lfmt, "cleaning", spath)
+			err := os.RemoveAll(f)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	walkFn := func(path string, fi os.FileInfo, err error) error {
+		return nil
+	}
+	return filepath.Walk(dir, walkFn)
 }
 
 func CreatePackage(plan *Plan) (err error) {
@@ -293,6 +310,8 @@ func Lint() (err error) {
 		}
 		fmt.Printf(lfmt, "lint", plan.NameVersion())
 		sort.Strings(plan.Flags)
+		sort.Strings(plan.Remove)
+		sort.Strings(plan.Depends)
 		err = plan.Save()
 		if err != nil {
 			elog.Println(err)
@@ -319,9 +338,11 @@ func Clean(name string) error {
 func List() {
 	e, _ := PlanFiles()
 	for _, j := range e {
-		file := path.Base(j)
-		name := strings.Split(file, ".")[0]
-		fmt.Println(name)
+		plan, err := ReadPath(j)
+		if err != nil {
+			elog.Println(err)
+		}
+		fmt.Printf(lfmt, plan.Name, human.ByteSize(plan.Size))
 	}
 }
 

@@ -15,11 +15,14 @@ import (
 var (
 	verbose  = flag.Bool("v", false, "verbose output")
 	finstall = flag.Bool("i", false, "install package after build")
+	fdebug   = flag.Bool("d", false, "debug output")
 )
 
 func main() {
+	flag.Parse()
 	via.Verbose = *verbose
 	util.Verbose = *verbose
+	via.SetDebug(*fdebug)
 	command.Add("build", build, "build plan")
 	command.Add("clean", clean, "clean build dir")
 	command.Add("create", create, "create plan from URL")

@@ -8,7 +8,7 @@ import (
 
 var (
 	//tests = []string{"ccache", "eglibc"}
-	tests = []string{"ccache"}
+	tests = []string{"mpc"}
 	turl  = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 
@@ -40,7 +40,28 @@ func TestStage(t *testing.T) {
 		}
 	}
 }
-func TestBuildsteps(t *testing.T) {
+
+func TestPackage(t *testing.T) {
+	for _, test := range tests {
+		plan, err := ReadPlan(test)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fmt.Printf(lfmt, "package", test)
+		if err := Package(plan); err != nil {
+			t.Fatal(err)
+		}
+		plan, err = ReadPlan(test)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, f := range plan.Files {
+			fmt.Println(f)
+		}
+	}
+}
+
+func Testbuildsteps(t *testing.T) {
 	for _, test := range tests {
 		plan, err := ReadPlan(test)
 		if err != nil {
