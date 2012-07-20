@@ -34,14 +34,18 @@ func Untar(dest string, r io.Reader) error {
 			elog.Println(err)
 			return err
 		}
+		if hdr.Name == "manifest.json.gz" {
+			continue
+		}
+		//fmt.Printf("%c %s\n", hdr.Typeflag, hdr.Name)
 		path := join(dest, hdr.Name)
 		// Switch through header Typeflag and handle tar entry accordingly 
 		switch hdr.Typeflag {
-		// Handles Directories
 		case tar.TypeDir:
 			if err := mkDir(path, hdr.Mode); err != nil {
 				return err
 			}
+			// Long File
 		case 'L':
 			lfile := new(bytes.Buffer)
 			// Get longlink path from tar file data
@@ -123,6 +127,13 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 			hdr.Linkname = ln
 		}
 		hdr.Name = spath
+		// TODO: check tar specs for actual length
+		// If path is greater then 100 bytes we need to handle as LongLink
+		if len(hdr.Name) >= 100 {
+			hdr.Typeflag = 'L'
+			hdr.Size = int64(len(hdr.Name))
+		}
+		//fmt.Printf("%c %s\n", hdr.Typeflag, hdr.Name)
 		err = tw.WriteHeader(hdr)
 		if err != nil {
 			elog.Println(err)
@@ -130,9 +141,34 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir, tar.TypeSymlink:
+		case 'L': // Handle long file paths
+			// Write path as tar data.
+			_, err := tw.Write([]byte(hdr.Name))
+			if err != nil {
+				elog.Println(err)
+				return err
+			}
+			// Treat the long link as a file, flush so we can write the real data.
+			tw.Flush()
+			// Write a header so the writer knows the size of the data.
+			hdr.Size = fi.Size()
+			tw.WriteHeader(hdr)
+			// Finally write the file to tar
+			fd, err := os.Open(path)
+			if err != nil {
+				elog.Println(err)
+				return err
+			}
+			defer fd.Close()
+			_, err = io.Copy(tw, fd)
+			if err != nil {
+				elog.Println(err)
+				return err
+			}
 		case tar.TypeReg:
 			fd, err := os.Open(path)
 			if err != nil {
+				elog.Println(err)
 				return err
 			}
 			defer fd.Close()

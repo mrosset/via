@@ -114,6 +114,17 @@ func Package(plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
+	for _, f := range config.CleanFiles {
+		fmt.Println("cleaning", f)
+		f = join(pdir, f)
+		if file.Exists(f) {
+			err := os.RemoveAll(f)
+			if err != nil {
+				elog.Println(err)
+				return err
+			}
+		}
+	}
 	err = CreatePackage(plan)
 	if err != nil {
 		elog.Println(err)
@@ -202,9 +213,13 @@ func Remove(name string) (err error) {
 		return err
 	}
 	for _, f := range man.Files {
-		err = os.Remove(join(config.Root, f))
+		fpath := join(config.Root, f)
+		err = os.Remove(fpath)
 		if err != nil {
-			fmt.Println("FIXME:", f, "doesnt not exist")
+			elog.Println(len(f), f, "not exist")
+		}
+		if file.Exists(fpath) {
+			elog.Println(f, "not removed")
 		}
 	}
 	return os.RemoveAll(path.Join(config.DB.Installed(), name))
@@ -285,6 +300,20 @@ func Lint() (err error) {
 		}
 	}
 	return nil
+}
+
+func Clean(name string) error {
+	plan, err := ReadPlan(name)
+	if err != nil {
+		return err
+	}
+	bdir := join(cache.Builds(), plan.NameVersion())
+	if !file.Exists(bdir) {
+		err = fmt.Errorf("%s: does not exist", bdir)
+		elog.Println(err)
+		return err
+	}
+	return os.RemoveAll(bdir)
 }
 
 func List() {

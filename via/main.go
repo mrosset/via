@@ -21,18 +21,19 @@ func main() {
 	via.Verbose = *verbose
 	util.Verbose = *verbose
 	command.Add("build", build, "build plan")
+	command.Add("clean", clean, "clean build dir")
 	command.Add("create", create, "create plan from URL")
 	command.Add("edit", edit, "calls EDITOR to edit plan")
+	command.Add("files", files, "lists files")
 	command.Add("install", install, "install package")
-	command.Add("remove", remove, "remove package")
 	command.Add("lint", lint, "lint plans")
-	command.Add("show", xshow, "displays plan to stdout")
 	command.Add("list", list, "list all plans")
 	command.Add("pack", pack, "package plan")
-	command.Add("files", files, "lists files")
+	command.Add("remove", remove, "remove package")
+	command.Add("show", xshow, "displays plan to stdout")
 	err := command.Run()
 	if err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
@@ -130,6 +131,10 @@ func xshow() error {
 		}
 	}
 	return nil
+}
+
+func clean() error {
+	return command.ArgsDo(via.Clean)
 }
 
 func list() error {

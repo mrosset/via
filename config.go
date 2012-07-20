@@ -35,13 +35,17 @@ var (
 			"MAKEFLAGS": "-j3 -sw",
 			"CFLAGS":    "-pipe -O2",
 		},
+		CleanFiles: []string{
+			"usr/share/info",
+			"usr/share/man",
+		},
 	}
 	join = path.Join
 )
 
 func init() {
 	if !file.Exists(cfile) {
-		elog.Printf("WARNING", "no config was found writing new one to ", cfile)
+		elog.Println("WARNING no config was found writing new one to", cfile)
 		elog.Println("please review it.")
 		err := json.Write(&config, cfile)
 		if err != nil {
@@ -83,7 +87,8 @@ type Config struct {
 	// Toolchain
 	Flags Flags
 
-	Env map[string]string
+	Env        map[string]string
+	CleanFiles []string
 }
 
 type Flags []string

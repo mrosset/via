@@ -13,7 +13,7 @@ import (
 )
 
 func CreateManifest(dir string, plan *Plan) (err error) {
-	mfile := filepath.Join(dir, "manifest.json.gz")
+	mfile := join(dir, "manifest.json.gz")
 	files := []string{}
 	if file.Exists(mfile) {
 		err := os.Remove(mfile)

@@ -19,7 +19,8 @@ type Plan struct {
 	Build        []string
 	Package      []string
 	Depends      []string
-	Files        []string
+	//Move         map[string]string
+	Files []string
 }
 
 func (p *Plan) NameVersion() string {
