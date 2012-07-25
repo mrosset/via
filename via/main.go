@@ -20,24 +20,27 @@ var (
 
 func main() {
 	flag.Parse()
-	via.Verbose = *verbose
+	via.Verbose(*verbose)
 	util.Verbose = *verbose
-	via.SetDebug(*fdebug)
+	via.Debug(*fdebug)
 	command.Add("build", build, "build plan")
 	command.Add("clean", clean, "clean build dir")
 	command.Add("create", create, "create plan from URL")
 	command.Add("edit", edit, "calls EDITOR to edit plan")
-	command.Add("files", files, "lists files")
+	command.Add("list", list, "lists files")
 	command.Add("install", install, "install package")
 	command.Add("lint", lint, "lint plans")
-	command.Add("list", list, "list all plans")
+	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("pack", pack, "package plan")
 	command.Add("remove", remove, "remove package")
-	command.Add("show", xshow, "displays plan to stdout")
+	command.Add("show", xshow, "prints plan to stdout")
+	command.Add("config", config, "prints config to stdout")
+	command.Add("elf", elf, "prints elf information to stdout")
 	err := command.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+	return
 }
 
 func edit() error {
@@ -97,7 +100,7 @@ func pack() error {
 	return nil
 }
 
-func files() error {
+func list() error {
 	for _, arg := range command.Args() {
 		plan, err := via.ReadPlan(arg)
 		if err != nil {
@@ -136,11 +139,28 @@ func xshow() error {
 	return nil
 }
 
+func config() error {
+	err := json.Clean(via.GetConfig(), os.Stdout)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func clean() error {
 	return command.ArgsDo(via.Clean)
 }
 
-func list() error {
-	via.List()
+func elf() error {
+	for _, arg := range command.Args() {
+		err := via.Readelf(arg)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func search() error {
+	via.Search()
 	return nil
 }

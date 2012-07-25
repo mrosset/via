@@ -1,8 +1,6 @@
 package via
 
 import (
-	"github.com/str1ngs/util/file"
-	"github.com/str1ngs/util/json"
 	"os"
 	"path"
 	"strings"
@@ -47,25 +45,27 @@ var (
 )
 
 func init() {
-	if !file.Exists(cfile) {
-		elog.Println("WARNING no config was found writing new one to", cfile)
-		elog.Println("please review it.")
-		err := json.Write(&config, cfile)
+	/*
+		if !file.Exists(cfile) {
+			elog.Println("WARNING no config was found writing new one to", cfile)
+			elog.Println("please review it.")
+			err := json.Write(&config, cfile)
+			if err != nil {
+				elog.Fatal(err)
+			}
+			return
+		}
+		config = &Config{}
+		err := json.Read(&config, cfile)
 		if err != nil {
 			elog.Fatal(err)
 		}
-		return
-	}
-	config = &Config{}
-	err := json.Read(&config, cfile)
-	if err != nil {
-		elog.Fatal(err)
-	}
-	// TODO: provide Lint for master config
-	err = json.Write(&config, cfile)
-	if err != nil {
-		elog.Fatal(err)
-	}
+		// TODO: provide Lint for master config
+		err = json.Write(&config, cfile)
+		if err != nil {
+			elog.Fatal(err)
+		}
+	*/
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	config.Plans = os.ExpandEnv(config.Plans)
 	config.Repo = os.ExpandEnv(config.Repo)

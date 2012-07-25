@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/str1ngs/gurl"
+	"github.com/str1ngs/util/console"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/human"
@@ -21,13 +22,16 @@ import (
 
 var (
 	client  = new(http.Client)
-	Verbose = false
+	verbose = false
 	elog    = log.New(os.Stderr, "", log.Lshortfile)
 	lfmt    = "%-20.20s %v\n"
 	debug   = false
 )
 
-func SetDebug(b bool) {
+func Verbose(b bool) {
+	verbose = b
+}
+func Debug(b bool) {
 	debug = b
 }
 func DownloadSrc(plan *Plan) (err error) {
@@ -88,6 +92,7 @@ func doCommands(dir string, cmds []string) (err error) {
 		cmd.Stdout = os.Stdout
 		err = cmd.Run()
 		if err != nil {
+			elog.Printf("%s: %s\n", j, err)
 			return err
 		}
 	}
@@ -115,14 +120,12 @@ func Package(plan *Plan) (err error) {
 	os.Setenv("PKGDIR", pdir)
 	err = doCommands(bdir, plan.Package)
 	if err != nil {
-		elog.Println(err)
 		return err
 	}
 	cleanPkg(pdir, append(config.Remove, plan.Remove...))
 
 	err = CreatePackage(plan)
 	if err != nil {
-		elog.Println(err)
 		return err
 	}
 	return Sign(plan)
@@ -136,7 +139,9 @@ func cleanPkg(dir string, s []string) error {
 		}
 		for _, f := range glob {
 			spath := f[len(dir)+1:]
-			fmt.Printf(lfmt, "cleaning", spath)
+			if verbose {
+				fmt.Printf(lfmt, "cleaning", spath)
+			}
 			err := os.RemoveAll(f)
 			if err != nil {
 				return err
@@ -166,6 +171,13 @@ func Install(name string) (err error) {
 	plan, err := ReadPlan(name)
 	if err != nil {
 		return
+	}
+	if IsInstalled(name) {
+		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
+		err := Remove(name)
+		if err != nil {
+			return err
+		}
 	}
 	for _, d := range plan.Depends {
 		if IsInstalled(d) {
@@ -308,7 +320,7 @@ func Lint() (err error) {
 			elog.Println(err)
 			return err
 		}
-		fmt.Printf(lfmt, "lint", plan.NameVersion())
+		console.Println("lint", plan.NameVersion())
 		sort.Strings(plan.Flags)
 		sort.Strings(plan.Remove)
 		sort.Strings(plan.Depends)
@@ -318,6 +330,7 @@ func Lint() (err error) {
 			return err
 		}
 	}
+	console.Flush()
 	return nil
 }
 
@@ -335,7 +348,7 @@ func Clean(name string) error {
 	return os.RemoveAll(bdir)
 }
 
-func List() {
+func Search() {
 	e, _ := PlanFiles()
 	for _, j := range e {
 		plan, err := ReadPath(j)
@@ -357,4 +370,8 @@ func conflicts(man *Plan) (errs []error) {
 		}
 	}
 	return errs
+}
+
+func GetConfig() *Config {
+	return config
 }

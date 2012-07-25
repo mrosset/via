@@ -5,16 +5,16 @@ import (
 	"testing"
 )
 
-var clean = os.Args
+var aclean = os.Args
 
 func testBuild(t *testing.T) {
 	args := []string{"build", "ccache"}
-	os.Args = append(clean, args...)
+	os.Args = append(aclean, args...)
 	main()
 }
 
 func TestLint(t *testing.T) {
 	args := []string{"lint"}
-	os.Args = append(clean, args...)
+	os.Args = append(aclean, args...)
 	main()
 }

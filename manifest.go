@@ -2,15 +2,34 @@ package via
 
 import (
 	"debug/elf"
+	"errors"
 	"fmt"
 	"github.com/str1ngs/util/file"
+	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/json"
-	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"time"
 )
+
+func strip(p string) error {
+	m, err := magic.GetFileMagic(p)
+	if err != nil {
+		return err
+	}
+	if m.Enum != magic.MagicElf {
+		return nil
+	}
+	if verbose {
+		fmt.Printf(lfmt, "strip", p)
+	}
+	cmd := exec.Command("strip", p, "--strip-all")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
 
 func CreateManifest(dir string, plan *Plan) (err error) {
 	mfile := join(dir, "manifest.json.gz")
@@ -18,7 +37,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if file.Exists(mfile) {
 		err := os.Remove(mfile)
 		if err != nil {
-			log.Println(err)
+			elog.Println(err)
 			return err
 		}
 	}
@@ -27,21 +46,23 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		if path == dir {
 			return nil
 		}
+
 		spath := path[len(dir)+1:]
 		stat, err := os.Lstat(path)
 		if err != nil {
-			log.Println(err, path)
+			elog.Println(err, path)
 			return err
 		}
-		if !stat.IsDir() {
-			size = size + stat.Size()
-			files = append(files, spath)
+		if stat.IsDir() {
+			return nil
 		}
+		strip(path)
+		size = size + stat.Size()
+		files = append(files, spath)
 		return nil
 	}
 	err = filepath.Walk(dir, walkFn)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	plan.Depends = Depends(plan.Name, dir, files)
@@ -122,4 +143,71 @@ func ReadManifest(name string) (man *Plan, err error) {
 		return
 	}
 	return
+}
+
+func Readelf(p string) error {
+	f, err := elf.Open(p)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	im, err := f.ImportedLibraries()
+	if err != nil {
+		return err
+	}
+	fmt.Printf(lfmt, "libs", im)
+	sec := f.Section(".interp")
+	d, err := sec.Data()
+	if err != nil {
+		return err
+	}
+	fmt.Printf(lfmt, "intr", string(d))
+	ds := f.SectionByType(elf.SHT_DYNAMIC)
+	d, err = ds.Data()
+	if err != nil {
+		return err
+	}
+	str, err := stringTable(f, ds.Link)
+	if err != nil {
+		return err
+	}
+	for len(d) > 0 {
+		// TODO: add byteorder for ELFCLASS32
+		tag := elf.DynTag(f.ByteOrder.Uint64(d[0:8]))
+		fmt.Println(tag)
+		val := uint64(f.ByteOrder.Uint64(d[8:16]))
+		d = d[16:]
+		if tag == elf.DT_RPATH {
+			s, ok := getString(str, int(val))
+			if ok {
+				fmt.Printf(lfmt, "rpath", s)
+			}
+		}
+	}
+	return nil
+}
+
+// FIXME: These 2 functions are taken from GOROOT/src/pkg/elf. 
+// add license or request they be exported?
+// getString extracts a string from an ELF string table.
+func getString(section []byte, start int) (string, bool) {
+	if start < 0 || start >= len(section) {
+		return "", false
+	}
+
+	for end := start; end < len(section); end++ {
+		if section[end] == 0 {
+			return string(section[start:end]), true
+		}
+	}
+	return "", false
+}
+
+// stringTable reads and returns the string table given by the
+// specified link value.
+func stringTable(f *elf.File, link uint32) ([]byte, error) {
+	if link <= 0 || link >= uint32(len(f.Sections)) {
+		return nil, errors.New("section has invalid string table link")
+	}
+	return f.Sections[link].Data()
 }

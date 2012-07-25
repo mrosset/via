@@ -7,82 +7,44 @@ import (
 )
 
 var (
-	//tests = []string{"ccache", "eglibc"}
-	tests = []string{"mpc"}
-	turl  = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
+	test = "ccache"
+	turl = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 
 func init() {
+	Verbose(true)
 	util.Verbose = false
+}
+
+func Testbuildsteps(t *testing.T) {
+	plan, err := ReadPlan(test)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := BuildSteps(plan); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPackage(t *testing.T) {
+	plan, err := ReadPlan(test)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := BuildSteps(plan); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestReadelf(t *testing.T) {
+	err := Readelf(join(cache.Pkgs(), "ccache-3.1.7/bin/ccache"))
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func ExampleDepends() {
 	fmt.Println(Depends("bash", "/", []string{"bin/bash"}))
 	// output:
 	// [readline ncurses glibc]
-}
-
-func TestLint(t *testing.T) {
-	err := Lint()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestStage(t *testing.T) {
-	for _, test := range tests {
-		plan, err := ReadPlan(test)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := Stage(plan); err != nil {
-			t.Fatal(err)
-		}
-	}
-}
-
-func TestPackage(t *testing.T) {
-	for _, test := range tests {
-		plan, err := ReadPlan(test)
-		if err != nil {
-			t.Fatal(err)
-		}
-		fmt.Printf(lfmt, "package", test)
-		if err := Package(plan); err != nil {
-			t.Fatal(err)
-		}
-		plan, err = ReadPlan(test)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, f := range plan.Files {
-			fmt.Println(f)
-		}
-	}
-}
-
-func Testbuildsteps(t *testing.T) {
-	for _, test := range tests {
-		plan, err := ReadPlan(test)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := BuildSteps(plan); err != nil {
-			t.Fatal(err)
-		}
-		if err := Install(test); err != nil {
-			t.Fatal(err)
-		}
-		fmt.Printf(lfmt, "removing", plan.NameVersion())
-		if err := Remove(test); err != nil {
-			t.Error(err)
-		}
-	}
-}
-
-func Testcreate(t *testing.T) {
-	err := Create(turl)
-	if err != nil {
-		t.Error(err)
-	}
 }
