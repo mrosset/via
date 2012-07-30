@@ -11,34 +11,35 @@ var (
 	home   = os.Getenv("HOME")
 	cfile  = path.Join(home, "via.json")
 	config = &Config{
-		Arch:      "x86_64",
+		Arch:      "arm",
 		OS:        "linux",
 		Cache:     "$HOME/via/cache",
-		DB:        "var/db/via",
+		DB:        "/data/data/gnuoid/var/db/via",
 		Identity:  "test user <test@test.com>",
 		Plans:     "$HOME/via/plans",
 		PlansRepo: "https://code.google.com/p/via.plans",
 		Repo:      "$HOME/via/repo",
-		Root:      "/home/strings/chroot",
+		Root:      "/",
 		Flags: []string{
+			//"--target=arm-linux-gnueabi",
+			"--host=arm-linux-gnueabi",
 			"--disable-multilib",
 			"--disable-dependency-tracking",
 			"--disable-nls",
 			"--with-shared",
-			"--libdir=/usr/lib",
-			"--libexecdir=/usr/lib",
-			"--prefix=/usr",
-			"-q",
+			"--prefix=$PREFIX",
 		},
 		Env: map[string]string{
-			"MAKEFLAGS": "-j3 -sw",
-			"CFLAGS":    "-pipe -O2",
+			"PREFIX":      "/data/data/gnuoid",
+			"MAKEFLAGS":   "-j3 -sw",
+			"CFLAGS":      "-pipe -O2 -static-libgcc -I/data/data/gnuoid/include",
+			"LD_RUN_PATH": "/data/data/gnuoid/lib",
+			"LDFLAGS":     "-L/data/data/gnuoid/lib",
 		},
 		Remove: []string{
-			"usr/lib/*.a",
-			"usr/share/doc",
-			"usr/share/info",
-			"usr/share/man",
+			"data/data/gnuoid/share/doc",
+			"data/data/gnuoid/share/info",
+			"data/data/gnuoid/share/man",
 		},
 	}
 	join = path.Join

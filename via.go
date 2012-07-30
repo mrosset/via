@@ -26,6 +26,7 @@ var (
 	elog    = log.New(os.Stderr, "", log.Lshortfile)
 	lfmt    = "%-20.20s %v\n"
 	debug   = false
+	expand  = os.ExpandEnv
 )
 
 func Verbose(b bool) {
@@ -72,7 +73,7 @@ func Build(plan *Plan) (err error) {
 	os.Setenv("Flags", flags.String())
 	bdir := join(cache.Builds(), plan.NameVersion())
 	if plan.BuildInStage {
-		bdir = join(cache.Stages(), plan.NameVersion())
+		bdir = join(cache.Stages(), plan.stageDir())
 	}
 	if !file.Exists(bdir) {
 		os.Mkdir(bdir, 0755)
@@ -82,9 +83,9 @@ func Build(plan *Plan) (err error) {
 
 func doCommands(dir string, cmds []string) (err error) {
 	for _, j := range cmds {
-		s := os.ExpandEnv(j)
+		j := os.ExpandEnv(j)
 		buf := new(bytes.Buffer)
-		buf.WriteString(s)
+		buf.WriteString(j)
 		cmd := exec.Command("sh")
 		cmd.Dir = dir
 		cmd.Stdin = buf
@@ -104,7 +105,7 @@ func Package(plan *Plan) (err error) {
 	pdir := join(cache.Pkgs(), plan.NameVersion())
 
 	if plan.BuildInStage {
-		bdir = join(cache.Stages(), plan.NameVersion())
+		bdir = join(cache.Stages(), plan.stageDir())
 	}
 	if file.Exists(pdir) {
 		err := os.RemoveAll(pdir)

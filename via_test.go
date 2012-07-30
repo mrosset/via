@@ -46,5 +46,5 @@ func TestReadelf(t *testing.T) {
 func ExampleDepends() {
 	fmt.Println(Depends("bash", "/", []string{"bin/bash"}))
 	// output:
-	// [readline ncurses glibc]
+	// [readline ncurses]
 }

@@ -56,7 +56,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		if stat.IsDir() {
 			return nil
 		}
-		strip(path)
+		//strip(path)
 		size = size + stat.Size()
 		files = append(files, spath)
 		return nil
@@ -79,8 +79,11 @@ func Depends(pname, base string, files []string) []string {
 		d := depends(join(base, j))
 		for _, k := range d {
 			o := owns(k)
+			if o == "glibc" {
+				continue
+			}
 			if o == "" {
-				elog.Println("warning", "can not resolve", k)
+				fmt.Println("warning", "can not resolve", k)
 				continue
 			}
 			if contains(deps, o) || pname == o {
@@ -174,7 +177,6 @@ func Readelf(p string) error {
 	for len(d) > 0 {
 		// TODO: add byteorder for ELFCLASS32
 		tag := elf.DynTag(f.ByteOrder.Uint64(d[0:8]))
-		fmt.Println(tag)
 		val := uint64(f.ByteOrder.Uint64(d[8:16]))
 		d = d[16:]
 		if tag == elf.DT_RPATH {
