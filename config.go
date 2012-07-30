@@ -28,6 +28,7 @@ var (
 			"--disable-nls",
 			"--with-shared",
 			"--prefix=$PREFIX",
+			"-q",
 		},
 		Env: map[string]string{
 			"PREFIX":      "/data/data/gnuoid",
