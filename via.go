@@ -70,7 +70,7 @@ func Build(plan *Plan) (err error) {
 		flags = append(flags, plan.Flags...)
 	}
 	os.Setenv("SRCDIR", join(cache.Stages(), plan.stageDir()))
-	os.Setenv("Flags", flags.String())
+	os.Setenv("Flags", expand(flags.String()))
 	bdir := join(cache.Builds(), plan.NameVersion())
 	if plan.BuildInStage {
 		bdir = join(cache.Stages(), plan.stageDir())
@@ -83,7 +83,7 @@ func Build(plan *Plan) (err error) {
 
 func doCommands(dir string, cmds []string) (err error) {
 	for _, j := range cmds {
-		j := os.ExpandEnv(j)
+		j := expand(j)
 		buf := new(bytes.Buffer)
 		buf.WriteString(j)
 		cmd := exec.Command("sh")
@@ -344,9 +344,17 @@ func Clean(name string) error {
 	if !file.Exists(bdir) {
 		err = fmt.Errorf("%s: does not exist", bdir)
 		elog.Println(err)
-		return err
 	}
-	return os.RemoveAll(bdir)
+	sdir := join(cache.Stages(), plan.stageDir())
+	if !file.Exists(sdir) {
+		err = fmt.Errorf("%s: does not exist", sdir)
+		elog.Println(err)
+	}
+	err = os.RemoveAll(bdir)
+	if err != nil {
+		elog.Println(err)
+	}
+	return os.RemoveAll(sdir)
 }
 
 func Search() {

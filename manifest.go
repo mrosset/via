@@ -25,7 +25,7 @@ func strip(p string) error {
 	if verbose {
 		fmt.Printf(lfmt, "strip", p)
 	}
-	cmd := exec.Command("strip", p, "--strip-all")
+	cmd := exec.Command(os.Getenv("STRIP"), p, "--strip-all")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
