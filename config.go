@@ -11,18 +11,16 @@ var (
 	home   = os.Getenv("HOME")
 	cfile  = path.Join(home, "via.json")
 	config = &Config{
-		Arch:      "arm",
+		Arch:      "amd64",
 		OS:        "linux",
 		Cache:     "$HOME/via/cache",
-		DB:        "/data/data/gnuoid/var/db/via",
+		DB:        "/usr/local/via/var/db/via",
 		Identity:  "test user <test@test.com>",
 		Plans:     "$HOME/via/plans",
 		PlansRepo: "https://code.google.com/p/via.plans",
 		Repo:      "$HOME/via/repo",
 		Root:      "/",
 		Flags: []string{
-			//"--target=arm-linux-gnueabi",
-			"--host=arm-linux-gnueabi",
 			"--disable-multilib",
 			"--disable-dependency-tracking",
 			"--disable-nls",
@@ -31,16 +29,12 @@ var (
 			"-q",
 		},
 		Env: map[string]string{
-			"PREFIX":      "/data/data/gnuoid",
+			"CC": "clang",
+			"PREFIX":      "/usr/local/via",
 			"MAKEFLAGS":   "-j3 -sw",
-			"CFLAGS":      "-pipe -O2 -static-libgcc -I/data/data/gnuoid/include",
-			"LD_RUN_PATH": "/data/data/gnuoid/lib",
-			"LDFLAGS":     "-L/data/data/gnuoid/lib",
+			"CFLAGS":      "-pipe -O2",
 		},
 		Remove: []string{
-			"data/data/gnuoid/share/doc",
-			"data/data/gnuoid/share/info",
-			"data/data/gnuoid/share/man",
 		},
 	}
 	join = path.Join
