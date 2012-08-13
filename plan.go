@@ -20,9 +20,9 @@ type Plan struct {
 	Flags        Flags
 	Build        []string
 	Package      []string
+	PostInstall  []string
 	Remove       []string
-	//Move         map[string]string
-	Files []string
+	Files        []string
 }
 
 func (p *Plan) NameVersion() string {

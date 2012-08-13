@@ -11,33 +11,35 @@ var (
 	home   = os.Getenv("HOME")
 	cfile  = path.Join(home, "via.json")
 	config = &Config{
-		Arch:      "amd64",
+		Arch:      "x86_64",
 		OS:        "linux",
 		Cache:     "$HOME/via/cache",
-		DB:        "/usr/local/via/var/db/via",
+		DB:        "/usr/local/via/db",
 		Identity:  "test user <test@test.com>",
 		Plans:     "$HOME/via/plans",
 		PlansRepo: "https://code.google.com/p/via.plans",
 		Repo:      "$HOME/via/repo",
 		Root:      "/",
 		Flags: []string{
-			"--disable-multilib",
+			"--disable-acl",
 			"--disable-dependency-tracking",
+			"--disable-multilib",
 			"--disable-nls",
-			"--with-shared",
+			"--without-manpages",
 			"--prefix=$PREFIX",
-			"-q",
+			"--sysconfdir=$PREFIX/etc",
 		},
 		Env: map[string]string{
-			"CC": "clang",
-			"PREFIX":      "/usr/local/via",
-			"MAKEFLAGS":   "-j3 -sw",
-			"CFLAGS":      "-pipe -O2",
+			"CFLAGS":    "-pipe -O2 -mtune=generic",
+			"CXXFLAGS":  "-pipe -O2 -mtune=generic",
+			"LDFLAGS":   "-Wl,--as-needed",
+			"MAKEFLAGS": "-j3",
+			"PREFIX":    "/usr/local/via",
 		},
 		Remove: []string{
+			"usr/local/via/share/info/dir",
 		},
 	}
-	join = path.Join
 )
 
 func init() {

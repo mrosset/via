@@ -98,15 +98,6 @@ func Depends(pname, base string, files []string) []string {
 	return deps
 }
 
-func contains(sl []string, s string) bool {
-	for _, j := range sl {
-		if j == s {
-			return true
-		}
-	}
-	return false
-}
-
 func depends(file string) []string {
 	f, err := elf.Open(file)
 	if err != nil {

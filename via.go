@@ -1,7 +1,6 @@
 package via
 
 import (
-	"bytes"
 	"compress/gzip"
 	"fmt"
 	"github.com/str1ngs/gurl"
@@ -84,13 +83,13 @@ func Build(plan *Plan) (err error) {
 func doCommands(dir string, cmds []string) (err error) {
 	for _, j := range cmds {
 		j := expand(j)
-		buf := new(bytes.Buffer)
-		buf.WriteString(j)
-		cmd := exec.Command("sh")
+		cmd := exec.Command("sh", "-c", j)
 		cmd.Dir = dir
-		cmd.Stdin = buf
+		cmd.Stdin = os.Stdin
+		if verbose {
+			cmd.Stdout = os.Stdout
+		}
 		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
 		err = cmd.Run()
 		if err != nil {
 			elog.Printf("%s: %s\n", j, err)
@@ -229,7 +228,11 @@ func Install(name string) (err error) {
 		elog.Println(err)
 		return err
 	}
-	return json.Write(man, path.Join(db, "manifest.json"))
+	return json.Write(man, join(db, "manifest.json"))
+}
+
+func PostInstall(plan *Plan) (err error) {
+	return doCommands("/", plan.PostInstall)
 }
 
 func Remove(name string) (err error) {
@@ -238,6 +241,7 @@ func Remove(name string) (err error) {
 		elog.Println(err)
 		return err
 	}
+
 	man, err := ReadManifest(name)
 	if err != nil {
 		return err
@@ -246,13 +250,11 @@ func Remove(name string) (err error) {
 		fpath := join(config.Root, f)
 		err = os.Remove(fpath)
 		if err != nil {
-			elog.Println(len(f), f, "not exist")
-		}
-		if file.Exists(fpath) {
-			elog.Println(f, "not removed")
+			elog.Println(f, err)
 		}
 	}
-	return os.RemoveAll(path.Join(config.DB.Installed(), name))
+
+	return os.RemoveAll(join(config.DB.Installed(), name))
 }
 
 type Step struct {
@@ -345,16 +347,7 @@ func Clean(name string) error {
 		err = fmt.Errorf("%s: does not exist", bdir)
 		elog.Println(err)
 	}
-	sdir := join(cache.Stages(), plan.stageDir())
-	if !file.Exists(sdir) {
-		err = fmt.Errorf("%s: does not exist", sdir)
-		elog.Println(err)
-	}
-	err = os.RemoveAll(bdir)
-	if err != nil {
-		elog.Println(err)
-	}
-	return os.RemoveAll(sdir)
+	return os.RemoveAll(bdir)
 }
 
 func Search() {

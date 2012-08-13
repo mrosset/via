@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 )
 
 var (
@@ -45,11 +46,7 @@ func main() {
 
 func edit() error {
 	editor := os.Getenv("EDITOR")
-	plan, err := via.ReadPlan(command.Args()[0])
-	if err != nil {
-		return err
-	}
-	cmd := exec.Command(editor, plan.Path())
+	cmd := exec.Command(editor, path.Join(via.GetConfig().Plans, command.Args()[0]+".json"))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
