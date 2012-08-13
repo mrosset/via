@@ -1,13 +1,12 @@
 package via
 
 import (
-	"fmt"
 	"github.com/str1ngs/util"
 	"testing"
 )
 
 var (
-	test = "ccache"
+	test = "zlib"
 	turl = "http://libtorrent.rakshasa.no/downloads/rtorrent-0.8.9.tar.gz"
 )
 
@@ -16,7 +15,7 @@ func init() {
 	util.Verbose = false
 }
 
-func Testbuildsteps(t *testing.T) {
+func TestBuildsteps(t *testing.T) {
 	plan, err := ReadPlan(test)
 	if err != nil {
 		t.Fatal(err)
@@ -26,13 +25,30 @@ func Testbuildsteps(t *testing.T) {
 	}
 }
 
-func TestPackage(t *testing.T) {
+func Testpackage(t *testing.T) {
 	plan, err := ReadPlan(test)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err := BuildSteps(plan); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestInstall(t *testing.T) {
+	config.Root = "tmp"
+	err := Install(test)
+	if err != nil {
+		t.Error(err)
+	}
+	walkPath("tmp")
+}
+
+func TestRemove(t *testing.T) {
+	config.Root = "tmp"
+	err := Remove(test)
+	if err != nil {
+		t.Error(err)
 	}
 }
 
@@ -41,10 +57,4 @@ func TestReadelf(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-}
-
-func ExampleDepends() {
-	fmt.Println(Depends("bash", "/", []string{"bin/bash"}))
-	// output:
-	// [readline ncurses]
 }

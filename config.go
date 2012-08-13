@@ -11,39 +11,35 @@ var (
 	home   = os.Getenv("HOME")
 	cfile  = path.Join(home, "via.json")
 	config = &Config{
-		Arch:      "arm",
+		Arch:      "x86_64",
 		OS:        "linux",
 		Cache:     "$HOME/via/cache",
-		DB:        "/data/data/gnuoid/var/db/via",
+		DB:        "/usr/local/via/db",
 		Identity:  "test user <test@test.com>",
 		Plans:     "$HOME/via/plans",
 		PlansRepo: "https://code.google.com/p/via.plans",
 		Repo:      "$HOME/via/repo",
 		Root:      "/",
 		Flags: []string{
-			"--host=arm-linux-gnueabi",
-			"--disable-multilib",
+			"--disable-acl",
 			"--disable-dependency-tracking",
+			"--disable-multilib",
 			"--disable-nls",
-			"--with-shared",
+			"--without-manpages",
 			"--prefix=$PREFIX",
-			"--config-cache",
-			"-q",
+			"--sysconfdir=$PREFIX/etc",
 		},
 		Env: map[string]string{
-			"CFLAGS":    "-pipe -O2 -static-libgcc -I/data/data/gnuoid/include",
-			"LDFLAGS":   "-L/data/data/gnuoid/lib",
-			"MAKEFLAGS": "-j3 -sw",
-			"PREFIX":    "/data/data/gnuoid",
-			"STRIP":     "arm-linux-gnueabi-strip",
+			"CFLAGS":    "-pipe -O2 -mtune=generic",
+			"CXXFLAGS":  "-pipe -O2 -mtune=generic",
+			"LDFLAGS":   "-Wl,--as-needed",
+			"MAKEFLAGS": "-j3",
+			"PREFIX":    "/usr/local/via",
 		},
 		Remove: []string{
-			"data/data/gnuoid/share/doc",
-			"data/data/gnuoid/share/info",
-			"data/data/gnuoid/share/man",
+			"data/data/via/share/info/dir",
 		},
 	}
-	join = path.Join
 )
 
 func init() {
