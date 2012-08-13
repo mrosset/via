@@ -9,10 +9,15 @@ import (
 	"path/filepath"
 )
 
-// Varies aliases
+// function aliases
 var (
 	join = path.Join
+	base = path.Base
 )
+
+func baseDir(p string) string {
+	return base(path.Dir(p))
+}
 
 // Check if a string slice contains a
 // string

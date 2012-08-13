@@ -168,7 +168,7 @@ func CreatePackage(plan *Plan) (err error) {
 }
 
 func Install(name string) (err error) {
-	plan, err := ReadPlan(name)
+	plan, err := FindPlan(name)
 	if err != nil {
 		return
 	}
@@ -323,7 +323,13 @@ func Lint() (err error) {
 			elog.Println(err)
 			return err
 		}
-		console.Println("lint", plan.NameVersion())
+		// If Group is empty, we can set it
+		if plan.Group == "" {
+			plan.Group = baseDir(j)
+		}
+		if verbose {
+			console.Println("lint", plan.NameVersion())
+		}
 		sort.Strings(plan.Flags)
 		sort.Strings(plan.Remove)
 		sort.Strings(plan.Depends)
@@ -338,7 +344,7 @@ func Lint() (err error) {
 }
 
 func Clean(name string) error {
-	plan, err := ReadPlan(name)
+	plan, err := FindPlan(name)
 	if err != nil {
 		return err
 	}
@@ -362,7 +368,7 @@ func Search() {
 }
 
 func PlanFiles() ([]string, error) {
-	return filepath.Glob(join(config.Plans, "*.json"))
+	return filepath.Glob(join(config.Plans, "*", "*.json"))
 }
 
 func conflicts(man *Plan) (errs []error) {

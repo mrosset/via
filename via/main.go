@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 )
 
 var (
@@ -46,7 +45,11 @@ func main() {
 
 func edit() error {
 	editor := os.Getenv("EDITOR")
-	cmd := exec.Command(editor, path.Join(via.GetConfig().Plans, command.Args()[0]+".json"))
+	p, err := via.FindPlanPath(command.Args()[0])
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(editor, p)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -65,7 +68,7 @@ func create() error {
 
 func build() error {
 	for _, arg := range command.Args() {
-		plan, err := via.ReadPlan(arg)
+		plan, err := via.FindPlan(arg)
 		if err != nil {
 			return err
 		}
@@ -85,7 +88,7 @@ func build() error {
 
 func pack() error {
 	for _, arg := range command.Args() {
-		plan, err := via.ReadPlan(arg)
+		plan, err := via.FindPlan(arg)
 		if err != nil {
 			return err
 		}
@@ -99,7 +102,7 @@ func pack() error {
 
 func list() error {
 	for _, arg := range command.Args() {
-		plan, err := via.ReadPlan(arg)
+		plan, err := via.FindPlan(arg)
 		if err != nil {
 			return err
 		}
@@ -124,7 +127,7 @@ func lint() error {
 
 func xshow() error {
 	for _, arg := range command.Args() {
-		plan, err := via.ReadPlan(arg)
+		plan, err := via.FindPlan(arg)
 		if err != nil {
 			log.Fatal(err)
 		}

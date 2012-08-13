@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/str1ngs/util/json"
 	"path"
-	"strings"
+	"path/filepath"
 	"time"
 )
 
@@ -12,6 +12,7 @@ type Plan struct {
 	Name         string
 	Version      string
 	Url          string
+	Group        string
 	StageDir     string
 	BuildInStage bool
 	Date         time.Time
@@ -40,7 +41,7 @@ func (p *Plan) Print() {
 }
 
 func (p *Plan) Path() string {
-	return path.Join(config.Plans, p.Name+".json")
+	return path.Join(config.Plans, p.Group, p.Name+".json")
 }
 
 // TODO: make this atomic
@@ -48,18 +49,32 @@ func (p *Plan) Save() (err error) {
 	return json.Write(p, p.Path())
 }
 
-func ReadPlan(n string) (plan *Plan, err error) {
-	plan = &Plan{Name: n}
-	err = json.Read(plan, plan.Path())
-	return plan, err
+func FindPlanPath(n string) (string, error) {
+	e, err := filepath.Glob(join(config.Plans, "*", n+".json"))
+	if err != nil {
+		return "", err
+	}
+	if len(e) != 1 {
+		return "", fmt.Errorf("expected 1 plan found %d.", len(e))
+	}
+	return e[0], nil
+}
+
+func FindPlan(n string) (plan *Plan, err error) {
+	p, err := FindPlanPath(n)
+	if err != nil {
+		return nil, err
+	}
+	return ReadPath(p)
 }
 
 func ReadPath(p string) (plan *Plan, err error) {
-	s := strings.Split(path.Base(p), ".")
-	if len(s) != 2 {
-		return nil, fmt.Errorf("expected {name}.json got %v", s)
+	plan = new(Plan)
+	err = json.Read(plan, p)
+	if err != nil {
+		return nil, err
 	}
-	return ReadPlan(s[0])
+	return plan, nil
 }
 
 func (p *Plan) PackageFile() string {

@@ -15,8 +15,14 @@ func init() {
 	util.Verbose = false
 }
 
+func TestLint(t *testing.T) {
+	if err := Lint(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestBuildsteps(t *testing.T) {
-	plan, err := ReadPlan(test)
+	plan, err := FindPlan(test)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,8 +31,8 @@ func TestBuildsteps(t *testing.T) {
 	}
 }
 
-func Testpackage(t *testing.T) {
-	plan, err := ReadPlan(test)
+func TestPackage(t *testing.T) {
+	plan, err := FindPlan(test)
 	if err != nil {
 		t.Fatal(err)
 	}

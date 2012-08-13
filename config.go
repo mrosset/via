@@ -1,6 +1,7 @@
 package via
 
 import (
+	"github.com/str1ngs/util/json"
 	"os"
 	"path"
 	"strings"
@@ -9,61 +10,21 @@ import (
 var (
 	cache  Cache
 	home   = os.Getenv("HOME")
-	cfile  = path.Join(home, "via.json")
-	config = &Config{
-		Arch:      "x86_64",
-		OS:        "linux",
-		Cache:     "$HOME/via/cache",
-		DB:        "/usr/local/via/db",
-		Identity:  "test user <test@test.com>",
-		Plans:     "$HOME/via/plans",
-		PlansRepo: "https://code.google.com/p/via.plans",
-		Repo:      "$HOME/via/repo",
-		Root:      "/",
-		Flags: []string{
-			"--disable-acl",
-			"--disable-dependency-tracking",
-			"--disable-multilib",
-			"--disable-nls",
-			"--without-manpages",
-			"--prefix=$PREFIX",
-			"--sysconfdir=$PREFIX/etc",
-		},
-		Env: map[string]string{
-			"CFLAGS":    "-pipe -O2 -mtune=generic",
-			"CXXFLAGS":  "-pipe -O2 -mtune=generic",
-			"LDFLAGS":   "-Wl,--as-needed",
-			"MAKEFLAGS": "-j3",
-			"PREFIX":    "/usr/local/via",
-		},
-		Remove: []string{
-			"usr/local/via/share/info/dir",
-		},
-	}
+	cfile  = path.Join(home, "via", "plans", "config.json")
+	config = new(Config)
 )
 
 func init() {
-	/*
-		if !file.Exists(cfile) {
-			elog.Println("WARNING no config was found writing new one to", cfile)
-			elog.Println("please review it.")
-			err := json.Write(&config, cfile)
-			if err != nil {
-				elog.Fatal(err)
-			}
-			return
-		}
-		config = &Config{}
-		err := json.Read(&config, cfile)
-		if err != nil {
-			elog.Fatal(err)
-		}
-		// TODO: provide Lint for master config
-		err = json.Write(&config, cfile)
-		if err != nil {
-			elog.Fatal(err)
-		}
-	*/
+	err := json.Read(&config, cfile)
+	if err != nil {
+		elog.Fatal(err)
+	}
+
+	// TODO: provide Lint for master config
+	err = json.Write(&config, cfile)
+	if err != nil {
+		elog.Fatal(err)
+	}
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	config.Plans = os.ExpandEnv(config.Plans)
 	config.Repo = os.ExpandEnv(config.Repo)
