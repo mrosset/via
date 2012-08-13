@@ -40,14 +40,22 @@ func isEmpty(p string) bool {
 	return len(e) == 0
 }
 
-// Walks a path and prints each dir/file
-func walkPath(p string) error {
+// Walks a path and returns a slice of dir/files
+func walkPath(p string) ([]string, error) {
+	s := []string{}
 	fn := func(path string, fi os.FileInfo, err error) error {
-		if path == p {
-			return nil
-		}
-		fmt.Println(path)
+		s = append(s, path)
 		return nil
 	}
-	return filepath.Walk(p, fn)
+	err := filepath.Walk(p, fn)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func printSlice(s []string) {
+	for _, j := range s {
+		fmt.Println(j)
+	}
 }
