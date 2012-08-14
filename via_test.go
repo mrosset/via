@@ -20,8 +20,8 @@ func clean() {
 
 func init() {
 	clean()
-	os.Mkdir(troot, 0700)
-	os.Mkdir(trepo, 0700)
+	os.MkdirAll(troot, 0700)
+	os.MkdirAll(trepo, 0700)
 	config.Root = troot
 	config.Repo = trepo
 	Verbose(false)
@@ -34,16 +34,6 @@ func TestLint(t *testing.T) {
 }
 
 func TestBuildsteps(t *testing.T) {
-	plan, err := FindPlan(test)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := BuildSteps(plan); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestPackage(t *testing.T) {
 	plan, err := FindPlan(test)
 	if err != nil {
 		t.Fatal(err)

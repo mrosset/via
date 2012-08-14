@@ -4,6 +4,8 @@ package via
 
 import (
 	"fmt"
+	"github.com/str1ngs/util/file"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -54,8 +56,36 @@ func walkPath(p string) ([]string, error) {
 	return s, nil
 }
 
+func cpDir(s, d string) error {
+	pdir := path.Dir(s)
+	fn := func(p string, fi os.FileInfo, err error) error {
+		spath := p[len(pdir)+1:]
+		dpath := join(d, spath)
+		if file.Exists(dpath) {
+			return nil
+		}
+		if fi.IsDir() {
+			return os.Mkdir(dpath, fi.Mode())
+		}
+		fd, err := os.OpenFile(dpath, os.O_CREATE|os.O_WRONLY, fi.Mode())
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		defer fd.Close()
+		return file.Copy(fd, p)
+	}
+	return filepath.Walk(s, fn)
+}
+
 func printSlice(s []string) {
 	for _, j := range s {
 		fmt.Println(j)
 	}
+}
+
+// for debugging only
+func stop() {
+	fmt.Println("STOP")
+	os.Exit(1)
 }
