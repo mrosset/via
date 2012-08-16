@@ -41,7 +41,7 @@ func PlanSync() error {
 	return nil
 }
 
-func RepoCreate(rd string) error {
+func RepoCreate() error {
 	r := []string{}
 	e, err := PlanFiles()
 	if err != nil {

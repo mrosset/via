@@ -1,7 +1,7 @@
 package main
 
 import (
-	"code.google.com/p/via"
+	"code.google.com/p/via/pkg"
 	"flag"
 	"fmt"
 	"github.com/str1ngs/util"
@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	root     = flag.String("r", "/", "root directory")
 	verbose  = flag.Bool("v", false, "verbose output")
 	finstall = flag.Bool("i", false, "install package after build")
 	fdebug   = flag.Bool("d", false, "debug output")
@@ -21,6 +22,7 @@ var (
 func main() {
 	flag.Parse()
 	via.Verbose(*verbose)
+	via.Root(*root)
 	util.Verbose = *verbose
 	via.Debug(*fdebug)
 	command.Add("build", build, "build plan")
@@ -30,6 +32,8 @@ func main() {
 	command.Add("list", list, "lists files")
 	command.Add("install", install, "install package")
 	command.Add("lint", lint, "lint plans")
+	command.Add("repo", repo, "update repo")
+	command.Add("sync", sync, "fetch remote repo data")
 	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("pack", pack, "package plan")
 	command.Add("remove", remove, "remove package")
@@ -160,6 +164,15 @@ func elf() error {
 	}
 	return nil
 }
+
+func sync() error {
+	return via.PlanSync()
+}
+
+func repo() error {
+	return via.RepoCreate()
+}
+
 func search() error {
 	via.Search()
 	return nil
