@@ -28,6 +28,10 @@ var (
 	expand  = os.ExpandEnv
 )
 
+func Root(s string) {
+	config.Root = s
+}
+
 func Verbose(b bool) {
 	verbose = b
 }

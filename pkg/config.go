@@ -65,6 +65,10 @@ func (d DB) Installed() string {
 	return join(config.Root, string(d), "installed")
 }
 
+func (d DB) Plans() string {
+	return join(config.Root, string(d), "plans")
+}
+
 type Cache string
 
 func (c Cache) Pkgs() string {

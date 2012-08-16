@@ -79,9 +79,6 @@ func Depends(pname, base string, files []string) []string {
 		d := depends(join(base, j))
 		for _, k := range d {
 			o := owns(k)
-			if o == "glibc" {
-				continue
-			}
 			if o == "" {
 				fmt.Println("warning", "can not resolve", k)
 				continue
@@ -111,7 +108,7 @@ func depends(file string) []string {
 }
 
 func owns(file string) string {
-	e, err := filepath.Glob(join(config.Plans, "*.json"))
+	e, err := filepath.Glob(join(config.Plans, "*", "*.json"))
 	if err != nil {
 		elog.Println(err)
 	}

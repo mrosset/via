@@ -13,8 +13,9 @@ import (
 
 // function aliases
 var (
-	join = path.Join
-	base = path.Base
+	join   = path.Join
+	base   = path.Base
+	exists = file.Exists
 )
 
 func baseDir(p string) string {

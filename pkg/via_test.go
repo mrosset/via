@@ -27,7 +27,7 @@ func init() {
 	Verbose(false)
 }
 
-func TestLint(t *testing.T) {
+func Testlint(t *testing.T) {
 	if err := Lint(); err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,7 @@ var hwant = []string{
 	"troot/usr/local/via/share/man/man3/zlib.3",
 }
 
-func TestInstall(t *testing.T) {
+func Testinstall(t *testing.T) {
 	err := Install(test)
 	if err != nil {
 		t.Error(err)
@@ -86,15 +86,29 @@ func TestInstall(t *testing.T) {
 	}
 }
 
-func TestRemove(t *testing.T) {
+func Testremove(t *testing.T) {
 	err := Remove(test)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestReadelf(t *testing.T) {
+func Testreadelf(t *testing.T) {
 	err := Readelf(join(cache.Pkgs(), "ccache-3.1.7/bin/ccache"))
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestRepoCreate(t *testing.T) {
+	err := RepoCreate(trepo)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestRepoSync(t *testing.T) {
+	err := PlanSync()
 	if err != nil {
 		t.Error(err)
 	}
