@@ -4,7 +4,6 @@ import (
 	"debug/elf"
 	"errors"
 	"fmt"
-	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/json"
 	"os"
@@ -31,22 +30,20 @@ func strip(p string) error {
 	return cmd.Run()
 }
 
+// Walk the package directory and make a file list.
+// The resulting file list and plan data, is saved
+// to manifest.json.gz which then gets tar/gzipped into
+// the package file.
 func CreateManifest(dir string, plan *Plan) (err error) {
-	mfile := join(dir, "manifest.json.gz")
-	files := []string{}
-	if file.Exists(mfile) {
-		err := os.Remove(mfile)
-		if err != nil {
-			elog.Println(err)
-			return err
-		}
-	}
-	var size int64
+	var (
+		size  int64
+		mfile = join(dir, "manifest.json.gz")
+		files = []string{}
+	)
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if path == dir {
 			return nil
 		}
-
 		spath := path[len(dir)+1:]
 		stat, err := os.Lstat(path)
 		if err != nil {
@@ -56,8 +53,18 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		if stat.IsDir() {
 			return nil
 		}
+		removes := append(config.Remove, plan.Remove...)
+		// If the file is in config Remove or plan Removes delete it
+		if contains(removes, spath) {
+			err := os.RemoveAll(path)
+			if err != nil {
+				return err
+			}
+			fmt.Printf(lfmt, "removing", spath)
+			return nil
+		}
 		//strip(path)
-		size = size + stat.Size()
+		size += stat.Size()
 		files = append(files, spath)
 		return nil
 	}
@@ -65,7 +72,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	plan.Depends = Depends(plan.Name, dir, files)
+	//plan.Depends = Depends(plan.Name, dir, files)
 	plan.Files = files
 	plan.Date = time.Now()
 	plan.Size = size
