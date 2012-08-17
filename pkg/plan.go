@@ -3,6 +3,7 @@ package via
 import (
 	"fmt"
 	"github.com/str1ngs/util/json"
+	"os"
 	"path"
 	"path/filepath"
 	"time"
@@ -28,16 +29,6 @@ type Plan struct {
 
 func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
-}
-
-func (p *Plan) Print() {
-	pp := func(f, v string) {
-		fmt.Printf("%-10.10s = %s\n", f, v)
-	}
-	pp("Name", p.Name)
-	pp("Version", p.Version)
-	pp("Url", p.Url)
-	pp("Flags", p.Flags.String())
 }
 
 func (p *Plan) Path() string {
@@ -79,6 +70,25 @@ func ReadPath(p string) (plan *Plan, err error) {
 
 func (p *Plan) PackageFile() string {
 	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
+}
+
+func (p *Plan) Expand(s string) string {
+	fn := func(s string) string {
+		switch s {
+		case "N":
+			return p.Name
+		case "V":
+			return p.Version
+		case "GM":
+			return "http://mirrors.kernel.org/gnu"
+		}
+		return ""
+	}
+	switch s {
+	case "Url":
+		s = p.Url
+	}
+	return os.Expand(s, fn)
 }
 
 func (p Plan) stageDir() string {
