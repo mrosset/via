@@ -39,13 +39,15 @@ func Debug(b bool) {
 	debug = b
 }
 func DownloadSrc(plan *Plan) (err error) {
-	sfile := path.Join(cache.Srcs(), path.Base(plan.Url))
+	sfile := path.Join(cache.Srcs(), path.Base(plan.Expand("Url")))
 	if file.Exists(sfile) {
 		return nil
 	}
-	return gurl.Download(cache.Srcs(), plan.Url)
+	return gurl.Download(cache.Srcs(), plan.Expand("Url"))
 }
 
+// Stages the downloaded source via's cache directory
+// the stage only happens once unless BuilInStage is used
 func Stage(plan *Plan) (err error) {
 	sdir := join(cache.Stages(), plan.stageDir())
 	if file.Exists(sdir) {
@@ -63,6 +65,7 @@ func Stage(plan *Plan) (err error) {
 	return
 }
 
+// Calls each shell command in the plans Build field.
 func Build(plan *Plan) (err error) {
 	pfile := join(config.Repo, plan.PackageFile())
 	if file.Exists(pfile) {
@@ -126,37 +129,11 @@ func Package(plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	cleanPkg(pdir, append(config.Remove, plan.Remove...))
-
 	err = CreatePackage(plan)
 	if err != nil {
 		return err
 	}
 	return Sign(plan)
-}
-
-func cleanPkg(dir string, s []string) error {
-	for _, j := range s {
-		glob, err := filepath.Glob(join(dir, j))
-		if err != nil {
-			return err
-		}
-		for _, f := range glob {
-			spath := f[len(dir)+1:]
-			if verbose {
-				fmt.Printf(lfmt, "cleaning", spath)
-			}
-			err := os.RemoveAll(f)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	walkFn := func(path string, fi os.FileInfo, err error) error {
-		return nil
-	}
-	return filepath.Walk(dir, walkFn)
 }
 
 func CreatePackage(plan *Plan) (err error) {
