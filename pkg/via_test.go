@@ -33,7 +33,7 @@ func Testlint(t *testing.T) {
 	}
 }
 
-func TestBuildsteps(t *testing.T) {
+func Testbuildsteps(t *testing.T) {
 	plan, err := FindPlan(test)
 	if err != nil {
 		t.Fatal(err)
@@ -100,16 +100,28 @@ func Testreadelf(t *testing.T) {
 	}
 }
 
-func TestRepoCreate(t *testing.T) {
-	err := RepoCreate(trepo)
+func TestrepoCreate(t *testing.T) {
+	err := RepoCreate()
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestRepoSync(t *testing.T) {
+func TestrepoSync(t *testing.T) {
 	err := PlanSync()
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestExpand(t *testing.T) {
+	p, err := FindPlan("bash")
+	if err != nil {
+		t.Error(err)
+	}
+	expect := "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+	got := p.Expand("Url")
+	if got != expect {
+		t.Errorf("expected %s got %s", got, expect)
 	}
 }
