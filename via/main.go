@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"code.google.com/p/via/pkg"
 	"flag"
 	"fmt"
@@ -135,10 +136,16 @@ func xshow() error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = json.Clean(&plan, os.Stdout)
+		buf := new(bytes.Buffer)
+		less := exec.Command("less")
+		less.Stdin = buf
+		less.Stdout = os.Stdout
+		less.Stderr = os.Stderr
+		err = json.Clean(&plan, buf)
 		if err != nil {
-			return err
+			fmt.Println(err)
 		}
+		less.Run()
 	}
 	return nil
 }
