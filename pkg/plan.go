@@ -18,6 +18,7 @@ type Plan struct {
 	BuildInStage bool
 	Date         time.Time
 	Size         int64
+	SubPackages  []string
 	Depends      []string
 	Flags        Flags
 	Build        []string

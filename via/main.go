@@ -105,7 +105,7 @@ func pack() error {
 		if err != nil {
 			return err
 		}
-		err = via.Package(plan)
+		err = via.Package("", plan)
 		if err != nil {
 			return err
 		}

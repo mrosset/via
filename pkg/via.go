@@ -106,10 +106,11 @@ func doCommands(dir string, cmds []string) (err error) {
 	return nil
 }
 
-func Package(plan *Plan) (err error) {
-	bdir := join(cache.Builds(), plan.NameVersion())
+func Package(bdir string, plan *Plan) (err error) {
 	pdir := join(cache.Pkgs(), plan.NameVersion())
-
+	if bdir == "" {
+		bdir = join(cache.Builds(), plan.NameVersion())
+	}
 	if plan.BuildInStage {
 		bdir = join(cache.Stages(), plan.stageDir())
 	}
@@ -128,6 +129,15 @@ func Package(plan *Plan) (err error) {
 	err = doCommands(bdir, plan.Package)
 	if err != nil {
 		return err
+	}
+	for _, j := range plan.SubPackages {
+		sub, err := FindPlan(j)
+		if err != nil {
+			return err
+		}
+		if err = Package(bdir, sub); err != nil {
+			return err
+		}
 	}
 	err = CreatePackage(plan)
 	if err != nil {
@@ -238,35 +248,28 @@ func Remove(name string) (err error) {
 	return os.RemoveAll(join(config.DB.Installed(), name))
 }
 
-type Step struct {
-	Name string
-	Run  func(*Plan) error
-}
-
-type Steps []Step
-
-func (st Steps) Run(p *Plan) (err error) {
-	for _, s := range st {
-		fmt.Printf(lfmt, s.Name, p.NameVersion())
-		if err = s.Run(p); err != nil {
-			return
-		}
-	}
-	return nil
-}
-
 // Run all of the functions required to build a package
 func BuildSteps(plan *Plan) (err error) {
 	if file.Exists(plan.PackageFile()) {
 		return fmt.Errorf("package %s exists", plan.PackageFile())
 	}
-	steps := Steps{
-		Step{"download", DownloadSrc},
-		Step{"stage", Stage},
-		Step{"build", Build},
-		Step{"package", Package},
+	if err := DownloadSrc(plan); err != nil {
+		fmt.Printf(lfmt, "download", plan.NameVersion())
+		return err
 	}
-	return steps.Run(plan)
+	if err := Stage(plan); err != nil {
+		fmt.Printf(lfmt, "stage", plan.NameVersion())
+		return err
+	}
+	if err := Build(plan); err != nil {
+		fmt.Printf(lfmt, "build", plan.NameVersion())
+		return err
+	}
+	if err := Package("", plan); err != nil {
+		fmt.Printf(lfmt, "package", plan.NameVersion())
+		return err
+	}
+	return nil
 }
 
 // Creates a new plan from a given Url
