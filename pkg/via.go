@@ -354,7 +354,8 @@ func PlanFiles() ([]string, error) {
 
 func conflicts(man *Plan) (errs []error) {
 	for _, f := range man.Files {
-		if file.Exists(join(config.Root, f)) {
+		fpath := join(config.Root, f)
+		if file.Exists(fpath) {
 			errs = append(errs, fmt.Errorf("%s already exists.", f))
 		}
 	}

@@ -33,7 +33,7 @@ func Testlint(t *testing.T) {
 	}
 }
 
-func Testbuildsteps(t *testing.T) {
+func TestBuildsteps(t *testing.T) {
 	plan, err := FindPlan(test)
 	if err != nil {
 		t.Fatal(err)
@@ -68,7 +68,7 @@ var hwant = []string{
 	"troot/usr/local/via/share/man/man3/zlib.3",
 }
 
-func Testinstall(t *testing.T) {
+func TestInstall(t *testing.T) {
 	err := Install(test)
 	if err != nil {
 		t.Error(err)
@@ -86,14 +86,14 @@ func Testinstall(t *testing.T) {
 	}
 }
 
-func Testremove(t *testing.T) {
+func TestRemove(t *testing.T) {
 	err := Remove(test)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func Testreadelf(t *testing.T) {
+func TestReadelf(t *testing.T) {
 	err := Readelf(join(cache.Pkgs(), "ccache-3.1.7/bin/ccache"))
 	if err != nil {
 		t.Error(err)
@@ -119,9 +119,9 @@ func TestExpand(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	expect := "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
-	got := p.Expand("Url")
-	if got != expect {
-		t.Errorf("expected %s got %s", got, expect)
+	e := "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+	g := p.Expand("Url")
+	if e != g {
+		t.Errorf("expected %s got %s", e, g)
 	}
 }
