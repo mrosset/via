@@ -40,19 +40,11 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		mfile = join(dir, "manifest.json.gz")
 		files = []string{}
 	)
-	walkFn := func(path string, info os.FileInfo, err error) error {
+	walkFn := func(path string, fi os.FileInfo, err error) error {
 		if path == dir {
 			return nil
 		}
 		spath := path[len(dir)+1:]
-		stat, err := os.Lstat(path)
-		if err != nil {
-			elog.Println(err, path)
-			return err
-		}
-		if stat.IsDir() {
-			return nil
-		}
 		removes := append(config.Remove, plan.Remove...)
 		// If the file is in config Remove or plan Removes delete it
 		if contains(removes, spath) {
@@ -61,10 +53,15 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 				return err
 			}
 			fmt.Printf(lfmt, "removing", spath)
+			if fi.IsDir() {
+				return filepath.SkipDir
+			}
 			return nil
 		}
-		//strip(path)
-		size += stat.Size()
+		if fi.IsDir() {
+			return nil
+		}
+		size += fi.Size()
 		files = append(files, spath)
 		return nil
 	}
@@ -72,7 +69,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	//plan.Depends = Depends(plan.Name, dir, files)
+	plan.Depends = Depends(plan.Name, dir, files)
 	plan.Files = files
 	plan.Date = time.Now()
 	plan.Size = size

@@ -4,6 +4,7 @@ import (
 	"github.com/str1ngs/util/json"
 	"os"
 	"path"
+	"sort"
 	"strings"
 )
 
@@ -20,6 +21,8 @@ func init() {
 		elog.Fatal(err)
 	}
 
+	sort.Strings([]string(config.Flags))
+	sort.Strings(config.Remove)
 	// TODO: provide Lint for master config
 	err = json.Write(&config, cfile)
 	if err != nil {
