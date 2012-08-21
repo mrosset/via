@@ -35,6 +35,7 @@ func main() {
 	command.Add("install", install, "install package")
 	command.Add("lint", lint, "lint plans")
 	command.Add("repo", repo, "update repo")
+	command.Add("owns", owns, "finds which package owns a file")
 	command.Add("sync", sync, "fetch remote repo data")
 	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("pack", pack, "package plan")
@@ -182,6 +183,22 @@ func elf() error {
 
 func sync() error {
 	return via.PlanSync()
+}
+
+func owns() error {
+	rfiles, err := via.ReadRepoFiles()
+	if err != nil {
+		return err
+	}
+	for _, arg := range command.Args() {
+		owner := rfiles.Owns(arg)
+		if owner == "" {
+			fmt.Println(arg+":", "owner not found.")
+			continue
+		}
+		fmt.Println(owner)
+	}
+	return nil
 }
 
 func repo() error {

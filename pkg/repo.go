@@ -7,6 +7,28 @@ import (
 	"path"
 )
 
+type RepoFiles map[string][]string
+
+func (rf *RepoFiles) Owns(file string) string {
+	for pack, files := range *rf {
+		for _, f := range files {
+			if file == base(f) {
+				return pack
+			}
+		}
+	}
+	return ""
+}
+
+func ReadRepoFiles() (RepoFiles, error) {
+	files := RepoFiles{}
+	err := json.Read(&files, join(config.Plans, "files.json"))
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
 // TODO: replace this with git?
 func PlanSync() error {
 	pdir := config.DB.Plans()
@@ -42,7 +64,12 @@ func PlanSync() error {
 }
 
 func RepoCreate() error {
-	r := []string{}
+	var (
+		repo  = []string{}
+		files = map[string][]string{}
+		rfile = join(config.Plans, "repo.json")
+		ffile = join(config.Plans, "files.json")
+	)
 	e, err := PlanFiles()
 	if err != nil {
 		return err
@@ -52,7 +79,12 @@ func RepoCreate() error {
 		if err != nil {
 			return err
 		}
-		r = append(r, join(p.Group, p.Name+".json"))
+		repo = append(repo, join(p.Group, p.Name+".json"))
+		files[p.Name] = p.Files
 	}
-	return json.Write(r, join(config.Plans, "repo.json"))
+	err = json.Write(repo, rfile)
+	if err != nil {
+		return err
+	}
+	return json.Write(files, ffile)
 }

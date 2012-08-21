@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"sort"
 	"time"
 )
 
@@ -69,7 +70,10 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	plan.Depends = Depends(plan.Name, dir, files)
+	plan.Depends, err = Depends(dir, files)
+	if err != nil {
+		return err
+	}
 	plan.Files = files
 	plan.Date = time.Now()
 	plan.Size = size
@@ -77,29 +81,29 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	return json.WriteGzJson(&plan, mfile)
 }
 
-func Depends(pname, base string, files []string) []string {
-	deps := []string{}
-	for _, j := range files {
-		d := depends(join(base, j))
-		for _, k := range d {
-			o := owns(k)
-			if o == "" {
-				fmt.Println("warning", "can not resolve", k)
-				continue
+func Depends(dir string, files []string) ([]string, error) {
+	depends := []string{}
+	rfiles, err := ReadRepoFiles()
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		n := needs(join(dir, f))
+		if len(n) == 0 {
+			continue
+		}
+		for _, d := range n {
+			owner := rfiles.Owns(d)
+			if !contains(depends, owner) {
+				depends = append(depends, owner)
 			}
-			if contains(deps, o) || pname == o {
-				continue
-			}
-			deps = append(deps, o)
 		}
 	}
-	if len(deps) == 0 {
-		return nil
-	}
-	return deps
+	sort.Strings(depends)
+	return depends, nil
 }
 
-func depends(file string) []string {
+func needs(file string) []string {
 	f, err := elf.Open(file)
 	if err != nil {
 		return nil
@@ -109,26 +113,6 @@ func depends(file string) []string {
 		return nil
 	}
 	return im
-}
-
-func owns(file string) string {
-	e, err := filepath.Glob(join(config.Plans, "*", "*.json"))
-	if err != nil {
-		elog.Println(err)
-	}
-	for _, j := range e {
-		p, err := ReadPath(j)
-		if err != nil {
-			elog.Println(fmt.Errorf("%s %s", j, err))
-			continue
-		}
-		for _, f := range p.Files {
-			if filepath.Base(f) == file {
-				return p.Name
-			}
-		}
-	}
-	return ""
 }
 
 func ReadManifest(name string) (man *Plan, err error) {

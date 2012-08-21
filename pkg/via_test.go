@@ -48,9 +48,14 @@ var expectFiles = []string{
 	"usr/local/via/include/zconf.h",
 	"usr/local/via/include/zlib.h",
 	"usr/local/via/lib/libz.a",
+	"usr/local/via/lib/libz.so",
+	"usr/local/via/lib/libz.so.1",
+	"usr/local/via/lib/libz.so.1.2.7",
 	"usr/local/via/lib/pkgconfig/zlib.pc",
 	"usr/local/via/share/man/man3/zlib.3",
 }
+
+var expectDepends = []string{"glibc"}
 
 func TestPackage(t *testing.T) {
 	pfile := join(config.Repo, plan.PackageFile())
@@ -64,9 +69,15 @@ func TestPackage(t *testing.T) {
 		fmt.Println("got")
 		printSlice(got.Files)
 	}
+	if !reflect.DeepEqual(got.Depends, expectDepends) {
+		fmt.Println("expect")
+		printSlice(expectDepends)
+		fmt.Println("got")
+		printSlice(got.Depends)
+	}
 }
 
-func TestrepoCreate(t *testing.T) {
+func TestRepoCreate(t *testing.T) {
 	err := RepoCreate()
 	if err != nil {
 		t.Error(err)
@@ -81,14 +92,24 @@ func TestrepoSync(t *testing.T) {
 }
 
 func TestExpand(t *testing.T) {
-	p, err := FindPlan("bash")
-	if err != nil {
-		t.Error(err)
+	var (
+		plan, _ = FindPlan("bash")
+		expect  = "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+		got     = plan.Expand("Url")
+	)
+	if expect != got {
+		t.Errorf("expected %s got %s", expect, got)
 	}
-	e := "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
-	g := p.Expand("Url")
-	if e != g {
-		t.Errorf("expected %s got %s", e, g)
+}
+
+func TestOwns(t *testing.T) {
+	var (
+		files, _ = ReadRepoFiles()
+		expect   = "glibc"
+		got      = files.Owns("libc.so.6")
+	)
+	if expect != got {
+		t.Errorf("expected %s got %s.", expect, got)
 	}
 }
 
