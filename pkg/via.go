@@ -330,6 +330,9 @@ func Clean(name string) error {
 		return err
 	}
 	bdir := join(cache.Builds(), plan.NameVersion())
+	if plan.BuildInStage {
+		bdir = join(cache.Stages(), plan.stageDir())
+	}
 	if !file.Exists(bdir) {
 		err = fmt.Errorf("%s: does not exist", bdir)
 		elog.Println(err)

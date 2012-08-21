@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 )
 
 var (
@@ -49,10 +50,17 @@ func main() {
 }
 
 func edit() error {
-	editor := os.Getenv("EDITOR")
-	p, err := via.FindPlanPath(command.Args()[0])
-	if err != nil {
-		return err
+	var (
+		editor = os.Getenv("EDITOR")
+		arg0   = command.Args()[0]
+		p      = path.Join(via.GetConfig().Plans, "config.json")
+		err    error
+	)
+	if arg0 != "config" {
+		p, err = via.FindPlanPath(arg0)
+		if err != nil {
+			return err
+		}
 	}
 	cmd := exec.Command(editor, p)
 	cmd.Stdin = os.Stdin
