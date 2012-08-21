@@ -206,6 +206,10 @@ func repo() error {
 }
 
 func search() error {
-	via.Search()
+	plans, err := via.NewPlanSlice()
+	if err != nil {
+		return err
+	}
+	plans.SortSize().Print()
 	return nil
 }

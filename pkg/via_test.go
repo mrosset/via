@@ -113,6 +113,14 @@ func TestOwns(t *testing.T) {
 	}
 }
 
+func TestSort(t *testing.T) {
+	plans, err := NewPlanSlice()
+	if err != nil {
+		t.Error(err)
+	}
+	plans.SortSize().Print()
+}
+
 // Clean up test directories
 func TestFinal(t *testing.T) {
 	os.RemoveAll(repo)

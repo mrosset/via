@@ -2,12 +2,48 @@ package via
 
 import (
 	"fmt"
+	"github.com/str1ngs/util/console"
+	"github.com/str1ngs/util/human"
 	"github.com/str1ngs/util/json"
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"time"
 )
+
+type PlanSlice []*Plan
+
+// Returns a PlanSlice of all Plans in config.Plans
+func NewPlanSlice() (PlanSlice, error) {
+	pf, err := PlanFiles()
+	if err != nil {
+		return nil, err
+	}
+	plans := PlanSlice{}
+	for _, f := range pf {
+		p, _ := ReadPath(f)
+		plans = append(plans, p)
+	}
+	return plans, nil
+}
+
+// Returns a copy of this PlanSlice sorted by 
+// field Size.
+func (ps PlanSlice) SortSize() PlanSlice {
+	nps := append(PlanSlice{}, ps...)
+	sort.Sort(Size(nps))
+	return nps
+}
+
+// Prints this slice to console.
+// TODO: use template
+func (ps PlanSlice) Print() {
+	for _, p := range ps {
+		console.Println(p.Name, human.ByteSize(p.Size))
+	}
+	console.Flush()
+}
 
 type Plan struct {
 	Name         string

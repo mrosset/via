@@ -7,7 +7,6 @@ import (
 	"github.com/str1ngs/util/console"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/file/magic"
-	"github.com/str1ngs/util/human"
 	"github.com/str1ngs/util/json"
 	"log"
 	"net/http"
@@ -343,17 +342,6 @@ func Clean(name string) error {
 		elog.Println(err)
 	}
 	return os.RemoveAll(bdir)
-}
-
-func Search() {
-	e, _ := PlanFiles()
-	for _, j := range e {
-		plan, err := ReadPath(j)
-		if err != nil {
-			elog.Println(err)
-		}
-		fmt.Printf(lfmt, plan.Name, human.ByteSize(plan.Size))
-	}
 }
 
 func PlanFiles() ([]string, error) {

@@ -4,7 +4,6 @@ import (
 	"debug/elf"
 	"errors"
 	"fmt"
-	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/json"
 	"os"
 	"os/exec"
@@ -15,26 +14,26 @@ import (
 )
 
 func strip(p string) error {
-	m, err := magic.GetFileMagic(p)
+	ef, err := elf.Open(p)
+	// if elf.Open fails then its not a elf file skip it.
 	if err != nil {
-		return err
-	}
-	if m.Enum != magic.MagicElf {
 		return nil
 	}
+	defer ef.Close()
 	if verbose {
-		fmt.Printf(lfmt, "strip", p)
+		fmt.Printf(lfmt, os.Getenv("STRIP"), base(p))
 	}
-	cmd := exec.Command(os.Getenv("STRIP"), p, "--strip-all")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd := exec.Command(os.Getenv("STRIP"), p)
 	return cmd.Run()
 }
 
 // Walk the package directory and make a file list.
 // The resulting file list and plan data, is saved
-// to manifest.json.gz which then gets tar/gzipped into
+// to manifest.json which then gets tar/gzipped into
 // the package file.
+// 
+// CreateManifest also perform strip and removale of 
+// blacklisted files.
 func CreateManifest(dir string, plan *Plan) (err error) {
 	var (
 		size  int64
@@ -47,7 +46,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		}
 		spath := path[len(dir)+1:]
 		removes := append(config.Remove, plan.Remove...)
-		// If the file is in config Remove or plan Removes delete it
+		// If the file is in config.Remove or plan.Removes delete it
 		if contains(removes, spath) {
 			err := os.RemoveAll(path)
 			if err != nil {
@@ -62,7 +61,15 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		if fi.IsDir() {
 			return nil
 		}
-		size += fi.Size()
+		if err := strip(path); err != nil {
+			return err
+		}
+		// We need to restat after strip.
+		si, err := os.Lstat(path)
+		if err != nil {
+			return err
+		}
+		size += si.Size()
 		files = append(files, spath)
 		return nil
 	}
@@ -70,31 +77,31 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	plan.Depends, err = Depends(dir, files)
+	plan.Files = files
+	plan.Depends, err = Depends(dir, plan)
 	if err != nil {
 		return err
 	}
-	plan.Files = files
 	plan.Date = time.Now()
 	plan.Size = size
 	plan.Save()
 	return json.WriteGz(&plan, mfile)
 }
 
-func Depends(dir string, files []string) ([]string, error) {
+func Depends(dir string, plan *Plan) ([]string, error) {
 	depends := []string{}
 	rfiles, err := ReadRepoFiles()
 	if err != nil {
 		return nil, err
 	}
-	for _, f := range files {
+	for _, f := range plan.Files {
 		n := needs(join(dir, f))
 		if len(n) == 0 {
 			continue
 		}
 		for _, d := range n {
 			owner := rfiles.Owns(d)
-			if !contains(depends, owner) {
+			if !contains(depends, owner) && owner != plan.Name {
 				depends = append(depends, owner)
 			}
 		}
