@@ -13,11 +13,16 @@ func init() {
 }
 
 func main() {
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return
+	//done := make(chan bool)
+	go func() {
+		err := http.ListenAndServe(":8080", nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		//done <- true
+	}()
+	//<-done
+	//return
 	time.Sleep(time.Second / 2)
 	r, e := http.Get("http://localhost:8080/")
 	if e != nil {

@@ -185,6 +185,7 @@ func Install(name string) (err error) {
 		return fmt.Errorf("%s is already installed", name)
 	}
 	pfile := path.Join(config.Repo, plan.PackageFile())
+
 	err = CheckSig(pfile)
 	if err != nil {
 		return
@@ -314,6 +315,7 @@ func Lint() (err error) {
 		if verbose {
 			console.Println("lint", plan.NameVersion())
 		}
+		sort.Strings(plan.SubPackages)
 		sort.Strings(plan.Flags)
 		sort.Strings(plan.Remove)
 		sort.Strings(plan.Depends)
