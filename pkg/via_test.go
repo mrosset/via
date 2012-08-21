@@ -31,6 +31,13 @@ func Testlint(t *testing.T) {
 	}
 }
 
+func TestRepoCreate(t *testing.T) {
+	err := RepoCreate()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestBuildsteps(t *testing.T) {
 	if err := BuildSteps(plan); err != nil {
 		t.Fatal(err)
@@ -74,13 +81,6 @@ func TestPackage(t *testing.T) {
 		printSlice(expectDepends)
 		fmt.Println("got")
 		printSlice(got.Depends)
-	}
-}
-
-func TestRepoCreate(t *testing.T) {
-	err := RepoCreate()
-	if err != nil {
-		t.Error(err)
 	}
 }
 

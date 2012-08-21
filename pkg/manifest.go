@@ -78,7 +78,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	plan.Date = time.Now()
 	plan.Size = size
 	plan.Save()
-	return json.WriteGzJson(&plan, mfile)
+	return json.WriteGz(&plan, mfile)
 }
 
 func Depends(dir string, files []string) ([]string, error) {
