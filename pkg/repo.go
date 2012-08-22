@@ -1,6 +1,7 @@
 package via
 
 import (
+	"fmt"
 	"github.com/str1ngs/gurl"
 	"github.com/str1ngs/util/json"
 	"os"
@@ -17,6 +18,7 @@ func (rf *RepoFiles) Owns(file string) string {
 			}
 		}
 	}
+	fmt.Println("warning: can not resolve", file)
 	return ""
 }
 
