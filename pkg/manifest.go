@@ -88,6 +88,15 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	return json.WriteGz(&plan, mfile)
 }
 
+func filesContains(files []string, file string) bool {
+	for _, f := range files {
+		if base(f) == file {
+			return true
+		}
+	}
+	return false
+}
+
 func Depends(dir string, plan *Plan) ([]string, error) {
 	depends := []string{}
 	rfiles, err := ReadRepoFiles()
@@ -100,8 +109,12 @@ func Depends(dir string, plan *Plan) ([]string, error) {
 			continue
 		}
 		for _, d := range n {
+			if filesContains(plan.Files, d) {
+				// skip this file if this plan owns this file
+				continue
+			}
 			owner := rfiles.Owns(d)
-			if !contains(depends, owner) && owner != plan.Name {
+			if !contains(depends, owner) {
 				depends = append(depends, owner)
 			}
 		}

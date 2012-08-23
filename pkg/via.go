@@ -253,20 +253,20 @@ func BuildSteps(plan *Plan) (err error) {
 	if file.Exists(plan.PackageFile()) {
 		return fmt.Errorf("package %s exists", plan.PackageFile())
 	}
+	fmt.Printf(lfmt, "download", plan.NameVersion())
 	if err := DownloadSrc(plan); err != nil {
-		fmt.Printf(lfmt, "download", plan.NameVersion())
 		return err
 	}
+	fmt.Printf(lfmt, "stage", plan.NameVersion())
 	if err := Stage(plan); err != nil {
-		fmt.Printf(lfmt, "stage", plan.NameVersion())
 		return err
 	}
+	fmt.Printf(lfmt, "build", plan.NameVersion())
 	if err := Build(plan); err != nil {
-		fmt.Printf(lfmt, "build", plan.NameVersion())
 		return err
 	}
+	fmt.Printf(lfmt, "package", plan.NameVersion())
 	if err := Package("", plan); err != nil {
-		fmt.Printf(lfmt, "package", plan.NameVersion())
 		return err
 	}
 	return nil
