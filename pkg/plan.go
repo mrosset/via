@@ -28,7 +28,7 @@ func NewPlanSlice() (PlanSlice, error) {
 	return plans, nil
 }
 
-// Returns a copy of this PlanSlice sorted by 
+// Returns a copy of this PlanSlice sorted by
 // field Size.
 func (ps PlanSlice) SortSize() PlanSlice {
 	nps := append(PlanSlice{}, ps...)

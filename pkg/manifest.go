@@ -23,7 +23,7 @@ func strip(p string) error {
 	if verbose {
 		fmt.Printf(lfmt, os.Getenv("STRIP"), base(p))
 	}
-	cmd := exec.Command(os.Getenv("STRIP"), p)
+	cmd := exec.Command("strip", p)
 	return cmd.Run()
 }
 
@@ -31,8 +31,8 @@ func strip(p string) error {
 // The resulting file list and plan data, is saved
 // to manifest.json which then gets tar/gzipped into
 // the package file.
-// 
-// CreateManifest also perform strip and removale of 
+//
+// CreateManifest also perform strip and removale of
 // blacklisted files.
 func CreateManifest(dir string, plan *Plan) (err error) {
 	var (
@@ -185,7 +185,7 @@ func Readelf(p string) error {
 	return nil
 }
 
-// FIXME: These 2 functions are taken from GOROOT/src/pkg/elf. 
+// FIXME: These 2 functions are taken from GOROOT/src/pkg/elf.
 // add license or request they be exported?
 // getString extracts a string from an ELF string table.
 func getString(section []byte, start int) (string, bool) {

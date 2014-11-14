@@ -1,9 +1,9 @@
 package via
 
 import (
-	"code.google.com/p/go.crypto/openpgp"
-	"code.google.com/p/go.crypto/openpgp/packet"
 	"fmt"
+	"golang.org/x/crypto/openpgp"
+	"golang.org/x/crypto/openpgp/packet"
 	"os"
 	"path"
 	"path/filepath"
@@ -35,12 +35,15 @@ func Sign(plan *Plan) (err error) {
 		return fmt.Errorf("Could not find entity or identity for %s", config.Identity)
 	}
 	if entity.PrivateKey.Encrypted {
-		pw := ""
-		fmt.Printf("%s Password: ", identity.Name)
-		_, err := fmt.Scanln(&pw)
-		if err != nil {
-			return err
-		}
+		// TODO: prompt for user Password use keyagent?
+		pw := "test"
+		/*
+			fmt.Printf("%s Password: ", identity.Name)
+			_, err := fmt.Scanln(&pw)
+			if err != nil {
+				return err
+			}
+		*/
 		err = entity.PrivateKey.Decrypt([]byte(pw))
 		if err != nil {
 			return err

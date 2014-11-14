@@ -39,7 +39,7 @@ func Untar(dest string, r io.Reader) error {
 		}
 		//fmt.Printf("%c %s\n", hdr.Typeflag, hdr.Name)
 		path := join(dest, hdr.Name)
-		// Switch through header Typeflag and handle tar entry accordingly 
+		// Switch through header Typeflag and handle tar entry accordingly
 		switch hdr.Typeflag {
 		case tar.TypeDir:
 			if err := mkDir(path, hdr.Mode); err != nil {

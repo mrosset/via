@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	test = "zlib"
+	test = "make"
 	repo = "testdata/repo"
 	plan *Plan
 )
@@ -52,14 +52,12 @@ func TestReadelf(t *testing.T) {
 }
 
 var expectFiles = []string{
-	"usr/local/via/include/zconf.h",
-	"usr/local/via/include/zlib.h",
-	"usr/local/via/lib/libz.a",
-	"usr/local/via/lib/libz.so",
-	"usr/local/via/lib/libz.so.1",
-	"usr/local/via/lib/libz.so.1.2.7",
-	"usr/local/via/lib/pkgconfig/zlib.pc",
-	"usr/local/via/share/man/man3/zlib.3",
+	"usr/local/via/bin/make",
+	"usr/local/via/include/gnumake.h",
+	"usr/local/via/share/info/make.info",
+	"usr/local/via/share/info/make.info-1",
+	"usr/local/via/share/info/make.info-2",
+	"usr/local/via/share/man/man1/make.1",
 }
 
 var expectDepends = []string{"glibc"}
