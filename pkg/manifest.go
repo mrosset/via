@@ -61,9 +61,10 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		if fi.IsDir() {
 			return nil
 		}
-		if err := strip(path); err != nil {
-			return err
-		}
+		//FIXME: stripping breaks gcc packaging
+		//if err := strip(path); err != nil {
+			//return err
+		//}
 		// We need to restat after strip.
 		si, err := os.Lstat(path)
 		if err != nil {
