@@ -93,13 +93,8 @@ func Untar(dest string, r io.Reader) error {
 	return nil
 }
 
-// TODO: rewrite this hackfest
-func Tarball(wr io.Writer, plan *Plan) (err error) {
-	dir := join(cache.Pkgs(), plan.NameVersion())
-	err = CreateManifest(dir, plan)
-	if err != nil {
-		return err
-	}
+// Walk directory and tars files to io.Writer
+func archive(wr io.Writer, dir string) error {
 	tw := tar.NewWriter(wr)
 	defer tw.Close()
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -128,7 +123,7 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 		// TODO: check tar specs for actual length
 		// If path is greater then 100 bytes we need to handle as LongLink
 		if len(hdr.Name) >= 100 {
-			hdr.Typeflag = 'L'
+			hdr.Typeflag = tar.TypeGNULongName
 			hdr.Size = int64(len(hdr.Name))
 		}
 		//fmt.Printf("%c %s\n", hdr.Typeflag, hdr.Name)
@@ -139,7 +134,7 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir, tar.TypeSymlink:
-		case 'L': // Handle long file paths
+		case tar.TypeGNULongName: // Handle long file paths
 			// Write path as tar data.
 			_, err := tw.Write([]byte(hdr.Name))
 			if err != nil {
@@ -150,6 +145,7 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 			tw.Flush()
 			// Write a header so the writer knows the size of the data.
 			hdr.Size = fi.Size()
+			hdr.Typeflag = tar.TypeReg
 			tw.WriteHeader(hdr)
 			// Finally write the file to tar
 			fd, err := os.Open(path)
@@ -183,6 +179,17 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 		return nil
 	}
 	return filepath.Walk(dir, walkFn)
+
+}
+
+// TODO: rewrite this hackfest
+func Tarball(wr io.Writer, plan *Plan) (err error) {
+	dir := join(cache.Pkgs(), plan.NameVersion())
+	err = CreateManifest(dir, plan)
+	if err != nil {
+		return err
+	}
+	return archive(wr, dir)
 }
 
 // Make directory with permission
