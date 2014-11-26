@@ -32,7 +32,7 @@ func init() {
 	config.Plans = os.ExpandEnv(config.Plans)
 	config.Repo = os.ExpandEnv(config.Repo)
 	for i, j := range config.Env {
-		os.Setenv(i, j)
+		os.Setenv(i, os.ExpandEnv(j))
 	}
 }
 
