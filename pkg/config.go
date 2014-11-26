@@ -10,8 +10,7 @@ import (
 
 var (
 	cache  Cache
-	home   = os.Getenv("HOME")
-	cfile  = path.Join(home, "via", "plans", "config.json")
+	cfile  = path.Join(os.Getenv("HOME"), "via", "plans", "config.json")
 	config = new(Config)
 )
 

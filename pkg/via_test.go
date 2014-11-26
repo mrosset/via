@@ -25,7 +25,7 @@ func init() {
 	}
 }
 
-func Testlint(t *testing.T) {
+func TestLint(t *testing.T) {
 	if err := Lint(); err != nil {
 		t.Fatal(err)
 	}
@@ -105,14 +105,6 @@ func TestOwns(t *testing.T) {
 	if expect != got {
 		t.Errorf("expected %s got %s.", expect, got)
 	}
-}
-
-func TestSort(t *testing.T) {
-	plans, err := NewPlanSlice()
-	if err != nil {
-		t.Error(err)
-	}
-	plans.SortSize().Print()
 }
 
 // Clean up test directories
