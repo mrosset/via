@@ -54,10 +54,6 @@ func TestReadelf(t *testing.T) {
 var expectFiles = []string{
 	"usr/local/via/bin/make",
 	"usr/local/via/include/gnumake.h",
-	"usr/local/via/share/info/make.info",
-	"usr/local/via/share/info/make.info-1",
-	"usr/local/via/share/info/make.info-2",
-	"usr/local/via/share/man/man1/make.1",
 }
 
 var expectDepends = []string{"glibc"}
@@ -91,8 +87,8 @@ func TestrepoSync(t *testing.T) {
 
 func TestExpand(t *testing.T) {
 	var (
-		plan, _ = FindPlan("bash")
-		expect  = "http://mirrors.kernel.org/gnu/bash/bash-4.2.tar.gz"
+		plan, _ = FindPlan("make")
+		expect  = "http://mirrors.kernel.org/gnu/make/make-4.1.tar.bz2"
 		got     = plan.Expand("Url")
 	)
 	if expect != got {
