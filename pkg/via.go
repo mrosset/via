@@ -61,6 +61,10 @@ func Stage(plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
+	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
+		elog.Println(err)
+		return err
+	}
 	return
 }
 
@@ -85,10 +89,6 @@ func Build(plan *Plan) (err error) {
 	}
 	if !file.Exists(bdir) {
 		os.MkdirAll(bdir, 0755)
-	}
-	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
-		elog.Println(err)
-		return err
 	}
 	if plan.Inherit != "" {
 		parent, _ := FindPlan(plan.Inherit)
