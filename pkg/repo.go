@@ -3,8 +3,10 @@ package via
 import (
 	"fmt"
 	"github.com/str1ngs/gurl"
+	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"os"
+	"os/exec"
 	"path"
 )
 
@@ -31,38 +33,19 @@ func ReadRepoFiles() (RepoFiles, error) {
 	return files, nil
 }
 
-// TODO: replace this with git?
 func PlanSync() error {
-	pdir := config.DB.Plans()
-	if !exists(pdir) {
-		err := os.MkdirAll(pdir, 0755)
-		if err != nil {
-			return err
-		}
+	dir := config.Plans
+	arg := "pull"
+	if !file.Exists(dir) {
+		arg = "clone"
+		dir = dir + "/../"
 	}
-	local := join(pdir, "repo.json")
-	remote := config.PlansRepo + "/repo.json"
-	err := gurl.Download(pdir, remote)
-	if err != nil {
-		return err
-	}
-	repo := []string{}
-	if err = json.Read(&repo, local); err != nil {
-		return err
-	}
-	for _, j := range repo {
-		rurl := config.PlansRepo + "/" + j
-		dir := join(pdir, path.Dir(j))
-		if !exists(dir) {
-			if err := os.Mkdir(dir, 0755); err != nil {
-				return err
-			}
-		}
-		if err = gurl.Download(dir, rurl); err != nil {
-			return err
-		}
-	}
-	return nil
+	git := exec.Command("git", arg, config.PlansRepo)
+	git.Dir = dir
+	git.Stdin = os.Stdin
+	git.Stdout = os.Stdout
+	git.Stderr = os.Stderr
+	return git.Run()
 }
 
 func RepoCreate() error {
