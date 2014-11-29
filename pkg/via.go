@@ -66,6 +66,9 @@ func Stage(plan *Plan) (err error) {
 
 // Calls each shell command in the plans Build field.
 func Build(plan *Plan) (err error) {
+	var (
+		build = plan.Build
+	)
 	pfile := join(config.Repo, plan.PackageFile())
 	if file.Exists(pfile) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackageFile())
@@ -81,9 +84,17 @@ func Build(plan *Plan) (err error) {
 		bdir = join(cache.Stages(), plan.stageDir())
 	}
 	if !file.Exists(bdir) {
-		os.Mkdir(bdir, 0755)
+		os.MkdirAll(bdir, 0755)
 	}
-	return doCommands(bdir, plan.Build)
+	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
+		elog.Println(err)
+		return err
+	}
+	if plan.Inherit != "" {
+		parent, _ := FindPlan(plan.Inherit)
+		build = parent.Build
+	}
+	return doCommands(bdir, build)
 }
 
 func doCommands(dir string, cmds []string) (err error) {
@@ -106,6 +117,9 @@ func doCommands(dir string, cmds []string) (err error) {
 }
 
 func Package(bdir string, plan *Plan) (err error) {
+	var (
+		pack = plan.Package
+	)
 	pdir := join(cache.Pkgs(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(cache.Builds(), plan.NameVersion())
@@ -125,7 +139,11 @@ func Package(bdir string, plan *Plan) (err error) {
 		return err
 	}
 	os.Setenv("PKGDIR", pdir)
-	err = doCommands(bdir, plan.Package)
+	if plan.Inherit != "" {
+		parent, _ := FindPlan(plan.Inherit)
+		pack = parent.Package
+	}
+	err = doCommands(bdir, pack)
 	if err != nil {
 		return err
 	}

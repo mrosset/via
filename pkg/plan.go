@@ -51,12 +51,14 @@ type Plan struct {
 	Url          string
 	Group        string
 	StageDir     string
+	Inherit      string
 	BuildInStage bool
 	Date         time.Time
 	Size         int64
 	SubPackages  []string
 	Depends      []string
 	Flags        Flags
+	Patch        []string
 	Build        []string
 	Package      []string
 	PostInstall  []string

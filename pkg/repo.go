@@ -2,12 +2,10 @@ package via
 
 import (
 	"fmt"
-	"github.com/str1ngs/gurl"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"os"
 	"os/exec"
-	"path"
 )
 
 type RepoFiles map[string][]string
