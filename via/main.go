@@ -150,7 +150,7 @@ func xshow() error {
 		less.Stdin = buf
 		less.Stdout = os.Stdout
 		less.Stderr = os.Stderr
-		err = json.Clean(&plan, buf)
+		err = json.WritePretty(&plan, buf)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -160,7 +160,7 @@ func xshow() error {
 }
 
 func config() error {
-	err := json.Clean(via.GetConfig(), os.Stdout)
+	err := json.WritePretty(via.GetConfig(), os.Stdout)
 	if err != nil {
 		return err
 	}
