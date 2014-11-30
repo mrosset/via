@@ -39,7 +39,7 @@ func PlanSync() error {
 		dir = dir + "/../"
 	}
 	git := exec.Command("git", arg, config.PlansRepo)
-	git.Dir = "/home/strings/via"
+	git.Dir = expand("$HOME/via")
 	git.Stdin = os.Stdin
 	git.Stdout = os.Stdout
 	git.Stderr = os.Stderr
