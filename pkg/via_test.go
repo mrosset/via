@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	test = "make"
+	test = "sed"
 	repo = "testdata/repo"
 	plan *Plan
 )
@@ -52,8 +52,7 @@ func TestReadelf(t *testing.T) {
 }
 
 var expectFiles = []string{
-	"usr/local/via/bin/make",
-	"usr/local/via/include/gnumake.h",
+	"usr/local/via/bin/sed",
 }
 
 var expectDepends = []string{"glibc"}
@@ -78,7 +77,7 @@ func TestPackage(t *testing.T) {
 	}
 }
 
-func TestrepoSync(t *testing.T) {
+func TestRepoSync(t *testing.T) {
 	err := PlanSync()
 	if err != nil {
 		t.Error(err)

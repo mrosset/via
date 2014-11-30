@@ -54,7 +54,6 @@ func Stage(plan *Plan) (err error) {
 	}
 	sdir := join(cache.Stages(), plan.stageDir())
 	if file.Exists(sdir) {
-		elog.Println(err)
 		return nil
 	}
 	path := join(cache.Srcs(), path.Base(plan.Url))
@@ -69,7 +68,6 @@ func Stage(plan *Plan) (err error) {
 		return err
 	}
 	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
-		elog.Println(err)
 		return err
 	}
 	return

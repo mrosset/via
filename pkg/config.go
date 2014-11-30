@@ -1,6 +1,8 @@
 package via
 
 import (
+	"github.com/str1ngs/gurl"
+	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"os"
 	"path"
@@ -15,11 +17,22 @@ var (
 )
 
 func init() {
+	sync := false
+	if !file.Exists(cfile) {
+		dir := expand("$HOME/via")
+		fatal(os.MkdirAll(dir, 0755))
+		fatal(gurl.Download("/tmp", "https://bitbucket.org/strings/plans/raw/master/config.json"))
+		cfile = "/tmp/config.json"
+		sync = true
+	}
 	err := json.Read(&config, cfile)
 	if err != nil {
 		elog.Fatal(err)
 	}
-
+	if sync {
+		PlanSync()
+		os.Remove("/tmp/config.json")
+	}
 	sort.Strings([]string(config.Flags))
 	sort.Strings(config.Remove)
 	// TODO: provide Lint for master config
@@ -28,8 +41,10 @@ func init() {
 		elog.Fatal(err)
 	}
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
+	cache.Init()
 	config.Plans = os.ExpandEnv(config.Plans)
 	config.Repo = os.ExpandEnv(config.Repo)
+	os.MkdirAll(config.Repo, 0755)
 	for i, j := range config.Env {
 		os.Setenv(i, os.ExpandEnv(j))
 	}
@@ -88,4 +103,10 @@ func (c Cache) Builds() string {
 
 func (c Cache) Stages() string {
 	return path.Join(string(c), "stg")
+}
+
+func (c Cache) Init() {
+	for _, path := range []string{c.Pkgs(), c.Srcs(), c.Builds(), c.Stages()} {
+		fatal(os.MkdirAll(path, 0755))
+	}
 }
