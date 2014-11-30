@@ -206,7 +206,7 @@ func repo() error {
 }
 
 func search() error {
-	plans, err := via.NewPlanSlice()
+	plans, err := via.GetPlans()
 	if err != nil {
 		return err
 	}
