@@ -6,7 +6,6 @@ import (
 	"github.com/str1ngs/gurl"
 	"github.com/str1ngs/util/console"
 	"github.com/str1ngs/util/file"
-	"github.com/str1ngs/util/file/magic"
 	"github.com/str1ngs/util/json"
 	"log"
 	"net/http"
@@ -57,12 +56,7 @@ func Stage(plan *Plan) (err error) {
 		return nil
 	}
 	path := join(cache.Srcs(), path.Base(plan.Url))
-	r, err := magic.GetReader(path)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	err = Untar(cache.Stages(), r)
+	err = GNUUntar(cache.Stages(), path)
 	if err != nil {
 		elog.Println(err)
 		return err

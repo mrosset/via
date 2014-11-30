@@ -10,6 +10,7 @@ import (
 	"github.com/str1ngs/util/json"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -17,6 +18,14 @@ import (
 var (
 	ErrorTarHeader = errors.New("Unknown tar header")
 )
+
+func GNUUntar(dest string, file string) error {
+	tar := exec.Command("tar", "-xf", file)
+	tar.Dir = dest
+	tar.Stdout = os.Stdout
+	tar.Stderr = os.Stdout
+	return tar.Run()
+}
 
 // TODO: rewrite this hackfest
 // Decompress Reader to destination directory
