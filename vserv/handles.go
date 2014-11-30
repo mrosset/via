@@ -1,7 +1,7 @@
 package main
 
 import (
-	"code.google.com/p/via/pkg"
+	"bitbucket.org/strings/via/pkg"
 	"fmt"
 	"html/template"
 	"log"

@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bitbucket.org/strings/via/pkg"
 	"bytes"
-	"code.google.com/p/via/pkg"
 	"flag"
 	"fmt"
 	"github.com/str1ngs/util"

@@ -48,17 +48,24 @@ func DownloadSrc(plan *Plan) (err error) {
 // Stages the downloaded source via's cache directory
 // the stage only happens once unless BuilInStage is used
 func Stage(plan *Plan) (err error) {
+	if plan.Url == "" {
+		// nothing to stage
+		return nil
+	}
 	sdir := join(cache.Stages(), plan.stageDir())
 	if file.Exists(sdir) {
+		elog.Println(err)
 		return nil
 	}
 	path := join(cache.Srcs(), path.Base(plan.Url))
 	r, err := magic.GetReader(path)
 	if err != nil {
+		elog.Println(err)
 		return err
 	}
 	err = Untar(cache.Stages(), r)
 	if err != nil {
+		elog.Println(err)
 		return err
 	}
 	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
