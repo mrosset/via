@@ -1,6 +1,6 @@
 package via
 
-type Size PlanSlice
+type Size Plans
 
 func (s Size) Len() int {
 	return len(s)

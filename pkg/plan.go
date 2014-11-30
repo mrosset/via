@@ -12,15 +12,15 @@ import (
 	"time"
 )
 
-type PlanSlice []*Plan
+type Plans []*Plan
 
 // Returns a PlanSlice of all Plans in config.Plans
-func NewPlanSlice() (PlanSlice, error) {
+func GetPlans() (Plans, error) {
 	pf, err := PlanFiles()
 	if err != nil {
 		return nil, err
 	}
-	plans := PlanSlice{}
+	plans := Plans{}
 	for _, f := range pf {
 		p, _ := ReadPath(f)
 		plans = append(plans, p)
@@ -30,15 +30,15 @@ func NewPlanSlice() (PlanSlice, error) {
 
 // Returns a copy of this PlanSlice sorted by
 // field Size.
-func (ps PlanSlice) SortSize() PlanSlice {
-	nps := append(PlanSlice{}, ps...)
+func (ps Plans) SortSize() Plans {
+	nps := append(Plans{}, ps...)
 	sort.Sort(Size(nps))
 	return nps
 }
 
 // Prints this slice to console.
 // TODO: use template
-func (ps PlanSlice) Print() {
+func (ps Plans) Print() {
 	for _, p := range ps {
 		console.Println(p.Name, human.ByteSize(p.Size))
 	}

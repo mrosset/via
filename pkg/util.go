@@ -5,7 +5,6 @@ package via
 import (
 	"fmt"
 	"github.com/str1ngs/util/file"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -70,7 +69,7 @@ func cpDir(s, d string) error {
 		}
 		fd, err := os.OpenFile(dpath, os.O_CREATE|os.O_WRONLY, fi.Mode())
 		if err != nil {
-			log.Println(err)
+			elog.Println(err)
 			return err
 		}
 		defer fd.Close()
