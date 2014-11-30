@@ -372,15 +372,10 @@ func Clean(name string) error {
 	if err != nil {
 		return err
 	}
-	bdir := join(cache.Builds(), plan.NameVersion())
-	if plan.BuildInStage {
-		bdir = join(cache.Stages(), plan.stageDir())
-	}
-	if !file.Exists(bdir) {
-		err = fmt.Errorf("%s: does not exist", bdir)
-		elog.Println(err)
-	}
-	return os.RemoveAll(bdir)
+	dir := join(cache.Builds(), plan.NameVersion())
+	os.RemoveAll(dir)
+	dir = join(cache.Stages(), plan.stageDir())
+	return os.RemoveAll(dir)
 }
 
 func PlanFiles() ([]string, error) {
