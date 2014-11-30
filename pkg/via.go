@@ -83,6 +83,7 @@ func Build(plan *Plan) (err error) {
 	}
 	os.Setenv("SRCDIR", join(cache.Stages(), plan.stageDir()))
 	os.Setenv("Flags", expand(flags.String()))
+	os.Setenv("EXTRA_FLAGS", expand(plan.ExtraFlags.String()))
 	bdir := join(cache.Builds(), plan.NameVersion())
 	if plan.BuildInStage {
 		bdir = join(cache.Stages(), plan.stageDir())
@@ -156,11 +157,14 @@ func Package(bdir string, plan *Plan) (err error) {
 			return err
 		}
 	}
-	err = CreatePackage(plan)
-	if err != nil {
-		return err
-	}
-	return Sign(plan)
+	return CreatePackage(plan)
+	/*
+		err = CreatePackage(plan)
+		if err != nil {
+			return err
+		}
+		return Sign(plan)
+	*/
 }
 
 func CreatePackage(plan *Plan) (err error) {
@@ -202,11 +206,16 @@ func Install(name string) (err error) {
 		return fmt.Errorf("%s is already installed", name)
 	}
 	pfile := path.Join(config.Repo, plan.PackageFile())
-
-	err = CheckSig(pfile)
-	if err != nil {
-		return
+	if !file.Exists(pfile) {
+		fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()))
+		//fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()+".sig"))
 	}
+	/*
+		err = CheckSig(pfile)
+		if err != nil {
+			return
+		}
+	*/
 	man, err := ReadPackManifest(pfile)
 	if err != nil {
 		return err
@@ -346,6 +355,11 @@ func Lint() (err error) {
 	return nil
 }
 
+func fatal(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 func Clean(name string) error {
 	plan, err := FindPlan(name)
 	if err != nil {

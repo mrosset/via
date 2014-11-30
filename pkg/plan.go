@@ -58,6 +58,7 @@ type Plan struct {
 	SubPackages  []string
 	Depends      []string
 	Flags        Flags
+	ExtraFlags   Flags
 	Patch        []string
 	Build        []string
 	Package      []string

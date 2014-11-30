@@ -43,10 +43,11 @@ type Config struct {
 	PlansRepo string
 
 	// Paths
-	Cache Cache
-	DB    DB
-	Plans string
-	Repo  string
+	Cache  Cache
+	DB     DB
+	Plans  string
+	Repo   string
+	Binary string
 
 	// Toolchain
 	Flags Flags
