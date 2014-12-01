@@ -59,7 +59,7 @@ var expectFiles = []string{
 var expectDepends = []string{"glibc"}
 
 func TestPackage(t *testing.T) {
-	pfile := join(config.Repo, tplan.PackageFile())
+	pfile := tplan.PackagePath()
 	got, err := ReadPackManifest(pfile)
 	if err != nil {
 		t.Error(err)

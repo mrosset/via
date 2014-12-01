@@ -77,6 +77,7 @@ func Untar(dest string, r io.Reader) error {
 				return err
 			}
 		case tar.TypeSymlink:
+			os.Remove(path)
 			err := os.Symlink(hdr.Linkname, path)
 			if err != nil {
 				elog.Fatal(err)

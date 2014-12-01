@@ -1,6 +1,7 @@
 package via
 
 import (
+	"bitbucket.org/strings/via/pkg/git"
 	"fmt"
 	"github.com/str1ngs/util/console"
 	"github.com/str1ngs/util/human"
@@ -151,7 +152,8 @@ func (p Plan) GetStageDir() string {
 }
 
 func (p Plan) PackagePath() string {
-	return join(config.Repo, p.PackageFile())
+	branch, _ := git.Branch(config.Plans)
+	return join(config.Repo, branch, p.PackageFile())
 }
 
 func (p Plan) stageDir() string {

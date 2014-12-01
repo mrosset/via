@@ -158,7 +158,8 @@ func Package(bdir string, plan *Plan) (err error) {
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	pfile := join(config.Repo, plan.PackageFile())
+	pfile := plan.PackagePath()
+	os.MkdirAll(path.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
 		return err
@@ -195,7 +196,7 @@ func Install(name string) (err error) {
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}
-	pfile := path.Join(config.Repo, plan.PackageFile())
+	pfile := plan.PackagePath()
 	if !file.Exists(pfile) {
 		fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()))
 		//fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()+".sig"))

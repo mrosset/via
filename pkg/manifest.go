@@ -49,7 +49,8 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		removes := append(config.Remove, plan.Remove...)
 		// If the file is in config.Remove or plan.Removes delete it
 		if contains(removes, spath) {
-			err := os.RemoveAll(os.ExpandEnv(path))
+			// TODO: expand path
+			err := os.RemoveAll(path)
 			if err != nil {
 				return err
 			}
