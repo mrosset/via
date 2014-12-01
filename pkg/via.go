@@ -37,8 +37,7 @@ func Debug(b bool) {
 	debug = b
 }
 func DownloadSrc(plan *Plan) (err error) {
-	sfile := path.Join(cache.Srcs(), path.Base(plan.Expand("Url")))
-	if file.Exists(sfile) {
+	if file.Exists(plan.SourcePath()) {
 		return nil
 	}
 	return gurl.Download(cache.Srcs(), plan.Expand("Url"))
@@ -47,11 +46,8 @@ func DownloadSrc(plan *Plan) (err error) {
 // Stages the downloaded source via's cache directory
 // the stage only happens once unless BuilInStage is used
 func Stage(plan *Plan) (err error) {
-	if plan.Url == "" {
+	if plan.Url == "" || file.Exists(plan.GetStageDir()) {
 		// nothing to stage
-		return nil
-	}
-	if file.Exists(plan.GetStageDir()) {
 		return nil
 	}
 	err = GNUUntar(cache.Stages(), plan.SourceFile())
@@ -82,9 +78,11 @@ func Build(plan *Plan) (err error) {
 	if !file.Exists(plan.GetBuildDir()) {
 		os.MkdirAll(plan.GetBuildDir(), 0755)
 	}
+	// Parent plan's Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
 		parent, _ := FindPlan(plan.Inherit)
 		build = parent.Build
+		build = append(build, plan.Build...)
 	}
 	return doCommands(plan.GetBuildDir(), build)
 }
@@ -134,6 +132,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	if plan.Inherit != "" {
 		parent, _ := FindPlan(plan.Inherit)
 		pack = parent.Package
+		pack = append(pack, plan.Package...)
 	}
 	err = doCommands(bdir, pack)
 	if err != nil {

@@ -45,8 +45,6 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-type Path string
-
 type Plan struct {
 	Name         string
 	Version      string
@@ -134,6 +132,10 @@ func (p *Plan) Expand(s string) string {
 
 func (p Plan) SourceFile() string {
 	return join(cache.Srcs(), path.Base(p.Url))
+}
+
+func (p Plan) SourcePath() string {
+	return path.Join(cache.Srcs(), path.Base(p.Expand("Url")))
 }
 
 func (p Plan) GetBuildDir() string {
