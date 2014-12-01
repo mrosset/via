@@ -32,6 +32,8 @@ func ReadRepoFiles() (RepoFiles, error) {
 }
 
 func PlanSync() error {
+	elog.Println("PlanSync not implimented")
+	return nil
 	dir := config.Plans
 	arg := "pull"
 	if !file.Exists(dir) {
