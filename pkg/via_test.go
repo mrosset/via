@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	test = "sed"
-	repo = "testdata/repo"
-	plan *Plan
+	test  = "sed"
+	repo  = "testdata/repo"
+	tplan *Plan
 )
 
 func init() {
@@ -19,7 +19,7 @@ func init() {
 	os.MkdirAll(repo, 0700)
 	config.Repo = repo
 	var err error
-	plan, err = FindPlan(test)
+	tplan, err = FindPlan(test)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,7 +39,8 @@ func TestRepoCreate(t *testing.T) {
 }
 
 func TestBuildsteps(t *testing.T) {
-	if err := BuildSteps(plan); err != nil {
+	Clean(tplan.Name)
+	if err := BuildSteps(tplan); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -58,7 +59,7 @@ var expectFiles = []string{
 var expectDepends = []string{"glibc"}
 
 func TestPackage(t *testing.T) {
-	pfile := join(config.Repo, plan.PackageFile())
+	pfile := join(config.Repo, tplan.PackageFile())
 	got, err := ReadPackManifest(pfile)
 	if err != nil {
 		t.Error(err)
@@ -86,9 +87,9 @@ func TestRepoSync(t *testing.T) {
 
 func TestExpand(t *testing.T) {
 	var (
-		plan, _ = FindPlan("make")
-		expect  = "http://mirrors.kernel.org/gnu/make/make-4.1.tar.bz2"
-		got     = plan.Expand("Url")
+		tplan, _ = FindPlan("make")
+		expect   = "http://mirrors.kernel.org/gnu/make/make-4.1.tar.bz2"
+		got      = tplan.Expand("Url")
 	)
 	if expect != got {
 		t.Errorf("expected %s got %s", expect, got)

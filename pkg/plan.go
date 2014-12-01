@@ -45,6 +45,8 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
+type Path string
+
 type Plan struct {
 	Name         string
 	Version      string
@@ -58,7 +60,6 @@ type Plan struct {
 	SubPackages  []string
 	Depends      []string
 	Flags        Flags
-	ExtraFlags   Flags
 	Patch        []string
 	Build        []string
 	Package      []string
@@ -129,6 +130,26 @@ func (p *Plan) Expand(s string) string {
 		s = p.Url
 	}
 	return os.Expand(s, fn)
+}
+
+func (p Plan) SourceFile() string {
+	return join(cache.Srcs(), path.Base(p.Url))
+}
+
+func (p Plan) GetBuildDir() string {
+	bdir := join(cache.Builds(), p.NameVersion())
+	if p.BuildInStage {
+		bdir = join(cache.Stages(), p.stageDir())
+	}
+	return bdir
+}
+
+func (p Plan) GetStageDir() string {
+	return join(cache.Stages(), p.NameVersion())
+}
+
+func (p Plan) PackagePath() string {
+	return join(config.Repo, p.PackageFile())
 }
 
 func (p Plan) stageDir() string {

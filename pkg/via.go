@@ -51,12 +51,10 @@ func Stage(plan *Plan) (err error) {
 		// nothing to stage
 		return nil
 	}
-	sdir := join(cache.Stages(), plan.stageDir())
-	if file.Exists(sdir) {
+	if file.Exists(plan.GetStageDir()) {
 		return nil
 	}
-	path := join(cache.Srcs(), path.Base(plan.Url))
-	err = GNUUntar(cache.Stages(), path)
+	err = GNUUntar(cache.Stages(), plan.SourceFile())
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -72,29 +70,23 @@ func Build(plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	pfile := join(config.Repo, plan.PackageFile())
-	if file.Exists(pfile) {
+	if file.Exists(plan.PackagePath()) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackageFile())
 	}
 	flags := config.Flags
 	if plan.Flags != nil {
 		flags = append(flags, plan.Flags...)
 	}
-	os.Setenv("SRCDIR", join(cache.Stages(), plan.stageDir()))
+	os.Setenv("SRCDIR", plan.GetStageDir())
 	os.Setenv("Flags", expand(flags.String()))
-	os.Setenv("EXTRA_FLAGS", expand(plan.ExtraFlags.String()))
-	bdir := join(cache.Builds(), plan.NameVersion())
-	if plan.BuildInStage {
-		bdir = join(cache.Stages(), plan.stageDir())
-	}
-	if !file.Exists(bdir) {
-		os.MkdirAll(bdir, 0755)
+	if !file.Exists(plan.GetBuildDir()) {
+		os.MkdirAll(plan.GetBuildDir(), 0755)
 	}
 	if plan.Inherit != "" {
 		parent, _ := FindPlan(plan.Inherit)
 		build = parent.Build
 	}
-	return doCommands(bdir, build)
+	return doCommands(plan.GetBuildDir(), build)
 }
 
 func doCommands(dir string, cmds []string) (err error) {
