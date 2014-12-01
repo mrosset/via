@@ -44,11 +44,12 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		if path == dir {
 			return nil
 		}
+		// FIXME: Do removes in Package
 		spath := path[len(dir)+1:]
 		removes := append(config.Remove, plan.Remove...)
 		// If the file is in config.Remove or plan.Removes delete it
 		if contains(removes, spath) {
-			err := os.RemoveAll(path)
+			err := os.RemoveAll(os.ExpandEnv(path))
 			if err != nil {
 				return err
 			}
