@@ -1,0 +1,1 @@
+docker run -t -i -v /usr/local/via:/usr/local/via -v /home/strings:/home/strings strings/via:devel bash --login -o vi
