@@ -1,7 +1,10 @@
-SRC 	= root $(wildcard pkg/*.go via/*.go)
+SRC 	= $(wildcard pkg/*.go via/*.go)
 #BIN 	= $(GOPATH)/bin/via
 BIN 	= via/via
 CMDS	= fmt test install
+
+run: docker
+	docker run -t -i -v /usr/local/via:/usr/local/via -v /home/strings:/home/strings strings/via:devel bash --login -o vi
 
 docker: root
 	docker build -t strings/via:devel .
