@@ -67,8 +67,9 @@ type Config struct {
 	// Toolchain
 	Flags Flags
 
-	Env    map[string]string
-	Remove []string
+	Env         map[string]string
+	Remove      []string
+	PostInstall []string
 }
 
 type Flags []string

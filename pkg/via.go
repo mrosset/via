@@ -40,7 +40,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(plan.SourcePath()) {
 		return nil
 	}
-	return gurl.Download(cache.Srcs(), plan.Expand("Url"))
+	return gurl.Download(cache.Srcs(), plan.GetUrl())
 }
 
 // Stages the downloaded source via's cache directory
@@ -81,14 +81,16 @@ func Build(plan *Plan) (err error) {
 	// Parent plan's Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
 		parent, _ := FindPlan(plan.Inherit)
-		build = parent.Build
-		build = append(build, plan.Build...)
+		build = append(parent.Build, plan.Build...)
 	}
 	return doCommands(plan.GetBuildDir(), build)
 }
 
 func doCommands(dir string, cmds []string) (err error) {
-	for _, j := range cmds {
+	for i, j := range cmds {
+		if debug {
+			elog.Println(i, j)
+		}
 		j := expand(j)
 		cmd := exec.Command("sh", "-c", j)
 		cmd.Dir = dir
@@ -191,7 +193,7 @@ func Install(name string) (err error) {
 			return err
 		}
 	}
-	fmt.Printf(lfmt, "installing", plan.NameVersion())
+	fmt.Printf(lfmt, "installing", plan.Name)
 	db := path.Join(config.DB.Installed(), plan.Name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
@@ -216,7 +218,7 @@ func Install(name string) (err error) {
 		for _, e := range errs {
 			elog.Println(e)
 		}
-		return errs[0]
+		//return errs[0]
 	}
 	fd, err := os.Open(pfile)
 	if err != nil {
@@ -237,11 +239,15 @@ func Install(name string) (err error) {
 		elog.Println(err)
 		return err
 	}
-	return json.Write(man, join(db, "manifest.json"))
+	err = json.Write(man, join(db, "manifest.json"))
+	if err != nil {
+		return err
+	}
+	return PostInstall(plan)
 }
 
 func PostInstall(plan *Plan) (err error) {
-	return doCommands("/", plan.PostInstall)
+	return doCommands("/", append(plan.PostInstall, config.PostInstall...))
 }
 
 func Remove(name string) (err error) {

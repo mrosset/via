@@ -6,7 +6,6 @@ import (
 	"github.com/str1ngs/util/console"
 	"github.com/str1ngs/util/human"
 	"github.com/str1ngs/util/json"
-	"os"
 	"path"
 	"path/filepath"
 	"sort"
@@ -112,31 +111,16 @@ func (p *Plan) PackageFile() string {
 	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
 }
 
-func (p *Plan) Expand(s string) string {
-	fn := func(s string) string {
-		switch s {
-		case "N":
-			return p.Name
-		case "V":
-			return p.Version
-		case "GM":
-			return "http://mirrors.kernel.org/gnu"
-		}
-		return ""
-	}
-	switch s {
-	case "Url":
-		s = p.Url
-	}
-	return os.Expand(s, fn)
-}
-
 func (p Plan) SourceFile() string {
 	return join(cache.Srcs(), path.Base(p.Url))
 }
 
 func (p Plan) SourcePath() string {
-	return path.Join(cache.Srcs(), path.Base(p.Expand("Url")))
+	return path.Join(cache.Srcs(), path.Base(p.GetUrl()))
+}
+
+func (p Plan) GetUrl() string {
+	return p.Url
 }
 
 func (p Plan) GetBuildDir() string {
@@ -148,7 +132,8 @@ func (p Plan) GetBuildDir() string {
 }
 
 func (p Plan) GetStageDir() string {
-	return join(cache.Stages(), p.NameVersion())
+	path := join(cache.Stages(), p.stageDir())
+	return path
 }
 
 func (p Plan) PackagePath() string {
