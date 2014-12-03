@@ -197,6 +197,7 @@ func Tarball(wr io.Writer, plan *Plan) (err error) {
 	dir := join(cache.Pkgs(), plan.NameVersion())
 	err = CreateManifest(dir, plan)
 	if err != nil {
+		elog.Println(err)
 		return err
 	}
 	return archive(wr, dir)

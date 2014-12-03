@@ -1,6 +1,7 @@
 package via
 
 import (
+	"bitbucket.org/strings/via/pkg/git"
 	"github.com/str1ngs/gurl"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
@@ -70,6 +71,10 @@ type Config struct {
 	Env         map[string]string
 	Remove      []string
 	PostInstall []string
+}
+
+func (c Config) Branch() (string, error) {
+	return git.Branch(c.Plans)
 }
 
 type Flags []string

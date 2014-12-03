@@ -12,7 +12,7 @@ var (
 	repo          = "testdata/repo"
 	expectDepends = []string{"glibc"}
 	expectFiles   = []string{
-		"usr/local/via/bin/sed",
+		"a.out",
 	}
 )
 
@@ -44,7 +44,6 @@ func TestReadelf(t *testing.T) {
 
 func TestPackage(t *testing.T) {
 	Clean(testPlan.Name)
-	os.Exit(1)
 	if err := BuildSteps(testPlan); err != nil {
 		t.Fatal(err)
 	}

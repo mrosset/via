@@ -1,7 +1,6 @@
 package via
 
 import (
-	"bitbucket.org/strings/via/pkg/git"
 	"fmt"
 	"github.com/str1ngs/util/console"
 	"github.com/str1ngs/util/human"
@@ -64,6 +63,7 @@ type Plan struct {
 	PostInstall  []string
 	Remove       []string
 	Files        []string
+	template     *Plan
 }
 
 func (p *Plan) NameVersion() string {
@@ -137,7 +137,7 @@ func (p Plan) GetStageDir() string {
 }
 
 func (p Plan) PackagePath() string {
-	branch, _ := git.Branch(config.Plans)
+	branch, _ := config.Branch()
 	return join(config.Repo, branch, p.PackageFile())
 }
 

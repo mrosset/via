@@ -164,6 +164,7 @@ func CreatePackage(plan *Plan) (err error) {
 	os.MkdirAll(path.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
+			elog.Println(err)
 		return err
 	}
 	defer fd.Close()
@@ -279,18 +280,22 @@ func BuildSteps(plan *Plan) (err error) {
 	}
 	fmt.Printf(lfmt, "download", plan.NameVersion())
 	if err := DownloadSrc(plan); err != nil {
+		elog.Println(err)
 		return err
 	}
 	fmt.Printf(lfmt, "stage", plan.NameVersion())
 	if err := Stage(plan); err != nil {
+		elog.Println(err)
 		return err
 	}
 	fmt.Printf(lfmt, "build", plan.NameVersion())
 	if err := Build(plan); err != nil {
+		elog.Println(err)
 		return err
 	}
 	fmt.Printf(lfmt, "package", plan.NameVersion())
 	if err := Package("", plan); err != nil {
+		elog.Println(err)
 		return err
 	}
 	return nil

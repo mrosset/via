@@ -15,7 +15,7 @@ var (
 	}
 )
 
-func TestExpand(t *testing.T) {
+func TestGetUrl(t *testing.T) {
 	var (
 		expect = "http://foo.com/plan-1.0.tar.gz"
 		got    = testPlan.GetUrl()
