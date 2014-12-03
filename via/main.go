@@ -1,8 +1,10 @@
 package main
 
+// +build -tags netgo -a
 import (
 	"bitbucket.org/strings/via/pkg"
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/str1ngs/util"
@@ -12,6 +14,8 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 var (
@@ -19,6 +23,7 @@ var (
 	verbose  = flag.Bool("v", false, "verbose output")
 	finstall = flag.Bool("i", false, "install package after build")
 	fdebug   = flag.Bool("d", false, "debug output")
+	config   = via.GetConfig()
 )
 
 func main() {
@@ -27,6 +32,10 @@ func main() {
 	via.Root(*root)
 	util.Verbose = *verbose
 	via.Debug(*fdebug)
+	command.Add("checkout", checkout, "changes plan branch")
+	command.Add("cd", cd, "returns a bash evaluable cd path")
+	command.Add("diff", diff, "prints git diff for plan(s)")
+	command.Add("branch", branch, "prints plan branch to stdout")
 	command.Add("build", build, "build plan")
 	command.Add("clean", clean, "clean build dir")
 	command.Add("create", create, "create plan from URL")
@@ -40,8 +49,8 @@ func main() {
 	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("pack", pack, "package plan")
 	command.Add("remove", remove, "remove package")
-	command.Add("show", xshow, "prints plan to stdout")
-	command.Add("config", config, "prints config to stdout")
+	command.Add("show", fnShow, "prints plan to stdout")
+	command.Add("config", fnConfig, "prints config to stdout")
 	command.Add("elf", elf, "prints elf information to stdout")
 	err := command.Run()
 	if err != nil {
@@ -50,11 +59,68 @@ func main() {
 	return
 }
 
+func cd() error {
+	if len(command.Args()) < 1 {
+		return errors.New("you need to specify a config path")
+	}
+	arg := command.Args()[0]
+	switch arg {
+	case "plans":
+		fmt.Printf("cd %s", config.Plans)
+	default:
+		err := fmt.Sprintf("config path %s not found", arg)
+		return errors.New(err)
+	}
+	return nil
+}
+
+func diff() error {
+	if len(command.Args()) < 1 {
+		return errors.New("no plans specified")
+	}
+	for _, arg := range command.Args() {
+		glob := filepath.Join(config.Plans, "*", arg+".json")
+		res, err := filepath.Glob(glob)
+		if err != nil {
+			return err
+		}
+		git := exec.Command("git", "diff", strings.Join(res, " "))
+		git.Dir = config.Plans
+		git.Stdout = os.Stdout
+		git.Stderr = os.Stderr
+		err = git.Run()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkout() error {
+	if len(command.Args()) < 1 {
+		return errors.New("git branch needs to be specified")
+	}
+	arg := command.Args()[0]
+	git := exec.Command("git", "checkout", arg)
+	git.Dir = config.Plans
+	git.Stdout = os.Stdout
+	git.Stderr = os.Stderr
+	return git.Run()
+}
+
+func branch() error {
+	git := exec.Command("git", "branch")
+	git.Dir = config.Plans
+	git.Stdout = os.Stdout
+	git.Stderr = os.Stderr
+	return git.Run()
+
+}
 func edit() error {
 	var (
 		editor = os.Getenv("EDITOR")
 		arg0   = command.Args()[0]
-		p      = path.Join(via.GetConfig().Plans, "config.json")
+		p      = path.Join(config.Plans, "config.json")
 		err    error
 	)
 	if arg0 != "config" {
@@ -139,7 +205,7 @@ func lint() error {
 	return via.Lint()
 }
 
-func xshow() error {
+func fnShow() error {
 	for _, arg := range command.Args() {
 		plan, err := via.FindPlan(arg)
 		if err != nil {
@@ -159,7 +225,7 @@ func xshow() error {
 	return nil
 }
 
-func config() error {
+func fnConfig() error {
 	err := json.WritePretty(via.GetConfig(), os.Stdout)
 	if err != nil {
 		return err
