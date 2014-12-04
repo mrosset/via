@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestLint(t *testing.T) {
+func TestDiff(t *testing.T) {
 	os.Args = append(os.Args, "diff", "musl", "bash")
 	main()
 }
