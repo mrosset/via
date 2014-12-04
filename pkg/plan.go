@@ -27,6 +27,12 @@ func GetPlans() (Plans, error) {
 	return plans, nil
 }
 
+// Provides json.Template interface
+func (p *Plan) SetTemplate(i interface{}) {
+	c := *i.(*Plan)
+	p.template = &c
+}
+
 // Returns a copy of this PlanSlice sorted by
 // field Size.
 func (ps Plans) SortSize() Plans {
@@ -63,7 +69,9 @@ type Plan struct {
 	PostInstall  []string
 	Remove       []string
 	Files        []string
-	template     *Plan
+
+	// internal
+	template *Plan
 }
 
 func (p *Plan) NameVersion() string {
@@ -80,7 +88,8 @@ func (p *Plan) Save() (err error) {
 }
 
 func FindPlanPath(n string) (string, error) {
-	e, err := filepath.Glob(join(config.Plans, "*", n+".json"))
+	glob := join(config.Plans, "*", n+".json")
+	e, err := filepath.Glob(glob)
 	if err != nil {
 		return "", err
 	}
@@ -90,12 +99,20 @@ func FindPlanPath(n string) (string, error) {
 	return e[0], nil
 }
 
-func FindPlan(n string) (plan *Plan, err error) {
-	p, err := FindPlanPath(n)
+func NewPlan(n string) (plan *Plan, err error) {
+	path, err := FindPlanPath(n)
 	if err != nil {
 		return nil, err
 	}
-	return ReadPath(p)
+	plan, err = ReadPath(path)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Execute(plan)
+	if err != nil {
+		return nil, err
+	}
+	return plan, err
 }
 
 func ReadPath(p string) (plan *Plan, err error) {

@@ -2,6 +2,7 @@ package via
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"github.com/str1ngs/gurl"
 	"github.com/str1ngs/util/console"
@@ -80,7 +81,7 @@ func Build(plan *Plan) (err error) {
 	}
 	// Parent plan's Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
-		parent, _ := FindPlan(plan.Inherit)
+		parent, _ := NewPlan(plan.Inherit)
 		build = append(parent.Build, plan.Build...)
 	}
 	return doCommands(plan.GetBuildDir(), build)
@@ -132,7 +133,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	}
 	os.Setenv("PKGDIR", pdir)
 	if plan.Inherit != "" {
-		parent, _ := FindPlan(plan.Inherit)
+		parent, _ := NewPlan(plan.Inherit)
 		pack = parent.Package
 		pack = append(pack, plan.Package...)
 	}
@@ -141,7 +142,7 @@ func Package(bdir string, plan *Plan) (err error) {
 		return err
 	}
 	for _, j := range plan.SubPackages {
-		sub, err := FindPlan(j)
+		sub, err := NewPlan(j)
 		if err != nil {
 			return err
 		}
@@ -164,7 +165,7 @@ func CreatePackage(plan *Plan) (err error) {
 	os.MkdirAll(path.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
-			elog.Println(err)
+		elog.Println(err)
 		return err
 	}
 	defer fd.Close()
@@ -174,10 +175,12 @@ func CreatePackage(plan *Plan) (err error) {
 }
 
 func Install(name string) (err error) {
-	plan, err := FindPlan(name)
+	plan, err := NewPlan(name)
 	if err != nil {
+		elog.Println(name, err)
 		return
 	}
+	fmt.Printf(lfmt, "installing", plan.Name)
 	if IsInstalled(name) {
 		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
 		err := Remove(name)
@@ -194,13 +197,13 @@ func Install(name string) (err error) {
 			return err
 		}
 	}
-	fmt.Printf(lfmt, "installing", plan.Name)
 	db := path.Join(config.DB.Installed(), plan.Name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}
 	pfile := plan.PackagePath()
 	if !file.Exists(pfile) {
+		return errors.New(fmt.Sprintf("%s does not exist"))
 		fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()))
 		//fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()+".sig"))
 	}
@@ -363,7 +366,7 @@ func fatal(err error) {
 	}
 }
 func Clean(name string) error {
-	plan, err := FindPlan(name)
+	plan, err := NewPlan(name)
 	if err != nil {
 		return err
 	}

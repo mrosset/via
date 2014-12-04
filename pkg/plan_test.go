@@ -1,6 +1,7 @@
 package via
 
 import (
+	"github.com/str1ngs/util/json"
 	"testing"
 )
 
@@ -8,12 +9,42 @@ var (
 	testPlan = &Plan{
 		Name:         "plan",
 		Version:      "1.0",
-		Url:          "http://foo.com/plan-1.0.tar.gz",
+		Url:          "http://foo.com/{{.Name}}-{{.Version}}.tar.gz",
 		BuildInStage: true,
 		Package:      []string{"cp a.out $PKGDIR/"},
 		Files:        []string{"a.out"},
 	}
 )
+
+func TestTemplate(t *testing.T) {
+	var (
+		expect = testPlan.Url
+		got    = ""
+	)
+	err := json.Execute(testPlan)
+	if err != nil {
+		t.Error(err)
+	}
+	got = testPlan.template.Url
+	if expect != got {
+		t.Errorf("expected %s got %s", expect, got)
+	}
+}
+
+func TestFindPlan(t *testing.T) {
+	var (
+		expect = "devel"
+		got    = ""
+	)
+	plan, err := NewPlan("devel")
+	if err != nil {
+		t.Error(err)
+	}
+	got = plan.Name
+	if expect != got {
+		t.Errorf("expected %s got %s", expect, got)
+	}
+}
 
 func TestGetUrl(t *testing.T) {
 	var (

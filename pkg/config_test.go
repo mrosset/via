@@ -6,7 +6,7 @@ import (
 
 func TestBranch(t *testing.T) {
 	var (
-		expect = "system"
+		expect = "local"
 		got, _ = config.Branch()
 	)
 	if expect != got {
