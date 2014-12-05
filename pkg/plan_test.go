@@ -9,17 +9,18 @@ var (
 	testPlan = &Plan{
 		Name:         "plan",
 		Version:      "1.0",
-		Url:          "http://foo.com/{{.Name}}-{{.Version}}.tar.gz",
+		Url:          "{{.Mirror}}/{{.Name}}-{{.Version}}.tar.gz",
 		BuildInStage: true,
 		Package:      []string{"cp a.out $PKGDIR/"},
 		Files:        []string{"a.out"},
+		Mirror:       "http://mirrors.kernel.org/gnu",
 	}
 )
 
 func TestTemplate(t *testing.T) {
 	var (
 		expect = testPlan.Url
-		got    = ""
+		got    string
 	)
 	err := json.Execute(testPlan)
 	if err != nil {
@@ -48,8 +49,8 @@ func TestFindPlan(t *testing.T) {
 
 func TestGetUrl(t *testing.T) {
 	var (
-		expect = "http://foo.com/plan-1.0.tar.gz"
-		got    = testPlan.GetUrl()
+		expect = "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
+		got    = testPlan.Url
 	)
 	if expect != got {
 		t.Errorf("expected %s got %s", expect, got)
@@ -59,7 +60,7 @@ func TestGetUrl(t *testing.T) {
 func TestBuildDir(t *testing.T) {
 	var (
 		expect = "/home/strings/via/cache/stg/plan-1.0"
-		got    = testPlan.GetBuildDir()
+		got    = testPlan.BuildDir()
 	)
 	if got != expect {
 		t.Errorf("expect '%s' -> got '%s'", expect, got)

@@ -69,6 +69,7 @@ type Plan struct {
 	PostInstall  []string
 	Remove       []string
 	Files        []string
+	Mirror       string
 
 	// internal
 	template *Plan
@@ -84,7 +85,7 @@ func (p *Plan) Path() string {
 
 // TODO: make this atomic
 func (p *Plan) Save() (err error) {
-	return json.Write(p, p.Path())
+	return json.Write(p.template, p.Path())
 }
 
 func FindPlanPath(n string) (string, error) {
@@ -94,7 +95,7 @@ func FindPlanPath(n string) (string, error) {
 		return "", err
 	}
 	if len(e) != 1 {
-		return "", fmt.Errorf("expected 1 plan found %d.", len(e))
+		return "", fmt.Errorf("expected 1 plan found %d.", len(e), e)
 	}
 	return e[0], nil
 }
@@ -108,16 +109,17 @@ func NewPlan(n string) (plan *Plan, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = json.Execute(plan)
-	if err != nil {
-		return nil, err
-	}
+	plan.Mirror = config.Mirror
 	return plan, err
 }
 
 func ReadPath(p string) (plan *Plan, err error) {
 	plan = new(Plan)
 	err = json.Read(plan, p)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Execute(plan)
 	if err != nil {
 		return nil, err
 	}
@@ -133,14 +135,10 @@ func (p Plan) SourceFile() string {
 }
 
 func (p Plan) SourcePath() string {
-	return path.Join(cache.Srcs(), path.Base(p.GetUrl()))
+	return path.Join(cache.Srcs(), path.Base(p.Url))
 }
 
-func (p Plan) GetUrl() string {
-	return p.Url
-}
-
-func (p Plan) GetBuildDir() string {
+func (p Plan) BuildDir() string {
 	bdir := join(cache.Builds(), p.NameVersion())
 	if p.BuildInStage {
 		bdir = join(cache.Stages(), p.stageDir())

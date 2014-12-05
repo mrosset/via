@@ -41,7 +41,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(plan.SourcePath()) {
 		return nil
 	}
-	return gurl.Download(cache.Srcs(), plan.GetUrl())
+	return gurl.Download(cache.Srcs(), plan.Url)
 }
 
 // Stages the downloaded source via's cache directory
@@ -76,15 +76,15 @@ func Build(plan *Plan) (err error) {
 	}
 	os.Setenv("SRCDIR", plan.GetStageDir())
 	os.Setenv("Flags", expand(flags.String()))
-	if !file.Exists(plan.GetBuildDir()) {
-		os.MkdirAll(plan.GetBuildDir(), 0755)
+	if !file.Exists(plan.BuildDir()) {
+		os.MkdirAll(plan.BuildDir(), 0755)
 	}
 	// Parent plan's Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
 		parent, _ := NewPlan(plan.Inherit)
 		build = append(parent.Build, plan.Build...)
 	}
-	return doCommands(plan.GetBuildDir(), build)
+	return doCommands(plan.BuildDir(), build)
 }
 
 func doCommands(dir string, cmds []string) (err error) {
@@ -203,8 +203,8 @@ func Install(name string) (err error) {
 	}
 	pfile := plan.PackagePath()
 	if !file.Exists(pfile) {
-		return errors.New(fmt.Sprintf("%s does not exist"))
-		fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()))
+		return errors.New(fmt.Sprintf("%s does not exist", pfile))
+		fatal(gurl.Download(config.Repo, config.Binary+"/"+pfile))
 		//fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()+".sig"))
 	}
 	/*
@@ -304,11 +304,17 @@ func BuildSteps(plan *Plan) (err error) {
 	return nil
 }
 
+var (
+	rexName   = regexp.MustCompile("[a-z]+")
+	rexTruple = regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+")
+	rexDouble = regexp.MustCompile("[0-9]+.[0-9]+")
+)
+
 // Creates a new plan from a given Url
 func Create(url string) (err error) {
 	var (
 		file    = path.Base(url)
-		name    = regexp.MustCompile("[a-z]+").FindString(file)
+		name    = rexName.FindString(file)
 		truple  = regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+").FindString(file)
 		double  = regexp.MustCompile("[0-9]+.[0-9]+").FindString(file)
 		version string
