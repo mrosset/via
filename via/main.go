@@ -148,7 +148,7 @@ func create() error {
 
 func build() error {
 	for _, arg := range command.Args() {
-		plan, err := via.FindPlan(arg)
+		plan, err := via.NewPlan(arg)
 		if err != nil {
 			return err
 		}
@@ -168,7 +168,7 @@ func build() error {
 
 func pack() error {
 	for _, arg := range command.Args() {
-		plan, err := via.FindPlan(arg)
+		plan, err := via.NewPlan(arg)
 		if err != nil {
 			return err
 		}
@@ -182,7 +182,7 @@ func pack() error {
 
 func list() error {
 	for _, arg := range command.Args() {
-		plan, err := via.FindPlan(arg)
+		plan, err := via.NewPlan(arg)
 		if err != nil {
 			return err
 		}
@@ -207,7 +207,7 @@ func lint() error {
 
 func fnShow() error {
 	for _, arg := range command.Args() {
-		plan, err := via.FindPlan(arg)
+		plan, err := via.NewPlan(arg)
 		if err != nil {
 			log.Fatal(err)
 		}
