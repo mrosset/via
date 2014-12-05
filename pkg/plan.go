@@ -131,11 +131,11 @@ func (p *Plan) PackageFile() string {
 }
 
 func (p Plan) SourceFile() string {
-	return join(cache.Srcs(), path.Base(p.Url))
+	return join(cache.Sources(), path.Base(p.Url))
 }
 
 func (p Plan) SourcePath() string {
-	return path.Join(cache.Srcs(), path.Base(p.Url))
+	return path.Join(cache.Sources(), path.Base(p.Url))
 }
 
 func (p Plan) BuildDir() string {

@@ -14,6 +14,7 @@ var (
 		Package:      []string{"cp a.out $PKGDIR/"},
 		Files:        []string{"a.out"},
 		Mirror:       "http://mirrors.kernel.org/gnu",
+		Group:        "core",
 	}
 )
 

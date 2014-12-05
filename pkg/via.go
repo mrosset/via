@@ -41,7 +41,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(plan.SourcePath()) {
 		return nil
 	}
-	return gurl.Download(cache.Srcs(), plan.Url)
+	return gurl.Download(cache.Sources(), plan.Url)
 }
 
 // Stages the downloaded source via's cache directory
@@ -113,7 +113,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
-	pdir := join(cache.Pkgs(), plan.NameVersion())
+	pdir := join(cache.Packages(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(cache.Builds(), plan.NameVersion())
 	}
@@ -313,10 +313,10 @@ var (
 // Creates a new plan from a given Url
 func Create(url string) (err error) {
 	var (
-		file    = path.Base(url)
-		name    = rexName.FindString(file)
-		truple  = regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+").FindString(file)
-		double  = regexp.MustCompile("[0-9]+.[0-9]+").FindString(file)
+		xfile   = path.Base(url)
+		name    = rexName.FindString(xfile)
+		truple  = rexTruple.FindString(xfile)
+		double  = rexDouble.FindString(xfile)
 		version string
 	)
 	switch {
@@ -325,7 +325,13 @@ func Create(url string) (err error) {
 	case double != "":
 		version = double
 	}
-	plan := &Plan{Name: name, Version: version, Url: url}
+	plan := &Plan{Name: name, Version: version, Url: url, Group: "core"}
+	if err := json.Execute(plan); err != nil {
+		return err
+	}
+	if file.Exists(plan.Path()) {
+		return errors.New(fmt.Sprintf("%s already exists", plan.Path()))
+	}
 	return plan.Save()
 }
 

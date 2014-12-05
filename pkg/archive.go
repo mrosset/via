@@ -194,7 +194,7 @@ func archive(wr io.Writer, dir string) error {
 
 // TODO: rewrite this hackfest
 func Tarball(wr io.Writer, plan *Plan) (err error) {
-	dir := join(cache.Pkgs(), plan.NameVersion())
+	dir := join(cache.Packages(), plan.NameVersion())
 	err = CreateManifest(dir, plan)
 	if err != nil {
 		elog.Println(err)

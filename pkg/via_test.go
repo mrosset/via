@@ -28,6 +28,29 @@ func TestLint(t *testing.T) {
 	}
 }
 
+func TestCreate(t *testing.T) {
+	var (
+		c      = Cache("testdata/cache")
+		expect = "1.0"
+	)
+	c.Init()
+	os.Remove(testPlan.Path())
+	err := Create(testPlan.Url)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = NewPlan(testPlan.Name)
+	if err != nil {
+		t.Error(err)
+	}
+	got := testPlan.Version
+	if expect != testPlan.Version {
+
+		t.Errorf("expected '%s' got '%s'", expect, got)
+	}
+	os.Remove(testPlan.Path())
+}
+
 func TestRepoCreate(t *testing.T) {
 	err := RepoCreate()
 	if err != nil {
@@ -36,7 +59,7 @@ func TestRepoCreate(t *testing.T) {
 }
 
 func TestReadelf(t *testing.T) {
-	err := Readelf(join(cache.Pkgs(), "ccache-3.1.7/bin/ccache"))
+	err := Readelf(join(cache.Packages(), "ccache-3.1.7/bin/ccache"))
 	if err != nil {
 		t.Error(err)
 	}
