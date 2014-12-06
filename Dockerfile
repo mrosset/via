@@ -1,5 +1,5 @@
 FROM strings/via:devel
-ENV PATH /usr/local/via/bin
+#ENV LD_LIBRARY_PATH /usr/lib
+ENV PATH /bin:/usr/bin:/usr/local/via/bin:
 ENV EDITOR vim
-ADD via/via /usr/local/via/bin/
 USER strings
