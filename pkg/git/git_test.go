@@ -37,7 +37,14 @@ func TestBranchFail(t *testing.T) {
 		got    = ""
 	)
 	got, _ = Branch("testdata")
-	if expect != got {
+	if expect == got {
 		t.Errorf("expect '%s' got '%s'", expect, got)
+	}
+}
+
+func TestCleanup(t *testing.T) {
+	err := os.RemoveAll("testdata")
+	if err != nil {
+		t.Error(err)
 	}
 }
