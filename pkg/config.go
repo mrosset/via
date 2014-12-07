@@ -57,7 +57,6 @@ type Config struct {
 	OS        string
 	Root      string
 	PlansRepo string
-	Mirror    string
 
 	// Paths
 	Cache  Cache

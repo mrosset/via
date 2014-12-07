@@ -326,9 +326,6 @@ func Create(url string) (err error) {
 		version = double
 	}
 	plan := &Plan{Name: name, Version: version, Url: url, Group: "core"}
-	if err := json.Execute(plan); err != nil {
-		return err
-	}
 	if file.Exists(plan.Path()) {
 		return errors.New(fmt.Sprintf("%s already exists", plan.Path()))
 	}

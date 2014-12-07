@@ -27,12 +27,6 @@ func GetPlans() (Plans, error) {
 	return plans, nil
 }
 
-// Provides json.Template interface
-func (p *Plan) SetTemplate(i interface{}) {
-	c := *i.(*Plan)
-	p.template = &c
-}
-
 // Returns a copy of this PlanSlice sorted by
 // field Size.
 func (ps Plans) SortSize() Plans {
@@ -69,10 +63,6 @@ type Plan struct {
 	PostInstall  []string
 	Remove       []string
 	Files        []string
-	Mirror       string
-
-	// internal
-	template *Plan
 }
 
 func (p *Plan) NameVersion() string {
@@ -85,7 +75,7 @@ func (p *Plan) Path() string {
 
 // TODO: make this atomic
 func (p *Plan) Save() (err error) {
-	return json.Write(p.template, p.Path())
+	return json.Write(p, p.Path())
 }
 
 func FindPlanPath(n string) (string, error) {
@@ -109,17 +99,12 @@ func NewPlan(n string) (plan *Plan, err error) {
 	if err != nil {
 		return nil, err
 	}
-	plan.Mirror = config.Mirror
 	return plan, err
 }
 
 func ReadPath(p string) (plan *Plan, err error) {
 	plan = new(Plan)
 	err = json.Read(plan, p)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Execute(plan)
 	if err != nil {
 		return nil, err
 	}

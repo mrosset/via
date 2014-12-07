@@ -80,15 +80,15 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	plan.template.Files = files
-	plan.template.Depends, err = Depends(dir, plan.template)
+	plan.Files = files
+	plan.Depends, err = Depends(dir, plan)
 	if err != nil {
 		return err
 	}
-	plan.template.Date = time.Now()
-	plan.template.Size = size
+	plan.Date = time.Now()
+	plan.Size = size
 	plan.Save()
-	return json.WriteGz(&plan.template, mfile)
+	return json.WriteGz(&plan, mfile)
 }
 
 func filesContains(files []string, file string) bool {

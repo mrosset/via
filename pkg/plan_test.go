@@ -1,7 +1,6 @@
 package via
 
 import (
-	"github.com/str1ngs/util/json"
 	"testing"
 )
 
@@ -9,15 +8,15 @@ var (
 	testPlan = &Plan{
 		Name:         "plan",
 		Version:      "1.0",
-		Url:          "{{.Mirror}}/{{.Name}}-{{.Version}}.tar.gz",
+		Url:          "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz",
 		BuildInStage: true,
 		Package:      []string{"cp a.out $PKGDIR/"},
 		Files:        []string{"a.out"},
-		Mirror:       "http://mirrors.kernel.org/gnu",
 		Group:        "core",
 	}
 )
 
+/*
 func TestTemplate(t *testing.T) {
 	var (
 		expect = testPlan.Url
@@ -32,15 +31,16 @@ func TestTemplate(t *testing.T) {
 		t.Errorf("expected %s got %s", expect, got)
 	}
 }
+*/
 
 func TestFindPlan(t *testing.T) {
 	var (
-		expect = "devel"
+		expect = "sed"
 		got    = ""
 	)
-	plan, err := NewPlan("devel")
+	plan, err := NewPlan("sed")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	got = plan.Name
 	if expect != got {
