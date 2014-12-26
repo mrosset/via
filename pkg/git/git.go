@@ -1,7 +1,6 @@
 package git
 
 import (
-	"errors"
 	"fmt"
 	"github.com/str1ngs/util/file"
 	"io/ioutil"
@@ -20,7 +19,7 @@ const (
 func Branch(path string) (string, error) {
 	head := fmt.Sprintf(git_head, path)
 	if !file.Exists(head) {
-		return "", errors.New(".git not found in " + path)
+		return "", fmt.Errorf(".git not found in %s", path)
 	}
 	b, err := ioutil.ReadFile(head)
 	if err != nil {
@@ -29,5 +28,8 @@ func Branch(path string) (string, error) {
 	in := strings.Split(string(b), "/")
 	branch := in[len(in)-1]
 	branch = strings.Trim(branch, "\n\r")
+	if branch == "" {
+		return "", fmt.Errorf("No branch found")
+	}
 	return branch, nil
 }
