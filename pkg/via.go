@@ -68,7 +68,7 @@ func Build(plan *Plan) (err error) {
 		build = plan.Build
 	)
 	if file.Exists(plan.PackagePath()) {
-		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackageFile())
+		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}
 	flags := config.Flags
 	if plan.Flags != nil {
@@ -380,7 +380,10 @@ func Clean(name string) error {
 		return err
 	}
 	dir := join(cache.Builds(), plan.NameVersion())
-	os.RemoveAll(dir)
+	if err = os.RemoveAll(dir); err != nil {
+		return err
+	}
+
 	dir = join(cache.Stages(), plan.stageDir())
 	return os.RemoveAll(dir)
 }

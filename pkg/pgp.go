@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 )
 
+//TODO: use our own keyring
 var keyring = filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
 
 func Sign(plan *Plan) (err error) {
