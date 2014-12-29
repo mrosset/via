@@ -32,6 +32,7 @@ func main() {
 	via.Root(*root)
 	util.Verbose = *verbose
 	via.Debug(*fdebug)
+	command.Add("add", add, "add plan/s to git index")
 	command.Add("checkout", checkout, "changes plan branch")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("diff", diff, "prints git diff for plan(s)")
@@ -70,6 +71,28 @@ func cd() error {
 	default:
 		err := fmt.Sprintf("config path %s not found", arg)
 		return errors.New(err)
+	}
+	return nil
+}
+
+func add() error {
+	if len(command.Args()) < 1 {
+		return errors.New("no plans specified")
+	}
+	for _, arg := range command.Args() {
+		glob := filepath.Join(config.Plans, "*", arg+".json")
+		res, err := filepath.Glob(glob)
+		if err != nil {
+			return err
+		}
+		git := exec.Command("git", "add", strings.Join(res, " "))
+		git.Dir = config.Plans
+		git.Stdout = os.Stdout
+		git.Stderr = os.Stderr
+		err = git.Run()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
