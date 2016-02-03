@@ -1,5 +1,5 @@
 build:
-	go build
+	go install
 
 clean:
 	go clean

@@ -1,10 +1,11 @@
-SRC 	= $(wildcard pkg/*.go via/*.go)
-#BIN 	= $(GOPATH)/bin/via
-BIN 	= via/via
+SRC 	= $(wildcard via//Makefile Makefile pkg/*.go via/*.go)
+BIN 	= $(GOPATH)/bin/via
+#BIN 	= via/via
 CMDS	= fmt test install
 REPO    = strings/via:devel
 
 $(BIN): $(SRC)
+	-rm $(BIN)
 	make -C via
 	@git diff --quiet || echo WARNING: git tree is dirty
 
