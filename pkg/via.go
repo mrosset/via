@@ -74,8 +74,6 @@ func Build(plan *Plan) (err error) {
 	if plan.Flags != nil {
 		flags = append(flags, plan.Flags...)
 	}
-	os.Setenv("SRCDIR", plan.GetStageDir())
-	os.Setenv("Flags", expand(flags.String()))
 	if !file.Exists(plan.BuildDir()) {
 		os.MkdirAll(plan.BuildDir(), 0755)
 	}
@@ -83,7 +81,10 @@ func Build(plan *Plan) (err error) {
 	if plan.Inherit != "" {
 		parent, _ := NewPlan(plan.Inherit)
 		build = append(parent.Build, plan.Build...)
+		flags = append(flags, parent.Flags...)
 	}
+	os.Setenv("SRCDIR", plan.GetStageDir())
+	os.Setenv("Flags", expand(flags.String()))
 	return doCommands(plan.BuildDir(), build)
 }
 
