@@ -89,10 +89,10 @@ func Build(plan *Plan) (err error) {
 
 func doCommands(dir string, cmds []string) (err error) {
 	for i, j := range cmds {
+		j := expand(j)
 		if debug {
 			elog.Println(i, j)
 		}
-		j := expand(j)
 		cmd := exec.Command("sh", "-c", j)
 		cmd.Dir = dir
 		cmd.Stdin = os.Stdin
