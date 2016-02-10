@@ -31,5 +31,6 @@ clean:
 	-rm -fr root
 	-rm $(BIN)
 
-test:
-	go test -v ./...
+test: $(BIN)
+	$(BIN) -d build ccache
+	#go test -v ./...

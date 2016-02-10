@@ -53,11 +53,25 @@ func main() {
 	command.Add("show", fnShow, "prints plan to stdout")
 	command.Add("config", fnConfig, "prints config to stdout")
 	command.Add("elf", elf, "prints elf information to stdout")
+	if *fdebug {
+		which("GCC", "gcc")
+	}
 	err := command.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
 	return
+}
+
+func which(label, path string) {
+	fmt.Printf("GCC ")
+	cmd := exec.Command("which", path)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func cd() error {
