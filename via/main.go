@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/str1ngs/util"
 	"github.com/str1ngs/util/console/command"
+	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"log"
 	"os"
@@ -44,6 +45,7 @@ func main() {
 	command.Add("list", list, "lists files")
 	command.Add("install", install, "install package")
 	command.Add("lint", lint, "lint plans")
+	command.Add("log", plog, "print config log for plan")
 	command.Add("repo", repo, "update repo")
 	command.Add("owns", owns, "finds which package owns a file")
 	command.Add("sync", sync, "fetch remote repo data")
@@ -54,8 +56,8 @@ func main() {
 	command.Add("config", fnConfig, "prints config to stdout")
 	command.Add("elf", elf, "prints elf information to stdout")
 	if *fdebug {
-		path,_ := os.LookupEnv("PATH")
-		fmt.Println("PATH",path)
+		path, _ := os.LookupEnv("PATH")
+		fmt.Println("PATH", path)
 		which("GCC", "gcc")
 	}
 	err := command.Run()
@@ -180,6 +182,21 @@ func create() error {
 		err := via.Create(arg)
 		if err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func plog() error {
+	for _, arg := range command.Args() {
+		plan, err := via.NewPlan(arg)
+		if err != nil {
+			return err
+		}
+		f := path.Join(plan.BuildDir(), "config.log")
+		err = file.Cat(os.Stdout, f)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 	return nil
