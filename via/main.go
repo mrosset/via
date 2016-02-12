@@ -54,6 +54,8 @@ func main() {
 	command.Add("config", fnConfig, "prints config to stdout")
 	command.Add("elf", elf, "prints elf information to stdout")
 	if *fdebug {
+		path,_ := os.LookupEnv("PATH")
+		fmt.Println("PATH",path)
 		which("GCC", "gcc")
 	}
 	err := command.Run()

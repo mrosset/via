@@ -37,10 +37,10 @@ func init() {
 	sort.Strings([]string(config.Flags))
 	sort.Strings(config.Remove)
 	// TODO: provide Lint for master config
-	//err = json.Write(&config, cfile)
-	//if err != nil {
-	//elog.Fatal(err)
-	//}
+	err = json.Write(&config, cfile)
+	if err != nil {
+		elog.Fatal(err)
+	}
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	cache.Init()
 	config.Plans = os.ExpandEnv(config.Plans)
