@@ -10,18 +10,21 @@ $(BIN): $(SRC)
 	@git diff --quiet || echo WARNING: git tree is dirty
 
 run: 
-	docker run -t -i -v /home/strings:/home/strings strings/via:devel bash --login -o vi
+	docker run -t -i -v /etc:/etc -v /var:/var -v /tmp:/tmp -v /home:/home strings/via:devel bash --login -o vi
 
-docker:
-	docker build -t strings/via:devel .
+docker: docker/Dockerfile
+	docker build -t strings/via:devel docker
 
 root: $(BIN)
 	-mkdir root
-	-$(BIN) -r root install devel
-	mkdir -p root/{etc,tmp}
-	cp -a /etc/ssl root/etc/
-	cp /etc/{passwd,group} root/etc/
-	ldconfig -r root/
+	#-$(BIN) -r root install glibc bash
+	#-mkdir -p root/etc root/bin root/tmp root/var/empty
+	#-ln -s /home/mrosset/install/bin/sh root/bin/sh
+	#-ln -s /home/mrosset/install/bin/pwd root/bin/pwd
+	#sudo cp -a /etc/ssl root/etc/
+	#sudo cp /etc/passwd root/etc/
+	#sudo cp /etc/group  root/etc/
+	#sudo chown -R strings root
 
 import:
 	-docker rmi -f $(REPO)

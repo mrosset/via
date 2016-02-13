@@ -25,6 +25,7 @@ var (
 	finstall = flag.Bool("i", false, "install package after build")
 	fdebug   = flag.Bool("d", false, "debug output")
 	config   = via.GetConfig()
+	fclean   = flag.Bool("c", false, "clean before build")
 )
 
 func main() {
@@ -204,6 +205,9 @@ func plog() error {
 
 func build() error {
 	for _, arg := range command.Args() {
+		if *fclean {
+			via.Clean(arg)
+		}
 		plan, err := via.NewPlan(arg)
 		if err != nil {
 			return err

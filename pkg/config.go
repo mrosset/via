@@ -49,6 +49,9 @@ func init() {
 	for i, j := range config.Env {
 		os.Setenv(i, os.ExpandEnv(j))
 	}
+	for i, j := range config.Env {
+		os.Setenv(i, os.ExpandEnv(j))
+	}
 }
 
 type Config struct {

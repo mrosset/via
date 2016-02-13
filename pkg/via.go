@@ -41,6 +41,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(plan.SourcePath()) {
 		return nil
 	}
+	fmt.Printf(lfmt, "download", plan.NameVersion())
 	return gurl.Download(cache.Sources(), plan.Url)
 }
 
@@ -282,7 +283,6 @@ func BuildSteps(plan *Plan) (err error) {
 	if file.Exists(plan.PackageFile()) {
 		return fmt.Errorf("package %s exists", plan.PackageFile())
 	}
-	fmt.Printf(lfmt, "download", plan.NameVersion())
 	if err := DownloadSrc(plan); err != nil {
 		elog.Println(err)
 		return err
@@ -380,6 +380,7 @@ func Clean(name string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf(lfmt, "clean", plan.NameVersion())
 	dir := join(cache.Builds(), plan.NameVersion())
 	if err = os.RemoveAll(dir); err != nil {
 		return err
