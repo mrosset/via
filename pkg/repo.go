@@ -6,6 +6,7 @@ import (
 	"github.com/str1ngs/util/json"
 	"os"
 	"os/exec"
+	"path"
 )
 
 type RepoFiles map[string][]string
@@ -35,13 +36,13 @@ func PlanSync() error {
 	//elog.Println("PlanSync not implimented")
 	//return nil
 	dir := config.Plans
-	arg := "pull"
+	arg := "fetch"
 	if !file.Exists(dir) {
 		arg = "clone"
-		dir = dir + "/../"
+		dir = path.Dir(dir)
 	}
 	git := exec.Command("git", arg, config.PlansRepo)
-	git.Dir = expand("$HOME/via")
+	git.Dir = dir
 	git.Stdin = os.Stdin
 	git.Stdout = os.Stdout
 	git.Stderr = os.Stderr
