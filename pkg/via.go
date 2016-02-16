@@ -205,8 +205,11 @@ func Install(name string) (err error) {
 	}
 	pfile := plan.PackagePath()
 	if !file.Exists(pfile) {
-		return errors.New(fmt.Sprintf("%s does not exist", pfile))
-		fatal(gurl.Download(config.Repo, config.Binary+"/"+pfile))
+		//return errors.New(fmt.Sprintf("%s does not exist", pfile))
+		err := gurl.Download(config.Repo+"/master", config.Binary+"/"+plan.PackageFile())
+		if err != nil {
+			log.Fatal(err)
+		}
 		//fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()+".sig"))
 	}
 	/*
