@@ -11,7 +11,9 @@ import (
 	"github.com/str1ngs/util/console/command"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -35,27 +37,28 @@ func main() {
 	util.Verbose = *verbose
 	via.Debug(*fdebug)
 	command.Add("add", add, "add plan/s to git index")
-	command.Add("checkout", checkout, "changes plan branch")
-	command.Add("cd", cd, "returns a bash evaluable cd path")
-	command.Add("diff", diff, "prints git diff for plan(s)")
 	command.Add("branch", branch, "prints plan branch to stdout")
 	command.Add("build", build, "build plan")
+	command.Add("cd", cd, "returns a bash evaluable cd path")
+	command.Add("checkout", checkout, "changes plan branch")
 	command.Add("clean", clean, "clean build dir")
+	command.Add("config", fnConfig, "prints config to stdout")
 	command.Add("create", create, "create plan from URL")
+	command.Add("diff", diff, "prints git diff for plan(s)")
 	command.Add("edit", edit, "calls EDITOR to edit plan")
-	command.Add("list", list, "lists files")
+	command.Add("elf", elf, "prints elf information to stdout")
 	command.Add("install", install, "install package")
 	command.Add("lint", lint, "lint plans")
+	command.Add("list", list, "lists files")
 	command.Add("log", plog, "print config log for plan")
-	command.Add("repo", repo, "update repo")
+	command.Add("ipfs", ipfs, "test ipfs connection")
 	command.Add("owns", owns, "finds which package owns a file")
-	command.Add("sync", sync, "fetch remote repo data")
-	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("pack", pack, "package plan")
 	command.Add("remove", remove, "remove package")
+	command.Add("repo", repo, "update repo")
+	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("show", fnShow, "prints plan to stdout")
-	command.Add("config", fnConfig, "prints config to stdout")
-	command.Add("elf", elf, "prints elf information to stdout")
+	command.Add("sync", sync, "fetch remote repo data")
 	if *fdebug {
 		path, _ := os.LookupEnv("PATH")
 		fmt.Println("PATH", path)
@@ -77,6 +80,13 @@ func which(label, path string) {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func ipfs() error {
+
+	res, err := http.Get(config.Binary)
+	io.Copy(os.Stdout, res.Body)
+	return err
 }
 
 func cd() error {
