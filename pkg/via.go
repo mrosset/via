@@ -39,14 +39,6 @@ func Debug(b bool) {
 	debug = b
 }
 
-func wget(dest, url string) error {
-	cmd := exec.Command("wget", url)
-	cmd.Dir = dest
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
 func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(plan.SourcePath()) {
 		return nil
@@ -59,10 +51,12 @@ func DownloadSrc(plan *Plan) (err error) {
 	switch u.Scheme {
 	case "ftp":
 		wget(cache.Sources(), plan.Url)
+	case "http", "https":
+		return gurl.Download(cache.Sources(), plan.Url)
 	default:
 		panic("unsupported")
 	}
-	return gurl.Download(cache.Sources(), plan.Url)
+	return nil
 }
 
 // Stages the downloaded source via's cache directory
@@ -85,13 +79,15 @@ func Stage(plan *Plan) (err error) {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Run()
-	} else {
-		err = GNUUntar(cache.Stages(), plan.SourcePath())
-		if err != nil {
-			elog.Println(err)
-			return err
-		}
+		goto ret
 	}
+	switch path.Ext(plan.SourceFile()) {
+	case ".zip":
+		unzip(cache.Stages(), plan.SourcePath())
+	default:
+		GNUUntar(cache.Stages(), plan.SourcePath())
+	}
+ret:
 	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
 		return err
 	}
@@ -344,7 +340,7 @@ func BuildSteps(plan *Plan) (err error) {
 }
 
 var (
-	rexName   = regexp.MustCompile("[a-z]+")
+	rexName   = regexp.MustCompile("[A-Za-z]+")
 	rexTruple = regexp.MustCompile("[0-9]+.[0-9]+.[0-9]+")
 	rexDouble = regexp.MustCompile("[0-9]+.[0-9]+")
 )

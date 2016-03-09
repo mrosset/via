@@ -215,6 +215,7 @@ func plog() error {
 
 func build() error {
 	for _, arg := range command.Args() {
+		arg = strings.Replace(arg, ".json", "", 1)
 		if *fclean {
 			via.Clean(arg)
 		}
