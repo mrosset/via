@@ -38,11 +38,30 @@ func Verbose(b bool) {
 func Debug(b bool) {
 	debug = b
 }
+
+func wget(dest, url string) error {
+	cmd := exec.Command("wget", url)
+	cmd.Dir = dest
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
 func DownloadSrc(plan *Plan) (err error) {
 	if file.Exists(plan.SourcePath()) {
 		return nil
 	}
 	fmt.Printf(lfmt, "download", plan.NameVersion())
+	u, err := url.Parse(plan.Url)
+	if err != nil {
+		return err
+	}
+	switch u.Scheme {
+	case "ftp":
+		wget(cache.Sources(), plan.Url)
+	default:
+		panic("unsupported")
+	}
 	return gurl.Download(cache.Sources(), plan.Url)
 }
 
@@ -331,7 +350,7 @@ var (
 )
 
 // Creates a new plan from a given Url
-func Create(url string) (err error) {
+func Create(url, group string) (err error) {
 	var (
 		xfile   = path.Base(url)
 		name    = rexName.FindString(xfile)
@@ -345,7 +364,7 @@ func Create(url string) (err error) {
 	case double != "":
 		version = double
 	}
-	plan := &Plan{Name: name, Version: version, Url: url, Group: "core"}
+	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
 	plan.Inherit = "gnu"
 	if file.Exists(plan.Path()) {
 		return errors.New(fmt.Sprintf("%s already exists", plan.Path()))

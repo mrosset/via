@@ -189,11 +189,11 @@ func edit() error {
 }
 
 func create() error {
-	for _, arg := range command.Args() {
-		err := via.Create(arg)
-		if err != nil {
-			return err
-		}
+	url := command.Args()[0]
+	group := command.Args()[1]
+	err := via.Create(url, group)
+	if err != nil {
+		return err
 	}
 	return nil
 }
