@@ -28,11 +28,13 @@ var (
 	fdebug   = flag.Bool("d", false, "debug output")
 	config   = via.GetConfig()
 	fclean   = flag.Bool("c", false, "clean before build")
+	fupdate  = flag.Bool("u", false, "force download source")
 )
 
 func main() {
 	flag.Parse()
 	via.Verbose(*verbose)
+	via.Update(*fupdate)
 	via.Root(*root)
 	util.Verbose = *verbose
 	via.Debug(*fdebug)

@@ -26,6 +26,7 @@ var (
 	lfmt    = "%-20.20s %v\n"
 	debug   = false
 	expand  = os.ExpandEnv
+	update  = false
 )
 
 func Root(s string) {
@@ -35,12 +36,17 @@ func Root(s string) {
 func Verbose(b bool) {
 	verbose = b
 }
+
+func Update(b bool) {
+	update = b
+}
+
 func Debug(b bool) {
 	debug = b
 }
 
 func DownloadSrc(plan *Plan) (err error) {
-	if file.Exists(plan.SourcePath()) {
+	if file.Exists(plan.SourcePath()) && !update {
 		return nil
 	}
 	fmt.Printf(lfmt, "download", plan.NameVersion())

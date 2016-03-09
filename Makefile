@@ -4,11 +4,12 @@ BIN 	= $(GOPATH)/bin/via
 CMDS	= fmt test install
 REPO    = strings/via:devel
 
-$(BIN): $(SRC)
-	-rm $(BIN)
+$(BIN): $(SRC) -rm $(BIN)
 	make -C via
 	@git diff --quiet || echo WARNING: git tree is dirty
 
+fmt:
+	go fmt ./via/ ./pkg/
 run: 
 	docker run -t -i -v /etc:/etc -v /var:/var -v /tmp:/tmp -v /home:/home strings/via:devel /home/mrosset/via/root/bin/bash --login -o vi
 

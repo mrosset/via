@@ -142,6 +142,9 @@ func archive(wr io.Writer, dir string) error {
 			elog.Println(err)
 			return err
 		}
+		if debug {
+			fmt.Println(hdr.Name)
+		}
 		switch hdr.Typeflag {
 		case tar.TypeDir, tar.TypeSymlink:
 		case tar.TypeGNULongName: // Handle long file paths
