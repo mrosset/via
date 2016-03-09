@@ -88,6 +88,7 @@ func Stage(plan *Plan) (err error) {
 		GNUUntar(cache.Stages(), plan.SourcePath())
 	}
 ret:
+	fmt.Printf(lfmt, "patch", plan.NameVersion())
 	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
 		return err
 	}
