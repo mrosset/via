@@ -10,6 +10,7 @@ import (
 	"github.com/str1ngs/util/json"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -52,10 +53,25 @@ func Stage(plan *Plan) (err error) {
 		// nothing to stage
 		return nil
 	}
-	err = GNUUntar(cache.Stages(), plan.SourceFile())
+	u, err := url.Parse(plan.Url)
 	if err != nil {
 		elog.Println(err)
 		return err
+	}
+	if u.Scheme == "git" {
+		fmt.Println(cache.Stages())
+		fmt.Println(plan.SourcePath())
+		cmd := exec.Command("git", "clone", plan.SourcePath(), plan.SourceFile())
+		cmd.Dir = cache.Stages()
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Run()
+	} else {
+		err = GNUUntar(cache.Stages(), plan.SourcePath())
+		if err != nil {
+			elog.Println(err)
+			return err
+		}
 	}
 	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
 		return err

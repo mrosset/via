@@ -36,5 +36,5 @@ clean:
 	-rm $(BIN)
 
 test: $(BIN)
-	$(BIN) -d build ccache
+	$(BIN) -d build make
 	#go test -v ./...

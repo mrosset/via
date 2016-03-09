@@ -117,7 +117,7 @@ func (p *Plan) PackageFile() string {
 }
 
 func (p Plan) SourceFile() string {
-	return join(cache.Sources(), path.Base(p.Url))
+	return join(path.Base(p.Url))
 }
 
 func (p Plan) SourcePath() string {
