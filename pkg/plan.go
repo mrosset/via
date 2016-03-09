@@ -53,6 +53,7 @@ type Plan struct {
 	StageDir     string
 	Inherit      string
 	BuildInStage bool
+	BuildTime    time.Duration
 	Date         time.Time
 	Size         int64
 	SubPackages  []string
