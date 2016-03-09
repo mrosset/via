@@ -346,6 +346,7 @@ func Create(url string) (err error) {
 		version = double
 	}
 	plan := &Plan{Name: name, Version: version, Url: url, Group: "core"}
+	plan.Inherit = "gnu"
 	if file.Exists(plan.Path()) {
 		return errors.New(fmt.Sprintf("%s already exists", plan.Path()))
 	}
