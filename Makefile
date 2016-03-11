@@ -4,7 +4,9 @@ BIN 	= $(GOPATH)/bin/via
 CMDS	= fmt test install
 REPO    = strings/via:devel
 
-$(BIN): $(SRC) -rm $(BIN)
+$(BIN): $(SRC)
+	-rm $(BIN)
+	go install ./via
 	make -C via
 	@git diff --quiet || echo WARNING: git tree is dirty
 
