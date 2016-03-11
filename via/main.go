@@ -24,7 +24,7 @@ import (
 var (
 	root     = flag.String("r", "/", "root directory")
 	verbose  = flag.Bool("v", false, "verbose output")
-	finstall = flag.Bool("i", false, "install package after build")
+	finstall = flag.Bool("i", true, "install package after build (default true)")
 	fdebug   = flag.Bool("d", false, "debug output")
 	config   = via.GetConfig()
 	fclean   = flag.Bool("c", false, "clean before build")

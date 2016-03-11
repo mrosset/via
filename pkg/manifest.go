@@ -117,7 +117,7 @@ func Depends(dir string, plan *Plan) ([]string, error) {
 				continue
 			}
 			owner := rfiles.Owns(d)
-			if !contains(depends, owner) || owner == "glibc" {
+			if !contains(depends, owner) && owner != "glibc" {
 				depends = append(depends, owner)
 			}
 		}
