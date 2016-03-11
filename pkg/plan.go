@@ -58,6 +58,7 @@ type Plan struct {
 	Size         int64
 	SubPackages  []string
 	Depends      []string
+	ManDepends   []string
 	Flags        Flags
 	Patch        []string
 	Build        []string

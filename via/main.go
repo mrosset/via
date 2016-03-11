@@ -29,12 +29,14 @@ var (
 	config   = via.GetConfig()
 	fclean   = flag.Bool("c", false, "clean before build")
 	fupdate  = flag.Bool("u", false, "force download source")
+	fdeps    = flag.Bool("deps", false, "build depends if needed")
 )
 
 func main() {
 	flag.Parse()
 	via.Verbose(*verbose)
 	via.Update(*fupdate)
+	via.Deps(*fdeps)
 	via.Root(*root)
 	util.Verbose = *verbose
 	via.Debug(*fdebug)
@@ -224,6 +226,12 @@ func build() error {
 		plan, err := via.NewPlan(arg)
 		if err != nil {
 			return err
+		}
+		if *fdeps {
+			err := via.BuildDeps(plan)
+			if err != nil {
+				return err
+			}
 		}
 		err = via.BuildSteps(plan)
 		if err != nil {

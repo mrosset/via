@@ -27,6 +27,7 @@ var (
 	debug   = false
 	expand  = os.ExpandEnv
 	update  = false
+	deps    = false
 )
 
 func Root(s string) {
@@ -35,6 +36,10 @@ func Root(s string) {
 
 func Verbose(b bool) {
 	verbose = b
+}
+
+func Deps(b bool) {
+	deps = b
 }
 
 func Update(b bool) {
@@ -319,6 +324,30 @@ func Remove(name string) (err error) {
 	return os.RemoveAll(join(config.DB.Installed(), name))
 }
 
+func BuildDeps(plan *Plan) (err error) {
+	deps := append(plan.Depends, plan.ManDepends...)
+	for _, d := range deps {
+		if IsInstalled(d) {
+			continue
+		}
+		p, _ := NewPlan(d)
+		if file.Exists(p.PackagePath()) {
+			return Install(p.Name)
+		}
+		err := BuildDeps(p)
+		if err != nil {
+			panic("build deps")
+			fmt.Println(err)
+			return err
+		}
+	}
+	err = BuildSteps(plan)
+	if err != nil {
+		return err
+	}
+	return Install(plan.Name)
+}
+
 // Run all of the functions required to build a package
 func BuildSteps(plan *Plan) (err error) {
 	if file.Exists(plan.PackageFile()) {
@@ -366,6 +395,8 @@ func Create(url, group string) (err error) {
 		version = truple
 	case double != "":
 		version = double
+	default:
+		return errors.New("regex fail for " + xfile)
 	}
 	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
 	plan.Inherit = "gnu"
