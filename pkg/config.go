@@ -13,7 +13,7 @@ import (
 
 var (
 	cache  Cache
-	cfile  = path.Join(os.Getenv("HOME"), "via", "plans", "config.json")
+	cfile  = path.Join(os.Getenv("GOPATH"), "src/bitbucket.org/strings/via/plans/config.json")
 	config = new(Config)
 )
 
