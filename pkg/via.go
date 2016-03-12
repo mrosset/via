@@ -129,7 +129,12 @@ func Build(plan *Plan) (err error) {
 	}
 	os.Setenv("SRCDIR", plan.GetStageDir())
 	os.Setenv("Flags", expand(flags.String()))
-	return doCommands(plan.BuildDir(), build)
+	err = doCommands(plan.BuildDir(), build)
+	if err != nil {
+		es := fmt.Sprintf("%s in %s", err.Error(), plan.BuildDir())
+		return errors.New(es)
+	}
+	return nil
 }
 
 func doCommands(dir string, cmds []string) (err error) {
