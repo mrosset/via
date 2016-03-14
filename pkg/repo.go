@@ -25,7 +25,7 @@ func (rf *RepoFiles) Owns(file string) string {
 
 func ReadRepoFiles() (RepoFiles, error) {
 	files := RepoFiles{}
-	err := json.ReadGz(&files, join(config.Plans, "files.json.gz"))
+	err := json.Read(&files, join(config.Plans, "files.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func RepoCreate() error {
 		repo  = []string{}
 		files = map[string][]string{}
 		rfile = join(config.Plans, "repo.json")
-		ffile = join(config.Plans, "files.json.gz")
+		ffile = join(config.Plans, "files.json")
 	)
 	e, err := PlanFiles()
 	if err != nil {
@@ -77,5 +77,5 @@ func RepoCreate() error {
 	if err != nil {
 		return err
 	}
-	return json.WriteGz(files, ffile)
+	return json.Write(files, ffile)
 }
