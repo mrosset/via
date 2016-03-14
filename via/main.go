@@ -24,7 +24,7 @@ import (
 var (
 	root     = flag.String("r", "/", "root directory")
 	verbose  = flag.Bool("v", false, "verbose output")
-	finstall = flag.Bool("i", true, "install package after build (default true)")
+	finstall = flag.Bool("i", false, "install package after build (default false)")
 	fdebug   = flag.Bool("d", false, "debug output")
 	config   = via.GetConfig()
 	fclean   = flag.Bool("c", false, "clean before build")
@@ -189,7 +189,11 @@ func edit() error {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+	return via.Lint()
 }
 
 func create() error {
