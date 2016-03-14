@@ -25,7 +25,7 @@ func baseDir(p string) string {
 // string
 func contains(sl []string, s string) bool {
 	for _, j := range sl {
-		if j == s {
+		if expand(j) == expand(s) {
 			return true
 		}
 	}
