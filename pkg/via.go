@@ -335,14 +335,14 @@ func BuildDeps(plan *Plan) (err error) {
 		if IsInstalled(d) {
 			continue
 		}
+		fmt.Println("building", d, "for", plan.NameVersion())
 		p, _ := NewPlan(d)
 		if file.Exists(p.PackagePath()) {
 			return Install(p.Name)
 		}
 		err := BuildDeps(p)
 		if err != nil {
-			panic("build deps")
-			fmt.Println(err)
+			elog.Println(err)
 			return err
 		}
 	}
