@@ -48,7 +48,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		spath := path[len(dir)+1:]
 		removes := append(config.Remove, plan.Remove...)
 		// If the file is in config.Remove or plan.Removes delete it
-		if contains(removes, spath) {
+		if contains(removes, "/"+spath) {
 			// TODO: expand path
 			err := os.RemoveAll(path)
 			if err != nil {
@@ -117,7 +117,7 @@ func Depends(dir string, plan *Plan) ([]string, error) {
 				continue
 			}
 			owner := rfiles.Owns(d)
-			if !contains(depends, owner) {
+			if !contains(depends, owner) && owner != "" {
 				depends = append(depends, owner)
 			}
 		}
