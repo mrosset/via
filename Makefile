@@ -6,7 +6,7 @@ REPO    = strings/via:devel
 
 $(BIN): $(SRC)
 	-rm $(BIN)
-	go install ./via
+	go install
 	#make -C via
 	@git diff --quiet || echo WARNING: git tree is dirty
 
@@ -39,5 +39,5 @@ clean:
 	-rm $(BIN)
 
 test: $(BIN)
-	$(BIN) -d build make
+	$(BIN) -d test
 	#go test -v ./...
