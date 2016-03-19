@@ -22,9 +22,10 @@ import (
 )
 
 var (
+	elog     = log.New(os.Stderr, "", log.Lshortfile)
 	root     = flag.String("r", "/", "root directory")
 	verbose  = flag.Bool("v", false, "verbose output")
-	finstall = flag.Bool("i", false, "install package after build (default false)")
+	finstall = flag.Bool("i", true, "install package after build (default true)")
 	fdebug   = flag.Bool("d", false, "debug output")
 	config   = via.GetConfig()
 	fclean   = flag.Bool("c", false, "clean before build")
@@ -71,7 +72,7 @@ func main() {
 	}
 	err := command.Run()
 	if err != nil {
-		log.Fatal(err)
+		elog.Fatal(err)
 	}
 	return
 }
@@ -83,7 +84,7 @@ func which(label, path string) {
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
-		log.Println(err)
+		elog.Println(err)
 	}
 }
 
@@ -194,6 +195,8 @@ func edit() error {
 	if err != nil {
 		return err
 	}
+	elog.Println("linting...")
+	via.Verbose(false)
 	return via.Lint()
 }
 
@@ -295,7 +298,7 @@ func fnShow() error {
 	for _, arg := range command.Args() {
 		plan, err := via.NewPlan(arg)
 		if err != nil {
-			log.Fatal(err)
+			elog.Fatal(err)
 		}
 		buf := new(bytes.Buffer)
 		less := exec.Command("less")
