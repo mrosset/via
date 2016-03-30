@@ -1,6 +1,7 @@
 package main
 
 // +build -tags netgo -a
+
 import (
 	"bitbucket.org/strings/via/pkg"
 	"bytes"
@@ -38,6 +39,7 @@ func main() {
 	via.Verbose(*verbose)
 	via.Update(*fupdate)
 	via.Deps(*fdeps)
+
 	via.Root(*root)
 	util.Verbose = *verbose
 	via.Debug(*fdebug)
@@ -89,7 +91,6 @@ func which(label, path string) {
 }
 
 func ipfs() error {
-
 	res, err := http.Get(config.Binary)
 	io.Copy(os.Stdout, res.Body)
 	return err
