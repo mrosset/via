@@ -69,7 +69,9 @@ func main() {
 	command.Add("test", via.Test, "test function")
 	if *fdebug {
 		path, _ := os.LookupEnv("PATH")
+		home, _ := os.LookupEnv("HOME")
 		fmt.Println("PATH", path)
+		fmt.Println("HOME", home)
 		which("GCC", "gcc")
 	}
 	err := command.Run()
