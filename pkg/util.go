@@ -6,19 +6,18 @@ import (
 	"fmt"
 	"github.com/str1ngs/util/file"
 	"os"
-	"path"
 	"path/filepath"
 )
 
 // function aliases
 var (
-	join   = path.Join
-	base   = path.Base
+	join   = filepath.Join
+	base   = filepath.Base
 	exists = file.Exists
 )
 
 func baseDir(p string) string {
-	return base(path.Dir(p))
+	return base(filepath.Dir(p))
 }
 
 // Check if a string slice contains a
@@ -57,7 +56,7 @@ func walkPath(p string) ([]string, error) {
 }
 
 func cpDir(s, d string) error {
-	pdir := path.Dir(s)
+	pdir := filepath.Dir(s)
 	fn := func(p string, fi os.FileInfo, err error) error {
 		spath := p[len(pdir)+1:]
 		dpath := join(d, spath)

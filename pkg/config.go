@@ -2,30 +2,30 @@ package via
 
 import (
 	"bitbucket.org/strings/via/pkg/git"
-	"github.com/str1ngs/gurl"
-	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"os"
-	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 )
 
 var (
 	cache  Cache
-	cfile  = path.Join(os.Getenv("GOPATH"), "src/bitbucket.org/strings/via/plans/config.json")
+	cfile  = filepath.Join(os.Getenv("GOPATH"), "src/bitbucket.org/strings/via/plans/config.json")
 	config = new(Config)
 )
 
 func init() {
 	sync := false
-	if !file.Exists(cfile) {
-		dir := expand("$HOME/via")
-		fatal(os.MkdirAll(dir, 0755))
-		fatal(gurl.Download("/tmp", "https://bitbucket.org/strings/plans/raw/master/config.json"))
-		cfile = "/tmp/config.json"
-		sync = true
-	}
+	/*
+		if !file.Exists(cfile) {
+					dir := expand("$HOME/via")
+					fatal(os.MkdirAll(dir, 0755))
+					fatal(gurl.Download("/tmp", "https://bitbucket.org/strings/plans/raw/master/config.json"))
+					cfile = "/tmp/config.json"
+					sync = true
+				}
+	*/
 	err := json.Read(&config, cfile)
 	if err != nil {
 		elog.Fatal(err)

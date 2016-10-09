@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -92,7 +91,7 @@ func Stage(plan *Plan) (err error) {
 		cmd.Run()
 		goto ret
 	}
-	switch path.Ext(plan.SourceFile()) {
+	switch filepath.Ext(plan.SourceFile()) {
 	case ".zip":
 		unzip(cache.Stages(), plan.SourcePath())
 	default:
@@ -139,10 +138,10 @@ func Build(plan *Plan) (err error) {
 
 func doCommands(dir string, cmds []string) (err error) {
 	for i, j := range cmds {
-		j := expand(j)
 		if debug {
 			elog.Println(i, j)
 		}
+		fmt.Println("cmd", j)
 		cmd := exec.Command("bash", "-c", j)
 		cmd.Dir = dir
 		cmd.Stdin = os.Stdin
@@ -212,7 +211,7 @@ func Package(bdir string, plan *Plan) (err error) {
 
 func CreatePackage(plan *Plan) (err error) {
 	pfile := plan.PackagePath()
-	os.MkdirAll(path.Dir(pfile), 0755)
+	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
 		elog.Println(err)
@@ -247,7 +246,7 @@ func Install(name string) (err error) {
 			return err
 		}
 	}
-	db := path.Join(config.DB.Installed(), plan.Name)
+	db := filepath.Join(config.DB.Installed(), plan.Name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}
@@ -389,7 +388,7 @@ var (
 // Creates a new plan from a given Url
 func Create(url, group string) (err error) {
 	var (
-		xfile   = path.Base(url)
+		xfile   = filepath.Base(url)
 		name    = rexName.FindString(xfile)
 		truple  = rexTruple.FindString(xfile)
 		double  = rexDouble.FindString(xfile)

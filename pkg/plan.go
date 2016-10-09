@@ -6,7 +6,6 @@ import (
 	"github.com/str1ngs/util/human"
 	"github.com/str1ngs/util/json"
 	"log"
-	"path"
 	"path/filepath"
 	"sort"
 	"time"
@@ -73,7 +72,7 @@ func (p *Plan) NameVersion() string {
 }
 
 func (p *Plan) Path() string {
-	return path.Join(config.Plans, p.Group, p.Name+".json")
+	return filepath.Join(config.Plans, p.Group, p.Name+".json")
 }
 
 // TODO: make this atomic
@@ -119,11 +118,11 @@ func (p *Plan) PackageFile() string {
 }
 
 func (p Plan) SourceFile() string {
-	return join(path.Base(p.Url))
+	return join(filepath.Base(p.Url))
 }
 
 func (p Plan) SourcePath() string {
-	return path.Join(cache.Sources(), path.Base(p.Url))
+	return filepath.Join(cache.Sources(), filepath.Base(p.Url))
 }
 
 func (p Plan) BuildDir() string {
