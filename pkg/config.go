@@ -77,7 +77,8 @@ type Config struct {
 }
 
 func (c Config) Branch() (string, error) {
-	return git.Branch(c.Plans)
+	p := filepath.Join(c.Plans, "../.git/modules/plans")
+	return git.Branch(p)
 }
 
 type Flags []string

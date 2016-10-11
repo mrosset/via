@@ -25,7 +25,10 @@ func TestBranch(t *testing.T) {
 		expect = "master"
 		got    = ""
 	)
-	got, _ = Branch("testdata")
+	got, err := Branch("testdata/.git")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expect != got {
 		t.Logf("expect '%s' got '%s'", expect, got)
 	}
@@ -36,7 +39,10 @@ func TestBranchFail(t *testing.T) {
 		expect = "nobranch"
 		got    = ""
 	)
-	got, _ = Branch("testdata")
+	got, err := Branch("testdata/.git")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if expect == got {
 		t.Errorf("expect '%s' got '%s'", expect, got)
 	}

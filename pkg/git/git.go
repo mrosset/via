@@ -13,7 +13,7 @@ var (
 )
 
 const (
-	git_head = "%s/.git/HEAD"
+	git_head = "%s/HEAD"
 )
 
 func Branch(path string) (string, error) {
