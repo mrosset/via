@@ -1,0 +1,3 @@
+[submodule "plans"]
+	path = plans
+	url = git@bitbucket.org:strings/plans
