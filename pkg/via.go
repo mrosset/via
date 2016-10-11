@@ -54,15 +54,16 @@ func DownloadSrc(plan *Plan) (err error) {
 		return nil
 	}
 	fmt.Printf(lfmt, "download", plan.NameVersion())
-	u, err := url.Parse(plan.Url)
+	eurl := plan.ExpandField("Url")
+	u, err := url.Parse(eurl)
 	if err != nil {
 		return err
 	}
 	switch u.Scheme {
 	case "ftp":
-		wget(cache.Sources(), plan.Url)
+		wget(cache.Sources(), eurl)
 	case "http", "https":
-		return gurl.Download(cache.Sources(), plan.Url)
+		return gurl.Download(cache.Sources(), eurl)
 	default:
 		panic("unsupported")
 	}

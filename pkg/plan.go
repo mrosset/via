@@ -6,6 +6,7 @@ import (
 	"github.com/str1ngs/util/human"
 	"github.com/str1ngs/util/json"
 	"log"
+	"os"
 	"path/filepath"
 	"sort"
 	"time"
@@ -67,6 +68,22 @@ type Plan struct {
 	Files        []string
 }
 
+func (p *Plan) fieldExpand(s string) string {
+	switch s {
+	case "Version":
+		return p.Version
+	}
+	return ""
+}
+
+func (p *Plan) ExpandField(s string) string {
+	switch s {
+	case "Url":
+		return os.Expand(p.Url, p.fieldExpand)
+	}
+	return ""
+}
+
 func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
 }
@@ -118,11 +135,11 @@ func (p *Plan) PackageFile() string {
 }
 
 func (p Plan) SourceFile() string {
-	return join(filepath.Base(p.Url))
+	return join(filepath.Base(p.ExpandField("Url")))
 }
 
 func (p Plan) SourcePath() string {
-	return filepath.Join(cache.Sources(), filepath.Base(p.Url))
+	return filepath.Join(cache.Sources(), filepath.Base(p.ExpandField("Url")))
 }
 
 func (p Plan) BuildDir() string {

@@ -8,7 +8,7 @@ var (
 	testPlan = &Plan{
 		Name:         "plan",
 		Version:      "1.0",
-		Url:          "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz",
+		Url:          "http://mirrors.kernel.org/gnu/plan-$Version.tar.gz",
 		BuildInStage: true,
 		Package:      []string{"cp a.out $PKGDIR/"},
 		Files:        []string{"a.out"},
@@ -51,7 +51,7 @@ func TestFindPlan(t *testing.T) {
 func TestGetUrl(t *testing.T) {
 	var (
 		expect = "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
-		got    = testPlan.Url
+		got    = testPlan.ExpandField("Url")
 	)
 	if expect != got {
 		t.Errorf("expected %s got %s", expect, got)
@@ -60,7 +60,7 @@ func TestGetUrl(t *testing.T) {
 
 func TestBuildDir(t *testing.T) {
 	var (
-		expect = "/home/strings/via/cache/stg/plan-1.0"
+		expect = "/home/strings/via_cache/stg/plan-1.0"
 		got    = testPlan.BuildDir()
 	)
 	if got != expect {
@@ -69,7 +69,7 @@ func TestBuildDir(t *testing.T) {
 }
 func TestStageDir(t *testing.T) {
 	var (
-		expect = "/home/strings/via/cache/stg/plan-1.0"
+		expect = "/home/strings/via_cache/stg/plan-1.0"
 		got    = testPlan.GetStageDir()
 	)
 	if got != expect {

@@ -1,9 +1,7 @@
 package via
 
 import (
-	"fmt"
 	"os"
-	"reflect"
 	"testing"
 )
 
@@ -35,7 +33,7 @@ func TestCreate(t *testing.T) {
 	)
 	c.Init()
 	os.Remove(testPlan.Path())
-	err := Create(testPlan.Url)
+	err := Create(testPlan.ExpandField("Url"), "core")
 	if err != nil {
 		t.Error(err)
 	}
@@ -65,6 +63,7 @@ func TestReadelf(t *testing.T) {
 	}
 }
 
+/*
 func TestPackage(t *testing.T) {
 	Clean(testPlan.Name)
 	if err := BuildSteps(testPlan); err != nil {
@@ -88,6 +87,8 @@ func TestPackage(t *testing.T) {
 		printSlice(got.Depends)
 	}
 }
+
+*/
 
 func TestRepoSync(t *testing.T) {
 	return
