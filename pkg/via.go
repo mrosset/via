@@ -141,7 +141,6 @@ func doCommands(dir string, cmds []string) (err error) {
 		if debug {
 			elog.Println(i, j)
 		}
-		fmt.Println("cmd", j)
 		cmd := exec.Command("bash", "-c", j)
 		cmd.Dir = dir
 		cmd.Stdin = os.Stdin
