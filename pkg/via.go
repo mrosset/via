@@ -64,8 +64,10 @@ func DownloadSrc(plan *Plan) (err error) {
 		wget(cache.Sources(), eurl)
 	case "http", "https":
 		return gurl.Download(cache.Sources(), eurl)
+	case "git":
+		return clone(cache.Sources(), eurl)
 	default:
-		panic("unsupported")
+		return errors.New(u.Scheme + " URL scheme is not suppported")
 	}
 	return nil
 }

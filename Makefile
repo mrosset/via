@@ -12,16 +12,17 @@ $(BIN): $(SRC)
 fmt:
 	go fmt ./via/ ./pkg/
 run:
-	docker run -t -i -v /etc:/etc -v /var:/var -v /tmp:/tmp -v /home:/home strings/via:devel /home/mrosset/via/root/bin/bash --login -o vi
+	docker run -t -i -v /etc:/etc -v /var:/var -v /tmp:/tmp -v /home:/home strings/via:devel /usr/local/via/bin/bash --login -o vi
 
 docker: docker/Dockerfile
 	docker build -t strings/via:devel docker
 
 root: $(BIN)
 	-mkdir root
-#-$(BIN) -r root install glibc bash
-	-mkdir -p root/bin
-	-ln -s /home/mrosset/via/root/bin/sh root/bin/sh
+	-$(BIN) -r root install devel
+#-via -r root install devel
+#-mkdir -p root/bin
+#-ln -s /home/mrosset/via/root/bin/sh root/bin/sh
 #-mkdir -p root/etc root/bin root/tmp root/var/empty
 #-ln -s /home/mrosset/install/bin/pwd root/bin/pwd
 #sudo cp -a /etc/ssl root/etc/
