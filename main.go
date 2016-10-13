@@ -73,6 +73,7 @@ func main() {
 		fmt.Println("PATH", path)
 		fmt.Println("HOME", home)
 		which("GCC", "gcc")
+		which("PYTHON", "python")
 	}
 	err := command.Run()
 	if err != nil {
@@ -82,7 +83,7 @@ func main() {
 }
 
 func which(label, path string) {
-	fmt.Printf("GCC ")
+	fmt.Printf("%s ", label)
 	cmd := exec.Command("which", path)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

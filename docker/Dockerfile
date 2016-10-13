@@ -1,6 +1,6 @@
+#FROM alpine:latest
 FROM strings/via:devel
-#ENV LD_LIBRARY_PATH /usr/lib
-WORKDIR /home/mrosset
-ENV PATH /home/mrosset/install/bin:/bin:/usr/bin:/usr/local/via/bin:
-ENV EDITOR vim
+ENV GOPATH ~/gocode
+ENV PATH /usr/local/via/bin:/sbin:/bin:/usr/bin:/usr/sbin
+WORKDIR /home/strings/
 USER strings
