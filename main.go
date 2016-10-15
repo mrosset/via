@@ -3,11 +3,11 @@ package main
 // +build -tags netgo -a
 
 import (
-	"bitbucket.org/strings/via/pkg"
 	"bytes"
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/mrosset/via/pkg"
 	"github.com/str1ngs/util"
 	"github.com/str1ngs/util/console/command"
 	"github.com/str1ngs/util/file"

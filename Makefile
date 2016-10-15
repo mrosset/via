@@ -14,13 +14,13 @@ docker/via:
 	CGO_ENABLED=0 go build -o $@
 
 fmt:
-	go fmt ./via/ ./pkg/
+	go fmt ./...
 
 run:
 	docker run -it strings/via:devel /bin/bash --login -o vi
 
 
-dock: clean docker/via
+dock: docker/via
 	docker build -t strings/via:devel docker
 
 root: $(BIN)

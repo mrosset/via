@@ -1,7 +1,7 @@
 package via
 
 import (
-	"bitbucket.org/strings/via/pkg/git"
+	"github.com/mrosset/via/pkg/git"
 	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"os"
@@ -12,7 +12,7 @@ import (
 
 var (
 	cache  Cache
-	gopath = filepath.Join(os.Getenv("GOPATH"), "src/bitbucket.org/strings/via")
+	gopath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
 	cfile  = filepath.Join(gopath, "plans/config.json")
 	viaUrl = "https://github.com/mrosset/via"
 	config = new(Config)
