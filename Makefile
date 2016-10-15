@@ -3,8 +3,12 @@ BIN 	= $(GOPATH)/bin/via
 CMDS	= fmt test install
 REPO  = strings/via:devel
 
+docker/via:
+	CGO_ENABLED=0 go build -o $@
+
 $(BIN): $(SRC)
 	-rm $(BIN)
+	CGO_ENABLED=0 go build
 	CGO_ENABLED=0 go install
 #make -C via
 	@git diff --quiet || echo WARNING: git tree is dirty
@@ -13,9 +17,10 @@ fmt:
 	go fmt ./via/ ./pkg/
 
 run:
-	docker run -it -v /var:/var -v /tmp:/tmp -v /home:/home strings/via:devel /usr/local/via/bin/bash --login -o vi
+	docker run -it strings/via:devel /bin/bash --login -o vi
 
-dock:
+
+dock: docker/via
 	docker build -t strings/via:devel docker
 
 root: $(BIN)
@@ -28,6 +33,7 @@ root: $(BIN)
 	#docker rmi -f $(REPO)
 
 clean:
+	-rm docker/via
 	-rm -fr root
 	-rm $(BIN)
 
