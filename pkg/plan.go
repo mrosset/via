@@ -2,8 +2,8 @@ package via
 
 import (
 	"fmt"
-	"github.com/str1ngs/util/console"
-	"github.com/str1ngs/util/human"
+	"github.com/mrosset/util/console"
+	"github.com/mrosset/util/human"
 	"github.com/str1ngs/util/json"
 	"log"
 	"os"
