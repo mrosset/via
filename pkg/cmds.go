@@ -6,7 +6,7 @@ import (
 )
 
 func clone(dest, url string) error {
-	cmd := exec.Command("git", "clone", url)
+	cmd := exec.Command("git", "clone", "--recursive", url)
 	cmd.Dir = dest
 	if verbose {
 		cmd.Stdout = os.Stdout
