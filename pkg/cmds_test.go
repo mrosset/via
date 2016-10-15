@@ -16,7 +16,7 @@ func TestClone(t *testing.T) {
 		}
 	)
 	defer os.RemoveAll("testdata/via")
-	err := clone("testdata", "https://github.com/mrosset/via")
+	err := clone("testdata/via", "https://github.com/mrosset/via")
 	if err != nil {
 		t.Fatal(err)
 	}

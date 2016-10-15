@@ -2,6 +2,7 @@ package via
 
 import (
 	"bitbucket.org/strings/via/pkg/git"
+	"github.com/str1ngs/util/file"
 	"github.com/str1ngs/util/json"
 	"os"
 	"path/filepath"
@@ -11,21 +12,21 @@ import (
 
 var (
 	cache  Cache
-	cfile  = filepath.Join(os.Getenv("GOPATH"), "src/bitbucket.org/strings/via/plans/config.json")
+	gopath = filepath.Join(os.Getenv("GOPATH"), "src/bitbucket.org/strings/via")
+	cfile  = filepath.Join(gopath, "plans/config.json")
+	viaUrl = "https://github.com/mrosset/via"
 	config = new(Config)
 )
 
 func init() {
 	sync := false
-	/*
-		if !file.Exists(cfile) {
-					dir := expand("$HOME/via")
-					fatal(os.MkdirAll(dir, 0755))
-					fatal(gurl.Download("/tmp", "https://bitbucket.org/strings/plans/raw/master/config.json"))
-					cfile = "/tmp/config.json"
-					sync = true
-				}
-	*/
+	// TODO rework this to error and suggest user use 'via init'
+	if !file.Exists(gopath) {
+		err := clone(gopath, viaUrl)
+		if err != nil {
+			elog.Fatal(err)
+		}
+	}
 	err := json.Read(&config, cfile)
 	if err != nil {
 		elog.Fatal(err)
