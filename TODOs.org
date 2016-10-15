@@ -1,0 +1,13 @@
+#+TITLE TODO's
+
+* TODO First run repo initialization
+In order for the via binary to be self contained. We need to be able to pull 
+ the plan meta data.
+
+* TODO Rework Test's
+Test should only handle input's and output's. Many of the test's right now
+simple invoke function's and test for go error's.
+
+We should make it so that the Test's are testing input's and output's
+
+* TODO Move all URL's to github
