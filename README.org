@@ -1,4 +1,13 @@
 #+TITLE: Via
 
 * Description
-Via is a systems package manager written on go language.
+Via is a systems package manager written in go language. It's primary purpose is
+is to download and install binary packages.  It uses json based plans to
+download and build the packages. The packages once installed do not effect the
+host system. And can be run on most modern Linux systems.
+
+
+* Installing
+#+begin_src sh
+go get bitbucket.org/strings/via
+#+end_src
