@@ -17,66 +17,12 @@ go get bitbucket.org/strings/via
 via install bash
 #+end_src
 
-#+RESULTS:
-: installing           bash
-
-* Rebuild Build bash
+* Build bash
 #+begin_src sh
 via -c build bash
 #+end_src
-
-#+RESULTS:
-| clean      | bash-4.3                 |        |         |                                                                |           |           |          |
-| stage      | bash-4.3                 |        |         |                                                                |           |           |          |
-| patch      | bash-4.3                 |        |         |                                                                |           |           |          |
-| build      | bash-4.3                 |        |         |                                                                |           |           |          |
-| package    | bash-4.3                 |        |         |                                                                |           |           |          |
-| removing   | usr/local/via/share/doc  |        |         |                                                                |           |           |          |
-| removing   | usr/local/via/share/info |        |         |                                                                |           |           |          |
-| removing   | usr/local/via/share/man  |        |         |                                                                |           |           |          |
-| installing | bash                     |        |         |                                                                |           |           |          |
 
 * Installing the development group
 #+begin_src sh
 via install devel
 #+end_src
-
-#+RESULTS:
-| installing | devel         |
-| installing | bash          |
-| installing | glibc         |
-| installing | ncurses       |
-| installing | binutils      |
-| installing | bison         |
-| installing | bzip2         |
-| installing | ccache        |
-| installing | zlib          |
-| installing | coreutils     |
-| installing | gmp           |
-| installing | file          |
-| installing | gawk          |
-| installing | mpfr          |
-| installing | gcc           |
-| installing | mpc           |
-| installing | git           |
-| installing | curl          |
-| installing | libidn        |
-| installing | openssl       |
-| installing | expat         |
-| installing | grep          |
-| installing | gzip          |
-| installing | libgcc        |
-| installing | libstdc++     |
-| installing | linux-headers |
-| installing | m4            |
-| installing | make          |
-| installing | sed           |
-| installing | tar           |
-| installing | util-linux    |
-| installing | python        |
-| installing | db            |
-| installing | gdbm          |
-| installing | libffi        |
-| installing | readline      |
-| installing | which         |
-| installing | xz            |
