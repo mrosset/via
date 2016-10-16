@@ -12,7 +12,6 @@ USER $USER
 WORKDIR /home/$USER
 ENV EDITOR emacsclient
 COPY via /usr/bin
-RUN mkdir -p $HOME/publish/repo/master
 RUN via sync
 RUN via install devel
 RUN via install emacs

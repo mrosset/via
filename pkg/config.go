@@ -19,7 +19,6 @@ var (
 )
 
 func init() {
-	sync := false
 	// TODO rework this to error and suggest user use 'via init'
 	if !file.Exists(gopath) {
 		err := clone(gopath, viaUrl)
@@ -30,10 +29,6 @@ func init() {
 	err := json.Read(&config, cfile)
 	if err != nil {
 		elog.Fatal(err)
-	}
-	if sync {
-		PlanSync()
-		os.Remove("/tmp/config.json")
 	}
 	sort.Strings([]string(config.Flags))
 	sort.Strings(config.Remove)
