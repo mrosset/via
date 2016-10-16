@@ -41,7 +41,10 @@ func init() {
 	cache.Init()
 	config.Plans = os.ExpandEnv(config.Plans)
 	config.Repo = os.ExpandEnv(config.Repo)
-	os.MkdirAll(config.Repo, 0755)
+	err = os.MkdirAll(config.Repo, 0755)
+	if err != nil {
+		elog.Fatal(err)
+	}
 	for i, j := range config.Env {
 		os.Setenv(i, os.ExpandEnv(j))
 	}
