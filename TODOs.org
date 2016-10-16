@@ -1,10 +1,27 @@
 #+TITLE TODO's
 
-* TODO Find way to host packages via http
 * TODO Rework Test's
 Test should only handle input's and output's. Many of the test's right now
 simple invoke function's and test for go error's.
 
-We should make it so that the Test's are testing input's and output's
-
 * TODO When packaging check PREFIX is honored
+We should check the sanity of PKGDIR. 
+
+We only record files in our manifest not directories. so
+an empty directory can end up in our tarball.
+
+We'll have to check the total entries in each of these directories
+
+PKGDIR
+/usr
+/usr/local
+
+* TODO Add OID to plan struct  
+We should sha256sum check the tarballs. So we can reference the OID when
+downloading and installing. This will ensure packages in publish
+match the package in plan.
+
+This gets tricky with the manifest in the tarball because there is no way
+to embed the OID into. We'll have to update the manifest once the package is
+installed. The side benefit is we can then use OID to upgrade. And we don't
+have to worry about package increments or version increments.
