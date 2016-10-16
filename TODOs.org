@@ -8,18 +8,19 @@ simple invoke function's and test for go error's.
 We should check the sanity of PKGDIR. 
 
 We only record files in our manifest not directories. so
-an empty directory can end up in our tarball.
+an empty directory can end up in our tarball. But not be listed in the manifest
+this means we could try to untar a directory outside of our PREFIX.
 
 We'll have to check the total entries in each of these directories
 
-PKGDIR
-/usr
-/usr/local
+1. PKGDIR
+2. /usr
+3. /usr/local
 
 * TODO Add OID to plan struct  
 We should sha256sum check the tarballs. So we can reference the OID when
 downloading and installing. This will ensure packages in publish
-match the package in plan.
+match the package in plan git repository.
 
 This gets tricky with the manifest in the tarball because there is no way
 to embed the OID into. We'll have to update the manifest once the package is
