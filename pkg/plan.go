@@ -5,7 +5,6 @@ import (
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
 	"github.com/str1ngs/util/json"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -156,11 +155,7 @@ func (p Plan) GetStageDir() string {
 }
 
 func (p Plan) PackagePath() string {
-	branch, err := config.Branch()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return join(config.Repo, branch, p.PackageFile())
+	return join(config.Repo, p.PackageFile())
 }
 
 func (p Plan) stageDir() string {

@@ -51,6 +51,15 @@ func PlanSync() error {
 	if err != nil {
 		return err
 	}
+	git = exec.Command("git", "checkout", "master")
+	git.Dir = dir
+	git.Stdin = os.Stdin
+	git.Stdout = os.Stdout
+	git.Stderr = os.Stderr
+	err = git.Run()
+	if err != nil {
+		return err
+	}
 	return RepoCreate()
 }
 

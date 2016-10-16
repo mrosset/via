@@ -4,16 +4,16 @@
 Via is a systems package manager written in go language. It's primary purpose is
 is to download and install precompiled binary packages.
 
+The binary packages are installed to /usr/local/via . This allows packages to be 
+installed along side any modern Unix like system.
+
 Via builds the binary packages from upstream sources. The package meta data and
 build steps are defined in plans. The plans are machine read/writable "json"
 files.
 
-The binary packages are installed to /usr/local/via . This allows packages to be 
-installed along side any modern Unix like system.
-
 * Installing the via binary
 #+begin_src sh
-go get bitbucket.org/strings/via
+go get github.com/mrosset/via
 #+end_src
 
 * Installing a package

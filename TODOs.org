@@ -1,13 +1,10 @@
 #+TITLE TODO's
 
-* DONE First run repo initialization
-  CLOSED: [2016-10-15 Sat 15:47]
-
-* TODO Move all URL's to github
-
+* TODO Find way to host packages via http
 * TODO Rework Test's
 Test should only handle input's and output's. Many of the test's right now
 simple invoke function's and test for go error's.
 
 We should make it so that the Test's are testing input's and output's
 
+* TODO When packaging check PREFIX is honored
