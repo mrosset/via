@@ -9,7 +9,7 @@ We should check the sanity of PKGDIR.
 
 We only record files in our manifest not directories. so
 an empty directory can end up in our tarball. But not be listed in the manifest
-this means we could try to untar a directory outside of our PREFIX.
+this means we could try to untar a directory out1280x1024 side of our PREFIX.
 
 We'll have to check the total entries in each of these directories
 
@@ -18,11 +18,28 @@ We'll have to check the total entries in each of these directories
 3. /usr/local
 
 * TODO Add OID to plan struct  
-We should sha256sum check the tarballs. So we can reference the OID when
+We should sha256sum check tarballs. So we can reference the OID when
 downloading and installing. This will ensure packages in publish
 match the package in plan git repository.
 
 This gets tricky with the manifest in the tarball because there is no way
-to embed the OID into. We'll have to update the manifest once the package is
-installed. The side benefit is we can then use OID to upgrade. And we don't
-have to worry about package increments or version increments.
+to embed the OID into it. We'll have to update the manifest once the package is
+installed. The side benefit is we can then use OID to upgrade packages. And we 
+don't have to worry about package increments or version increments.
+
+* TODO Branch binary download endpoints
+** Problem
+   Currently we hard code the HTTP GET endpoints for the current plan branch
+   the plan branches are designed target specific machines and OS configurations
+   see [[file:plans/config.json::"Repo"%20:%20"$GOPATH/src/github.com/mrosset/via/publish/repo/master",][Repo]] 
+
+   When we package our tarball we should publish into the right name space. For 
+   example  the linux-x86_64 branch is the base branch so it's endpoint looks
+   like this.
+
+ #+BEGIN_SRC 
+ repo/linux-x86_64/file.tar.gz
+ #+END_SRC
+** Solution
+  When building packages get the current plan branch and add it to the
+  endpoint.
