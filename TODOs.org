@@ -27,7 +27,8 @@ to embed the OID into it. We'll have to update the manifest once the package is
 installed. The side benefit is we can then use OID to upgrade packages. And we 
 don't have to worry about package increments or version increments.
 
-* TODO Branch binary download endpoints
+* DONE Branch binary download endpoints
+  CLOSED: [2016-10-17 Mon 13:44]
 ** Problem
    Currently we hard code the HTTP GET endpoints for the current plan branch
    the plan branches are designed target specific machines and OS configurations
@@ -37,9 +38,10 @@ don't have to worry about package increments or version increments.
    example  the linux-x86_64 branch is the base branch so it's endpoint looks
    like this.
 
- #+BEGIN_SRC 
- repo/linux-x86_64/file.tar.gz
- #+END_SRC
+#+BEGIN_EXAMPLE
+repo/linux-x86_64/file.tar.gz
+#+END_EXAMPLE 
+
 ** Solution
   When building packages get the current plan branch and add it to the
   endpoint.

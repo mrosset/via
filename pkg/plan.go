@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
+	"github.com/mrosset/via/pkg/git"
 	"github.com/str1ngs/util/json"
 	"os"
 	"path/filepath"
@@ -155,7 +156,11 @@ func (p Plan) GetStageDir() string {
 }
 
 func (p Plan) PackagePath() string {
-	return join(config.Repo, p.PackageFile())
+	branch, err := git.Branch(config.Plans + "/../.git/modules/plans")
+	if err != nil {
+		elog.Fatal(err)
+	}
+	return join(config.Repo, branch, p.PackageFile())
 }
 
 func (p Plan) stageDir() string {
