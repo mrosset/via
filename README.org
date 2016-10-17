@@ -12,21 +12,21 @@ build steps are defined in plans. The plans are machine read/writable "json"
 files.
 
 * Installing the via binary
-#+begin_src sh
+#+BEGIN_SRC sh
 go get github.com/mrosset/via
-#+end_src
+#+END_SRC
 
 * Installing a package
-#+begin_src sh
+#+BEGIN_SRC sh
 via install bash
-#+end_src
+#+END_SRC
 
 * Build bash
-#+begin_src sh
+#+BEGIN_SRC sh
 via -c build bash
-#+end_src
+#+END_SRC
 
 * Installing the development group
-#+begin_src sh
+#+BEGIN_SRC sh
 via install devel
-#+end_src
+#+END_SRC

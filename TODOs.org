@@ -9,7 +9,7 @@ We should check the sanity of PKGDIR.
 
 We only record files in our manifest not directories. so
 an empty directory can end up in our tarball. But not be listed in the manifest
-this means we could try to untar a directory out1280x1024 side of our PREFIX.
+this means we could try to untar a directory outside of our PREFIX.
 
 We'll have to check the total entries in each of these directories
 
