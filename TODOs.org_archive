@@ -1,0 +1,30 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/strings/gocode/src/github.com/mrosset/via/TODOs.org
+
+
+* DONE Branch binary download endpoints
+  CLOSED: [2016-10-17 Mon 13:44]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-10-17 Mon 14:23
+  :ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/TODOs.org
+  :ARCHIVE_CATEGORY: TODOs
+  :ARCHIVE_TODO: DONE
+  :END:
+** Problem
+   Currently we hard code the HTTP GET endpoints for the current plan branch
+   the plan branches are designed target specific machines and OS configurations
+   see [[file:plans/config.json::"Repo"%20:%20"$GOPATH/src/github.com/mrosset/via/publish/repo/master",][Repo]] 
+
+   When we package our tarball we should publish into the right name space. For 
+   example  the linux-x86_64 branch is the base branch so it's endpoint looks
+   like this.
+
+#+BEGIN_EXAMPLE
+repo/linux-x86_64/file.tar.gz
+#+END_EXAMPLE 
+
+** Solution
+  When building packages get the current plan branch and add it to the
+  endpoint.

@@ -51,7 +51,8 @@ func PlanSync() error {
 	if err != nil {
 		return err
 	}
-	git = exec.Command("git", "checkout", "master")
+	//TODO: don't hardcode branch.
+	git = exec.Command("git", "checkout", "linux-x86_64")
 	git.Dir = dir
 	git.Stdin = os.Stdin
 	git.Stdout = os.Stdout
