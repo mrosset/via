@@ -4,10 +4,10 @@ import (
 	"testing"
 )
 
-func TestBranch(t *testing.T) {
+func TestPlanBranch(t *testing.T) {
 	var (
 		expect = "linux-x86_64"
-		got, _ = config.Branch()
+		got    = config.PlanBranch()
 	)
 	if expect != got {
 		t.Errorf("expected '%s' got '%s'.", expect, got)

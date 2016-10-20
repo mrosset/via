@@ -113,6 +113,10 @@ func Build(plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
+	err = config.CheckBranches()
+	if err != nil {
+		return (err)
+	}
 	if file.Exists(plan.PackagePath()) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}
@@ -164,6 +168,10 @@ func Package(bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
+	err = config.CheckBranches()
+	if err != nil {
+		return (err)
+	}
 	pdir := join(cache.Packages(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(cache.Builds(), plan.NameVersion())

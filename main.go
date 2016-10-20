@@ -63,7 +63,6 @@ func main() {
 	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("show", fnShow, "prints plan to stdout")
 	command.Add("sync", sync, "fetch remote repo data")
-	command.Add("test", via.Test, "test function")
 	if *fdebug {
 		path, _ := os.LookupEnv("PATH")
 		home, _ := os.LookupEnv("HOME")
