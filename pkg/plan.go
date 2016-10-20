@@ -155,11 +155,7 @@ func (p Plan) GetStageDir() string {
 }
 
 func (p Plan) PackagePath() string {
-	branch, err := config.Branch()
-	if err != nil {
-		elog.Fatal(err)
-	}
-	return join(config.Repo, branch, p.PackageFile())
+	return join(config.Repo, p.PackageFile())
 }
 
 func (p Plan) stageDir() string {
