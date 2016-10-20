@@ -17,7 +17,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -182,7 +181,7 @@ func edit() error {
 	var (
 		editor = os.Getenv("EDITOR")
 		arg0   = command.Args()[0]
-		p      = path.Join(config.Plans, "config.json")
+		p      = filepath.Join(config.Plans, "config.json")
 		err    error
 	)
 	if arg0 != "config" {
@@ -220,7 +219,7 @@ func plog() error {
 		if err != nil {
 			return err
 		}
-		f := path.Join(plan.BuildDir(), "config.log")
+		f := filepath.Join(plan.BuildDir(), "config.log")
 		err = file.Cat(os.Stdout, f)
 		if err != nil {
 			log.Fatal(err)
