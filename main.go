@@ -1,7 +1,5 @@
 package main
 
-// +build -tags netgo -a
-
 import (
 	"bytes"
 	"errors"
