@@ -10,8 +10,7 @@ RUN apk update
 RUN apk add bash grep ncurses git
 USER $USER
 WORKDIR /home/$USER
-ENV EDITOR emacsclient
 COPY via /usr/bin
+ENV EDITOR emacsclient
 RUN via sync
 RUN via install devel
-RUN via install emacs
