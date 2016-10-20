@@ -3,4 +3,4 @@
 	url = https://github.com/mrosset/plans
 [submodule "publish"]
 	path = publish
-	url = git@github.com:mrosset/publish
+	url = https://github.com:mrosset/publish
