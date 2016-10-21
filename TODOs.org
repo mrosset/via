@@ -1,5 +1,6 @@
 #+TITLE TODO's
 
+#+STARTUP: showall
 * TODO Rework Test's
   Test should only handle input's and output's. Many of the test's right now
   simple invoke function's and test for go error's.

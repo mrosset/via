@@ -96,7 +96,7 @@ func (c Config) CheckBranches() error {
 	return nil
 }
 
-// Returns the checked out branch for plans directory
+// Returns the checked out branch for repo directory
 func (c Config) RepoBranch() string {
 	p := filepath.Join(c.Repo, "/../.git")
 	b, err := git.Branch(p)
