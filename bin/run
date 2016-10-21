@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -ehu
+docker run -it -e TERM=$TERM -e DISPLAY=DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /usr/local/via/bin/bash --login -o vi
+
