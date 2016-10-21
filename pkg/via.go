@@ -305,7 +305,7 @@ func Install(name string) (err error) {
 		return (err)
 	}
 	if sha != plan.Oid {
-		msg := fmt.Sprintf("Plans OID does not match tarballs got %s", sha)
+		msg := fmt.Sprintf("%s Plans OID does not match tarballs got %s", plan.NameVersion(), sha)
 		return errors.New(msg)
 	}
 	man, err := ReadPackManifest(pfile)
