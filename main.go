@@ -57,6 +57,7 @@ func main() {
 	command.Add("list", list, "lists files")
 	command.Add("log", plog, "print config log for plan")
 	command.Add("owns", owns, "finds which package owns a file")
+	command.Add("options", options, "prints the GNU configure options for a package")
 	command.Add("pack", pack, "package plan")
 	command.Add("remove", remove, "remove package")
 	command.Add("repo", repo, "update repo")
@@ -354,6 +355,25 @@ func owns() error {
 		fmt.Println(owner)
 	}
 	return nil
+}
+
+func options() error {
+	if len(command.Args()) < 1 {
+
+	}
+	arg := command.Args()[0]
+
+	plan, err := via.NewPlan(arg)
+	if err != nil {
+		return err
+	}
+	c := filepath.Join(plan.GetStageDir(), "configure")
+	fmt.Println(c)
+	cmd := exec.Command(c, "--help")
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 func repo() error {
