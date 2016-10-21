@@ -11,7 +11,7 @@ RUN apk add bash grep ncurses git sudo
 RUN echo "$USER ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/$USER"
 USER $USER
 WORKDIR /home/$USER
-#COPY via /usr/bin
+COPY via /usr/bin
 ENV EDITOR emacsclient
 #RUN via sync
 #RUN via install devel

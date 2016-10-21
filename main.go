@@ -64,6 +64,7 @@ func main() {
 	command.Add("search", search, "search for plans (currently lists all use grep)")
 	command.Add("show", fnShow, "prints plan to stdout")
 	command.Add("sync", sync, "fetch remote repo data")
+	command.Add("synchashs", synchashs, "DEV ONLY sync the plans Oid with binary banch")
 	if *fdebug {
 		path, _ := os.LookupEnv("PATH")
 		home, _ := os.LookupEnv("HOME")
@@ -341,6 +342,10 @@ func sync() error {
 	return via.PlanSync()
 }
 
+func synchashs() error {
+	via.SyncHashs()
+	return nil
+}
 func owns() error {
 	rfiles, err := via.ReadRepoFiles()
 	if err != nil {
