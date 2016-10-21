@@ -209,7 +209,15 @@ func Package(bdir string, plan *Plan) (err error) {
 			return err
 		}
 	}
-	return CreatePackage(plan)
+	err = CreatePackage(plan)
+	if err != nil {
+		return (err)
+	}
+	plan.Oid, err = file.Sha256sum(plan.PackagePath())
+	if err != nil {
+		return (err)
+	}
+	return plan.Save()
 	/*
 		err = CreatePackage(plan)
 		if err != nil {
@@ -231,6 +239,21 @@ func CreatePackage(plan *Plan) (err error) {
 	gz := gzip.NewWriter(fd)
 	defer gz.Close()
 	return Tarball(gz, plan)
+}
+
+// Updates each plans Oid to the Oid of the tarball in publish git repo
+// this function should never be used in production. It's used for making sure
+// the plans Oid match the git repo's Oid
+func SyncHashs() {
+	plans, _ := GetPlans()
+	for _, p := range plans {
+		if file.Exists(p.PackagePath()) {
+			p.Oid, _ = file.Sha256sum(p.PackagePath())
+			p.Save()
+			log.Println(p.Oid, p.Name)
+		}
+	}
+	os.Exit(0)
 }
 
 func Install(name string) (err error) {
@@ -277,6 +300,14 @@ func Install(name string) (err error) {
 			return
 		}
 	*/
+	sha, err := file.Sha256sum(plan.PackagePath())
+	if err != nil {
+		return (err)
+	}
+	if sha != plan.Oid {
+		msg := fmt.Sprintf("Plans OID does not match tarballs got %s", sha)
+		return errors.New(msg)
+	}
 	man, err := ReadPackManifest(pfile)
 	if err != nil {
 		return err

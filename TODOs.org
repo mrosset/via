@@ -1,12 +1,7 @@
 #+TITLE TODO's
 
 #+STARTUP: showall
-* TODO Rework Test's
-  Test should only handle input's and output's. Many of the test's right now
-  simple invoke function's and test for go error's.
 
-** TODO Add test for long link
-   on macos when building emacs archive packages fails when nextstep is enabled
 * TODO When packaging check PREFIX is honored
   We should check the sanity of PKGDIR. 
 
@@ -19,25 +14,6 @@
 1. PKGDIR
 2. /usr
 3. /usr/local
-
-* TODO Add OID to plan struct  
-  We should sha256sum check tarballs. So we can reference the OID when
-  downloading and installing. This will ensure packages in publish
-  match the package in plan git repository.
-
-  This gets tricky with the manifest in the tarball because there is no way
-  to embed the OID into it. We'll have to update the manifest once the package is
-  installed. The side benefit is we can then use OID to upgrade packages. And we 
-  don't have to worry about package increments or version increments.
-
-* Branches
-** TODO Don't ever hard code branches
-   We should never hard code branches they should be explicitly set in 
-   config.json
-** TODO Check branch when building
-   when building we should check that plans git branch that is checkedout 
-   matches the configuration branch
-
 * TODO Via initialization
   When we first run via, it is dependent on the plans git repo for meta data.
   currently we git clone recursive the via repo, which contains the plans repo as 
@@ -45,3 +21,10 @@
 ** TODO Create an init via function
   do not assume and fetch the plans repository. Error gracefully and suggest
   user to init the plans repo. 
+
+* TODO Rework Test's
+  Test should only handle input's and output's. Many of the test's right now
+  simple invoke function's and test for go error's.
+
+** TODO Add test for long link
+   on macos when building emacs archive packages fails when nextstep is enabled

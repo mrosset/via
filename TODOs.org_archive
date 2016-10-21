@@ -28,3 +28,35 @@ repo/linux-x86_64/file.tar.gz
 ** Solution
   When building packages get the current plan branch and add it to the
   endpoint.
+
+* Branches
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-10-20 Thu 18:33
+  :ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/TODOs.org
+  :ARCHIVE_CATEGORY: TODOs
+  :END:
+** DONE Don't ever hard code branches
+   CLOSED: [2016-10-20 Thu 18:32]
+   We should never hard code branches they should be explicitly set in 
+   config.json
+** DONE Check branch when building
+   CLOSED: [2016-10-20 Thu 18:32]
+   when building we should check that plans git branch that is checkedout 
+   matches the configuration branch
+
+* DONE Add OID to plan struct
+  CLOSED: [2016-10-20 Thu 19:55]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-10-20 Thu 19:55
+  :ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/TODOs.org
+  :ARCHIVE_CATEGORY: TODOs
+  :ARCHIVE_TODO: DONE
+  :END:
+  We should sha256sum check tarballs. So we can reference the OID when
+  downloading and installing. This will ensure packages in publish
+  match the package in plan git repository.
+
+  This gets tricky with the manifest in the tarball because there is no way
+  to embed the OID into it. We'll have to update the manifest once the package is
+  installed. The side benefit is we can then use OID to upgrade packages. And we 
+  don't have to worry about package increments or version increments.

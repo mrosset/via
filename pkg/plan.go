@@ -51,6 +51,7 @@ type Plan struct {
 	Group        string
 	StageDir     string
 	Inherit      string
+	Oid          string
 	BuildInStage bool
 	BuildTime    time.Duration
 	Date         time.Time
