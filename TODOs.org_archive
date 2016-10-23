@@ -60,3 +60,13 @@ repo/linux-x86_64/file.tar.gz
   to embed the OID into it. We'll have to update the manifest once the package is
   installed. The side benefit is we can then use OID to upgrade packages. And we 
   don't have to worry about package increments or version increments.
+
+* DONE ManDepends only works for building. And support for Install as well.
+  CLOSED: [2016-10-21 Fri 18:06]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-10-21 Fri 18:06
+  :ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/TODOs.org
+  :ARCHIVE_OLPATH: Features
+  :ARCHIVE_CATEGORY: TODOs
+  :ARCHIVE_TODO: DONE
+  :END:

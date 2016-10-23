@@ -270,7 +270,7 @@ func Install(name string) (err error) {
 			return err
 		}
 	}
-	for _, d := range plan.Depends {
+	for _, d := range append(plan.Depends, plan.ManDepends...) {
 		if IsInstalled(d) {
 			continue
 		}
