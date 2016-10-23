@@ -81,7 +81,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 		return err
 	}
 	plan.Files = files
-	plan.Depends, err = Depends(dir, plan)
+	plan.AutoDepends, err = Depends(dir, plan)
 	if err != nil {
 		return err
 	}

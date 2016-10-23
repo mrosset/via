@@ -270,7 +270,7 @@ func Install(name string) (err error) {
 			return err
 		}
 	}
-	for _, d := range append(plan.Depends, plan.ManDepends...) {
+	for _, d := range append(plan.AutoDepends, plan.ManualDepends...) {
 		if IsInstalled(d) {
 			continue
 		}
@@ -372,7 +372,7 @@ func Remove(name string) (err error) {
 }
 
 func BuildDeps(plan *Plan) (err error) {
-	deps := append(plan.Depends, plan.ManDepends...)
+	deps := append(plan.AutoDepends, plan.ManualDepends...)
 	for _, d := range deps {
 		if IsInstalled(d) {
 			continue
@@ -462,8 +462,6 @@ func IsInstalled(name string) bool {
 }
 
 func refactor(plan *Plan) {
-	plan.ManualDepends = plan.ManDepends
-	plan.AutoDepends = plan.Depends
 }
 
 func Lint() (err error) {
@@ -488,7 +486,9 @@ func Lint() (err error) {
 		sort.Strings(plan.SubPackages)
 		sort.Strings(plan.Flags)
 		sort.Strings(plan.Remove)
-		sort.Strings(plan.Depends)
+		sort.Strings(plan.AutoDepends)
+		sort.Strings(plan.ManualDepends)
+		sort.Strings(plan.BuildDepends)
 		refactor(plan)
 		err = plan.Save()
 		if err != nil {

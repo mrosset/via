@@ -57,10 +57,8 @@ type Plan struct {
 	Date          time.Time
 	Size          int64
 	SubPackages   []string
-	Depends       []string
 	AutoDepends   []string
 	ManualDepends []string
-	ManDepends    []string
 	BuildDepends  []string
 	Flags         Flags
 	Patch         []string
