@@ -45,27 +45,30 @@ func (ps Plans) Print() {
 }
 
 type Plan struct {
-	Name         string
-	Version      string
-	Url          string
-	Group        string
-	StageDir     string
-	Inherit      string
-	Oid          string
-	BuildInStage bool
-	BuildTime    time.Duration
-	Date         time.Time
-	Size         int64
-	SubPackages  []string
-	Depends      []string
-	ManDepends   []string
-	Flags        Flags
-	Patch        []string
-	Build        []string
-	Package      []string
-	PostInstall  []string
-	Remove       []string
-	Files        []string
+	Name          string
+	Version       string
+	Url           string
+	Group         string
+	StageDir      string
+	Inherit       string
+	Oid           string
+	BuildInStage  bool
+	BuildTime     time.Duration
+	Date          time.Time
+	Size          int64
+	SubPackages   []string
+	Depends       []string
+	AutoDepends   []string
+	ManualDepends []string
+	ManDepends    []string
+	BuildDepends  []string
+	Flags         Flags
+	Patch         []string
+	Build         []string
+	Package       []string
+	PostInstall   []string
+	Remove        []string
+	Files         []string
 }
 
 func (p *Plan) fieldExpand(s string) string {

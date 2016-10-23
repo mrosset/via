@@ -461,6 +461,11 @@ func IsInstalled(name string) bool {
 	return file.Exists(join(config.DB.Installed(), name))
 }
 
+func refactor(plan *Plan) {
+	plan.ManualDepends = plan.ManDepends
+	plan.AutoDepends = plan.Depends
+}
+
 func Lint() (err error) {
 	e, err := PlanFiles()
 	if err != nil {
@@ -478,12 +483,13 @@ func Lint() (err error) {
 			plan.Group = baseDir(j)
 		}
 		if verbose {
-			console.Println("lint", plan.NameVersion(), plan.Package)
+			console.Println("lint", plan.Name, plan.Version)
 		}
 		sort.Strings(plan.SubPackages)
 		sort.Strings(plan.Flags)
 		sort.Strings(plan.Remove)
 		sort.Strings(plan.Depends)
+		refactor(plan)
 		err = plan.Save()
 		if err != nil {
 			elog.Println(err)
