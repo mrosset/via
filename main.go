@@ -43,6 +43,7 @@ func main() {
 	command.Add("add", add, "add plan/s to git index")
 	command.Add("branch", branch, "prints plan branch to stdout")
 	command.Add("build", build, "build plan")
+	command.Add("dock", dock, "build plan inside docker")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("checkout", checkout, "changes plan branch")
 	command.Add("clean", clean, "clean build dir")
@@ -225,6 +226,26 @@ func plog() error {
 		}
 	}
 	return nil
+}
+
+func dock() error {
+	// FIXME this breaks when no argument is passed
+	arg := command.Args()[0]
+	dargs := []string{
+		"run", "-it",
+		"-v", "/home:/home",
+		"strings/via:devel",
+		"/usr/bin/via",
+		"-c",
+		"-deps",
+		"build",
+		arg,
+	}
+	cmd := exec.Command("docker", dargs...)
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	return cmd.Run()
 }
 
 func build() error {

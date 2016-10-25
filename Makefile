@@ -1,4 +1,4 @@
-SRC 	= $(wildcard via//Makefile Makefile pkg/*.go via/*.go docker/Dockerfile)
+SRC 	= $(wildcard via//Makefile *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
 BIN 	= $(GOPATH)/bin/via
 CMDS	= fmt test install
 REPO  = strings/via:devel
@@ -8,9 +8,6 @@ $(BIN): $(SRC)
 	@git diff --quiet || echo WARNING: git tree is dirty
 
 foo: $(BIN)
-
-docker/via: $(BIN)
-	CGO_ENABLED=0 go build -o $@
 
 fmt:
 	go fmt ./...
@@ -27,7 +24,8 @@ root: $(BIN)
 	-$(BIN) -r root install core
 	-	tar -C root -c . | docker import - $(REPO)
 
-dock: docker/via
+dock: $(SRC)
+	CGO_ENABLED=0 go build -o docker/usr/bin/via
 	docker build -t strings/via:devel docker
 
 clean:
