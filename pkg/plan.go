@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
-	"github.com/str1ngs/util/json"
+	"github.com/mrosset/util/json"
 	"path/filepath"
 	"sort"
 	"text/template"
@@ -45,16 +45,13 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-// Expander type provides methods to return self referencing plan Fields
-type expander string
-
-func (e expander) Expand(p *Plan) string {
+func Expand(i interface{}, s string) string {
 	buf := new(bytes.Buffer)
-	tmpl, err := template.New("test").Parse(string(e))
+	tmpl, err := template.New("").Parse(s)
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(buf, p)
+	err = tmpl.Execute(buf, i)
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +61,7 @@ func (e expander) Expand(p *Plan) string {
 type Plan struct {
 	Name          string
 	Version       string
-	Url           expander
+	Url           string
 	Group         string
 	StageDir      string
 	Inherit       string
@@ -155,11 +152,11 @@ func (p *Plan) PackageFile() string {
 }
 
 func (p *Plan) SourceFile() string {
-	return join(filepath.Base(p.Url.Expand(p)))
+	return join(filepath.Base(Expand(p, p.Url)))
 }
 
 func (p *Plan) SourcePath() string {
-	return filepath.Join(cache.Sources(), filepath.Base(p.Url.Expand(p)))
+	return filepath.Join(cache.Sources(), filepath.Base(Expand(p, p.Url)))
 }
 
 func (p Plan) BuildDir() string {

@@ -54,7 +54,7 @@ func DownloadSrc(plan *Plan) (err error) {
 		return nil
 	}
 	fmt.Printf(lfmt, "download", plan.NameVersion())
-	eurl := plan.Url.Expand(plan)
+	eurl := Expand(plan, plan.Url)
 	u, err := url.Parse(eurl)
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func Stage(plan *Plan) (err error) {
 		// nothing to stage
 		return nil
 	}
-	u, err := url.Parse(plan.Url.Expand(plan))
+	u, err := url.Parse(Expand(plan, plan.Url))
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -449,7 +449,7 @@ func Create(url, group string) (err error) {
 	default:
 		return errors.New("regex fail for " + xfile)
 	}
-	plan := &Plan{Name: name, Version: version, Url: expander(url), Group: group}
+	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
 	plan.Inherit = "gnu"
 	if file.Exists(plan.Path()) {
 		return errors.New(fmt.Sprintf("%s already exists", plan.Path()))

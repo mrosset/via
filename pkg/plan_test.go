@@ -16,39 +16,6 @@ var (
 	}
 )
 
-/*
-func TestTemplate(t *testing.T) {
-	var (
-		expect = testPlan.Url
-		got    string
-	)
-	err := json.Execute(testPlan)
-	if err != nil {
-		t.Error(err)
-	}
-	got = testPlan.template.Url
-	if expect != got {
-		t.Errorf("expected %s got %s", expect, got)
-	}
-}
-*/
-
-func TestExpand(t *testing.T) {
-	var (
-		p = &Plan{
-			Name:    "plan",
-			Version: "1.0",
-			Url:     "http://mirrors.kernel.org/gnu/plan-{{.Version}}.tar.gz",
-		}
-		expect = "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
-		got    = ""
-	)
-	got = p.Url.Expand(p)
-	if got != expect {
-		t.Errorf("expected %s got %s", expect, got)
-	}
-}
-
 func TestFindPlan(t *testing.T) {
 	var (
 		expect = "sed"
