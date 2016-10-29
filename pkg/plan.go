@@ -46,8 +46,8 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-// Expander type provides methods to return field values to parse self
-// referencing plan fields
+// Expander type provides methods to return self referencing plan Fields
+type expander string
 
 func (e expander) Expand(p *Plan) string {
 	buf := new(bytes.Buffer)
