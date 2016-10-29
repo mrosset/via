@@ -1,6 +1,7 @@
 package via
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"text/template"
 	"time"
 )
 
@@ -44,10 +46,31 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
+// Expander type provides methods to return field values to parse self
+// referencing plan fields
+
+func (e expander) Expand(p *Plan) string {
+	buf := new(bytes.Buffer)
+	tmpl, err := template.New("test").Parse(string(e))
+	if err != nil {
+		panic(err)
+	}
+	err = tmpl.Execute(buf, p)
+	if err != nil {
+		panic(err)
+	}
+	return buf.String()
+}
+
+func (e expander) String(p *Plan) string {
+	return string(e)
+}
+
 type Plan struct {
 	Name          string
 	Version       string
 	Url           string
+	EUrl          expander
 	Group         string
 	StageDir      string
 	Inherit       string
