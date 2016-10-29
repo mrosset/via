@@ -1,5 +1,5 @@
-SRC 	= $(wildcard via//Makefile *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
-BIN 	= $(GOPATH)/bin/via
+SRC		= $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
+BIN		= $(GOPATH)/bin/via
 CMDS	= fmt test install
 REPO  = strings/via:devel
 
