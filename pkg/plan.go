@@ -6,7 +6,6 @@ import (
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
 	"github.com/str1ngs/util/json"
-	"os"
 	"path/filepath"
 	"sort"
 	"text/template"
@@ -62,15 +61,10 @@ func (e expander) Expand(p *Plan) string {
 	return buf.String()
 }
 
-func (e expander) String(p *Plan) string {
-	return string(e)
-}
-
 type Plan struct {
 	Name          string
 	Version       string
-	Url           string
-	EUrl          expander
+	Url           expander
 	Group         string
 	StageDir      string
 	Inherit       string
@@ -100,6 +94,7 @@ func (p *Plan) fieldExpand(s string) string {
 	return ""
 }
 
+/*
 func (p *Plan) ExpandField(s string) string {
 	switch s {
 	case "Url":
@@ -107,6 +102,7 @@ func (p *Plan) ExpandField(s string) string {
 	}
 	return ""
 }
+*/
 
 func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
@@ -158,12 +154,12 @@ func (p *Plan) PackageFile() string {
 	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
 }
 
-func (p Plan) SourceFile() string {
-	return join(filepath.Base(p.ExpandField("Url")))
+func (p *Plan) SourceFile() string {
+	return join(filepath.Base(p.Url.Expand(p)))
 }
 
-func (p Plan) SourcePath() string {
-	return filepath.Join(cache.Sources(), filepath.Base(p.ExpandField("Url")))
+func (p *Plan) SourcePath() string {
+	return filepath.Join(cache.Sources(), filepath.Base(p.Url.Expand(p)))
 }
 
 func (p Plan) BuildDir() string {

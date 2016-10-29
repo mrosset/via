@@ -38,12 +38,12 @@ func TestExpand(t *testing.T) {
 		p = &Plan{
 			Name:    "plan",
 			Version: "1.0",
-			EUrl:    "http://mirrors.kernel.org/gnu/plan-{{.Version}}.tar.gz",
+			Url:     "http://mirrors.kernel.org/gnu/plan-{{.Version}}.tar.gz",
 		}
 		expect = "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
 		got    = ""
 	)
-	got = p.EUrl.Expand(p)
+	got = p.Url.Expand(p)
 	if got != expect {
 		t.Errorf("expected %s got %s", expect, got)
 	}
@@ -59,16 +59,6 @@ func TestFindPlan(t *testing.T) {
 		t.Fatal(err)
 	}
 	got = plan.Name
-	if expect != got {
-		t.Errorf("expected %s got %s", expect, got)
-	}
-}
-
-func TestGetUrl(t *testing.T) {
-	var (
-		expect = "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
-		got    = testPlan.ExpandField("Url")
-	)
 	if expect != got {
 		t.Errorf("expected %s got %s", expect, got)
 	}
