@@ -1,45 +1,17 @@
 #+TITLE TODO's
 
+
 * TODO                                                                :devel:
-** Toolchain
-*** Cross building
-    Currently we build all packages on there native hosts. But it would be easier
-    if we could build for any target without using a virtual machine or bare
-    metal install. This would make it so we could working out of one git
-    repository and not have to run and manage virtual machine or ssh hosts.
 
+** Features not implemented
+*** Field expansion
+    Allow referencing other field values from other fields
 
-**** Transition to cross compiling all builds
+    Right now we have many fields that have there values hard code. Example. Url
+    almost always contains the version number for the source package. If we use
+    templates we can deduce the Version from the Version field.
 
-***** TODO create a linux x86_64 target compiler
-      change our current compiler from a native gcc to a cross x86_64.
-      this would not actually change our builds much. Just that we would
-      effectively be cross building our x86_64 packages. this would lay the ground
-      work for building other targets compilers without much work.
-
-****** TODO Notes
-       toolchain package names will change to their gnu triple.
-
-******* x86_64-via-linux-gnu-gcc
-******* x86_64-via-linux-gnu-binutils
-
-***** TODO Create a second cross compiler targeting power8 as a test.
-
-*** TODO Sandbox
-    currently we are starting to build packages in a docker container. but this is
-    not automated we need to manually spin up the container and then interactively
-    build packages.
-
-    we should have a simple mechanism to build package in a container.
-
-*** Partially implemented
-    Right now this is partially implement in that we can spin up a docker
-    instance. And then build a package. There are some draw backs to this it
-    needs refining and I think ultimately a RPC method might be better. Still
-    thinking on this.
-
-** Features not implimented
-*** Interface to add and remove flags
+*** TODO Interface to add and remove flags
     Right now we have alot of global flags, some actually have an effect on most
     packages. But in some case they can break a build, or we want to override a
     flag.
@@ -109,6 +81,50 @@
     when installing packages that have provide the same program but with different
     features. There will be file path clashes. e.g emacs vs emacs-nox. We need to
     provide a replace mechanism. To remove emacs and to install emacs-nox.
-** Refactor
-   This are things that require refactoring existing features, or making them
-   more complete.
+** Toolchain
+*** TODO Cross building
+    Currently we build all packages on there native hosts. But it would be easier
+    if we could build for any target without using a virtual machine or bare
+    metal install. This would make it so we could working out of one git
+    repository and not have to run and manage virtual machine or ssh hosts.
+
+
+**** Transition to cross compiling all builds
+
+***** TODO create a linux x86_64 target compiler
+      change our current compiler from a native gcc to a cross x86_64.
+      this would not actually change our builds much. Just that we would
+      effectively be cross building our x86_64 packages. this would lay the ground
+      work for building other targets compilers without much work.
+
+****** TODO Notes
+       toolchain package names will change to their gnu triple.
+
+******* x86_64-via-linux-gnu-gcc
+******* x86_64-via-linux-gnu-binutils
+
+***** TODO Create a second cross compiler targeting power8 as a test.
+
+*** TODO Sandbox
+    currently we are starting to build packages in a docker container. but this is
+    not automated we need to manually spin up the container and then interactively
+    build packages.
+
+    we should have a simple mechanism to build package in a container.
+
+**** Partially implemented
+     Right now this is partially implement in that we can spin up a docker
+     instance. And then build a package. There are some draw backs to this it
+     needs refining and I think ultimately a RPC method might be better. Still
+     thinking on this.
+
+* Via a systems package manager
+** Current state
+   _warning_ Via is currently still in early development. And is not recommend
+   for use outside of a VM or container.
+
+** Build system
+
+*** Plans
+    Via plans are how via knows how to download, build and package source
+    packages. The plan's are currently in json format.
