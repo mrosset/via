@@ -3,13 +3,17 @@ package via
 import (
 	"errors"
 	"fmt"
+	"github.com/mrosset/util/file"
+	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg/git"
-	"github.com/str1ngs/util/file"
-	"github.com/str1ngs/util/json"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+)
+
+const (
+	ERR_BRANCH_MISMATCH = "Branches do not Match"
 )
 
 var (
@@ -69,6 +73,7 @@ type Config struct {
 	Plans  string
 	Repo   string
 	Binary string
+	Prefix string
 
 	// Toolchain
 	Flags Flags
@@ -76,21 +81,28 @@ type Config struct {
 	Env         map[string]string
 	Remove      []string
 	PostInstall []string
+
+	// Internal Fields
+	template *Config
 }
 
-const (
-	ERR_BRANCH_MISMATCH = "Branches do not Match"
-)
-
-// Checks that the plan branch and the publish repo branch match the configured
-// branch
-func (c Config) CheckBranches() error {
-	if c.PlanBranch() != config.Branch {
-		msg := fmt.Sprintf("(%s) (%s) %s", c.PlanBranch(), config.Branch, ERR_BRANCH_MISMATCH)
-		return (errors.New(msg))
+func (c *Config) Expand() *Config {
+	if c.template != nil {
+		return c.template
 	}
-	if c.RepoBranch() != config.Branch {
-		msg := fmt.Sprintf("(%s) (%s) %s", c.RepoBranch(), config.Branch, ERR_BRANCH_MISMATCH)
+	o := new(Config)
+	err := json.Parse(o, c)
+	if err != nil {
+		panic(err)
+	}
+	c.template = o
+	return o
+}
+
+// Checks all branches match the Config branch
+func (c Config) CheckBranches() error {
+	if c.PlanBranch() != config.Branch || c.RepoBranch() != config.Branch {
+		msg := fmt.Sprintf("%s: %s %s", ERR_BRANCH_MISMATCH, config.Branch)
 		return (errors.New(msg))
 	}
 	return nil
