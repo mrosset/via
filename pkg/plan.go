@@ -45,7 +45,7 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-func Expand(i interface{}, s string) string {
+func OExpand(i interface{}, s string) string {
 	buf := new(bytes.Buffer)
 	tmpl, err := template.New("").Parse(s)
 	if err != nil {
@@ -56,6 +56,15 @@ func Expand(i interface{}, s string) string {
 		panic(err)
 	}
 	return buf.String()
+}
+
+func (p *Plan) Expand() *Plan {
+	o := new(Plan)
+	err := json.Parse(o, p)
+	if err != nil {
+		panic(err)
+	}
+	return o
 }
 
 type Plan struct {
@@ -82,24 +91,6 @@ type Plan struct {
 	Remove        []string
 	Files         []string
 }
-
-func (p *Plan) fieldExpand(s string) string {
-	switch s {
-	case "Version":
-		return p.Version
-	}
-	return ""
-}
-
-/*
-func (p *Plan) ExpandField(s string) string {
-	switch s {
-	case "Url":
-		return os.Expand(p.Url, p.fieldExpand)
-	}
-	return ""
-}
-*/
 
 func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
@@ -135,7 +126,7 @@ func NewPlan(n string) (plan *Plan, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return plan, err
+	return plan, nil
 }
 
 func ReadPath(p string) (plan *Plan, err error) {
@@ -152,11 +143,11 @@ func (p *Plan) PackageFile() string {
 }
 
 func (p *Plan) SourceFile() string {
-	return join(filepath.Base(Expand(p, p.Url)))
+	return join(filepath.Base(p.Expand().Url))
 }
 
 func (p *Plan) SourcePath() string {
-	return filepath.Join(cache.Sources(), filepath.Base(Expand(p, p.Url)))
+	return filepath.Join(cache.Sources(), filepath.Base(p.Expand().Url))
 }
 
 func (p Plan) BuildDir() string {

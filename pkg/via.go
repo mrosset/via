@@ -54,7 +54,7 @@ func DownloadSrc(plan *Plan) (err error) {
 		return nil
 	}
 	fmt.Printf(lfmt, "download", plan.NameVersion())
-	eurl := Expand(plan, plan.Url)
+	eurl := plan.Expand().Url
 	u, err := url.Parse(eurl)
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func Stage(plan *Plan) (err error) {
 		// nothing to stage
 		return nil
 	}
-	u, err := url.Parse(Expand(plan, plan.Url))
+	u, err := url.Parse(plan.Expand().Url)
 	if err != nil {
 		elog.Println(err)
 		return err

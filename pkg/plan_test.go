@@ -8,7 +8,7 @@ var (
 	testPlan = &Plan{
 		Name:         "plan",
 		Version:      "1.0",
-		Url:          "http://mirrors.kernel.org/gnu/plan-$Version.tar.gz",
+		Url:          "http://mirrors.kernel.org/gnu/plan-{{.Version}}tar.gz",
 		BuildInStage: true,
 		Package:      []string{"cp a.out $PKGDIR/"},
 		Files:        []string{"a.out"},
@@ -16,18 +16,36 @@ var (
 	}
 )
 
-func TestFindPlan(t *testing.T) {
+func TestPlanExpand(t *testing.T) {
 	var (
-		expect = "sed"
+		p = &Plan{
+			Name:    "plan",
+			Version: "1.0",
+			Url:     "http://mirrors.kernel.org/gnu/{{.Name}}-{{.Version}}.tar.gz",
+		}
+		expect = "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
 		got    = ""
 	)
-	plan, err := NewPlan("sed")
+
+	got = p.Expand().Url
+	if got != expect {
+		t.Errorf("expected %s got %s", expect, got)
+	}
+}
+
+func TestFindPlan(t *testing.T) {
+	var (
+		expect = &Plan{
+			Name: "sed",
+			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.gz",
+		}
+	)
+	got, err := NewPlan("sed")
 	if err != nil {
 		t.Fatal(err)
 	}
-	got = plan.Name
-	if expect != got {
-		t.Errorf("expected %s got %s", expect, got)
+	if expect.Name != got.Name || got.Url != expect.Url {
+		t.Errorf("expected %s got %s", expect.Url, got.Url)
 	}
 }
 

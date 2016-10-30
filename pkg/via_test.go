@@ -33,7 +33,7 @@ func TestCreate(t *testing.T) {
 	)
 	c.Init()
 	os.Remove(testPlan.Path())
-	err := Create(Expand(testPlan, testPlan.Url), "core")
+	err := Create(testPlan.Expand().Url, "core")
 	if err != nil {
 		t.Error(err)
 	}
