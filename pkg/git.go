@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mrosset/util/file"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/core"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,14 +13,17 @@ import (
 	"strings"
 )
 
-func Clone(dir, url string) error {
+// Clones remote URL into directory
+// name is the reference name to clone.
+// e.g reference name ref/heads/master
+func Clone(dir, name, url string) error {
 	r, err := git.NewFilesystemRepository(join(dir, ".git"))
 	if err != nil {
 		return err
 	}
-
 	err = r.Clone(&git.CloneOptions{
-		URL: url,
+		URL:           url,
+		ReferenceName: core.ReferenceName(name),
 	})
 	if err != nil {
 		log.Println(err)

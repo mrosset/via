@@ -30,30 +30,24 @@ func TestConfigExpand(t *testing.T) {
 	}
 }
 
-func TestPlanBranch(t *testing.T) {
+func TestBranchs(t *testing.T) {
 	var (
 		c = &Config{
 			Plans: "../plans",
-			Repo:  "../publish/repo",
+			Repo:  "../publish",
 		}
 		expect = "linux-x86_64"
 		got    = c.PlanBranch()
 	)
+	// Test Plans
 	if expect != got {
-		t.Errorf("expected '%s' got '%s'.", expect, got)
+		t.Errorf("expected plan branch '%s' got '%s'.", expect, got)
 	}
-}
 
-func TestRepoBranch(t *testing.T) {
-	var (
-		c = &Config{
-			Repo: "../publish",
-		}
-		expect = "linux-x86_64"
-		got    = c.RepoBranch()
-	)
+	// Test Repo
+	got = c.RepoBranch()
 	if expect != got {
-		t.Errorf("expected '%s' got '%s'.", expect, got)
+		t.Errorf("expected repo branch '%s' got '%s'.", expect, got)
 	}
 }
 

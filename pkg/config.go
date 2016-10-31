@@ -1,7 +1,6 @@
 package via
 
 import (
-	"errors"
 	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
@@ -16,17 +15,19 @@ const (
 )
 
 var (
-	cache  Cache
-	gopath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
-	cfile  = filepath.Join(gopath, "plans/config.json")
-	viaUrl = "https://github.com/mrosset/via"
-	config = new(Config)
+	cache   Cache
+	gopath  = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
+	cfile   = filepath.Join(gopath, "plans/config.json")
+	viaUrl  = "https://github.com/mrosset/via"
+	planUrl = "https://github.com/mrosset/plans"
+	config  = new(Config)
 )
 
 func init() {
 	// TODO rework this to error and suggest user use 'via init'
-	if !file.Exists(gopath) {
-		err := clone(gopath, viaUrl)
+	pdir := filepath.Dir(cfile)
+	if !file.Exists(pdir) {
+		err := Clone(pdir, "refs/heads/linux-x86_64", planUrl)
 		if err != nil {
 			elog.Fatal(err)
 		}
@@ -35,13 +36,14 @@ func init() {
 	if err != nil {
 		elog.Fatal(err)
 	}
+	// TODO: provide Lint for master config
 	sort.Strings([]string(config.Flags))
 	sort.Strings(config.Remove)
-	// TODO: provide Lint for master config
 	err = json.Write(&config, cfile)
 	if err != nil {
 		elog.Fatal(err)
 	}
+
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	cache.Init()
 	config.Plans = os.ExpandEnv(config.Plans)
@@ -100,9 +102,10 @@ func (c *Config) Expand() *Config {
 
 // Checks all branches match the Config branch
 func (c Config) CheckBranches() error {
-	if c.PlanBranch() != config.Branch || c.RepoBranch() != config.Branch {
-		msg := fmt.Sprintf("%s: %s %s", ERR_BRANCH_MISMATCH, config.Branch)
-		return (errors.New(msg))
+	rb := c.RepoBranch()
+	pb := c.PlanBranch()
+	if pb != config.Branch || rb != config.Branch {
+		return fmt.Errorf("%s: repo:%s plan:%s", ERR_BRANCH_MISMATCH, rb, pb)
 	}
 	return nil
 }
