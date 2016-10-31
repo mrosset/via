@@ -1,4 +1,4 @@
-package git
+package via
 
 import (
 	"github.com/mrosset/util/file"
@@ -8,23 +8,18 @@ import (
 
 func TestClone(t *testing.T) {
 	var (
-		expect = "testdata/README"
+		expect = "testdata/git/README"
+		gitd   = "testdata/git"
 	)
-	defer os.RemoveAll("testdata")
-	if err := Clone("testdata", "https://github.com/mrosset/gur"); err != nil {
+	defer os.RemoveAll(gitd)
+	if err := Clone(gitd, "https://github.com/mrosset/gur"); err != nil {
 		t.Error(err)
 	}
 	if !file.Exists(expect) {
 		t.Errorf("exected %s but file does not exist", expect)
 	}
-}
-
-func TestBranch(t *testing.T) {
-	var (
-		expect = "field_expansion"
-		got    = ""
-	)
-	got, err := Branch("../../../via")
+	expect = "master"
+	got, err := Branch(gitd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +33,7 @@ func TestSubBranch(t *testing.T) {
 		expect = "linux-x86_64"
 		got    = ""
 	)
-	got, err := Branch("../../publish")
+	got, err := Branch("../publish")
 	if err != nil {
 		t.Fatal(err)
 	}

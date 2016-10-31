@@ -1,4 +1,4 @@
-package git
+package via
 
 import (
 	"fmt"
@@ -12,12 +12,8 @@ import (
 	"strings"
 )
 
-var (
-	join = filepath.Join
-)
-
 func Clone(dir, url string) error {
-	r, err := git.NewFilesystemRepository(dir)
+	r, err := git.NewFilesystemRepository(join(dir, ".git"))
 	if err != nil {
 		return err
 	}

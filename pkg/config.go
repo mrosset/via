@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
-	"github.com/mrosset/via/pkg/git"
 	"os"
 	"path/filepath"
 	"sort"
@@ -110,7 +109,7 @@ func (c Config) CheckBranches() error {
 
 // Returns the checked out branch for repo directory
 func (c Config) RepoBranch() string {
-	b, err := git.Branch(c.Repo)
+	b, err := Branch(c.Repo)
 	if err != nil {
 		elog.Fatalf("%s %s", c.Repo, err)
 	}
@@ -120,7 +119,7 @@ func (c Config) RepoBranch() string {
 // Returns the checked out branch for plans directory
 func (c Config) PlanBranch() string {
 	p := filepath.Join(c.Plans)
-	b, err := git.Branch(p)
+	b, err := Branch(p)
 	if err != nil {
 		elog.Fatal(err)
 	}
