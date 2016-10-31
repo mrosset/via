@@ -112,8 +112,7 @@ func Build(plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	err = config.CheckBranches()
-	if err != nil {
+	if err = config.CheckBranches(); err != nil {
 		return (err)
 	}
 	if file.Exists(plan.PackagePath()) {
