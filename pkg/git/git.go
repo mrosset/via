@@ -2,16 +2,30 @@ package git
 
 import (
 	"fmt"
+	"github.com/mrosset/util/file"
 	"io/ioutil"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
 var (
-	join = path.Join
+	join = filepath.Join
 )
 
-func Branch(head string) (string, error) {
+// Returns the currently checked out branch for a Git directory
+func Branch(path string) (string, error) {
+	// path, err := filepath.Abs(path)
+	// if err != nil {
+	// 	return "", err
+	// }
+	var (
+		head = join(path, ".git/HEAD")
+		dir  = filepath.Base(path)
+		sub  = join(path, "../.git/modules", dir, "HEAD")
+	)
+	if file.Exists(sub) {
+		head = sub
+	}
 	b, err := ioutil.ReadFile(head)
 	if err != nil {
 		return "", err

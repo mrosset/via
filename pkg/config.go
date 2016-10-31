@@ -110,8 +110,7 @@ func (c Config) CheckBranches() error {
 
 // Returns the checked out branch for repo directory
 func (c Config) RepoBranch() string {
-	p := filepath.Join(c.Repo, "/../.git")
-	b, err := git.Branch(p)
+	b, err := git.Branch(c.Repo)
 	if err != nil {
 		elog.Fatalf("%s %s", c.Repo, err)
 	}
@@ -120,7 +119,7 @@ func (c Config) RepoBranch() string {
 
 // Returns the checked out branch for plans directory
 func (c Config) PlanBranch() string {
-	p := filepath.Join(c.Plans, "../.git/modules/plans/HEAD")
+	p := filepath.Join(c.Plans)
 	b, err := git.Branch(p)
 	if err != nil {
 		elog.Fatal(err)

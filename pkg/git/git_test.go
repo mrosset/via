@@ -1,31 +1,16 @@
 package git
 
 import (
-	"log"
 	"os"
-	"os/exec"
 	"testing"
 )
 
-func shell(path string) {
-	sh := exec.Command("sh", "-c", path)
-	sh.Stdout = os.Stdout
-	sh.Stdin = os.Stdin
-	if err := sh.Run(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func init() {
-	shell("scripts/init")
-}
-
 func TestBranch(t *testing.T) {
 	var (
-		expect = "master"
+		expect = "field_expansion"
 		got    = ""
 	)
-	got, err := Branch("testdata/.git/HEAD")
+	got, err := Branch("../../../via")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,23 +19,16 @@ func TestBranch(t *testing.T) {
 	}
 }
 
-func TestBranchFail(t *testing.T) {
+func TestSubBranch(t *testing.T) {
 	var (
-		expect = "nobranch"
+		expect = "linux-x86_64"
 		got    = ""
 	)
-	got, err := Branch("testdata/.git/HEAD")
+	got, err := Branch("../../publish")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if expect == got {
-		t.Errorf("expect '%s' got '%s'", expect, got)
-	}
-}
-
-func TestCleanup(t *testing.T) {
-	err := os.RemoveAll("testdata")
-	if err != nil {
-		t.Error(err)
+	if expect != got {
+		t.Logf("expect '%s' got '%s'", expect, got)
 	}
 }

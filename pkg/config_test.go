@@ -32,8 +32,25 @@ func TestConfigExpand(t *testing.T) {
 
 func TestPlanBranch(t *testing.T) {
 	var (
+		c = &Config{
+			Plans: "../plans",
+			Repo:  "../publish/repo",
+		}
 		expect = "linux-x86_64"
-		got    = config.PlanBranch()
+		got    = c.PlanBranch()
+	)
+	if expect != got {
+		t.Errorf("expected '%s' got '%s'.", expect, got)
+	}
+}
+
+func TestRepoBranch(t *testing.T) {
+	var (
+		c = &Config{
+			Repo: "../publish",
+		}
+		expect = "linux-x86_64"
+		got    = c.RepoBranch()
 	)
 	if expect != got {
 		t.Errorf("expected '%s' got '%s'.", expect, got)
