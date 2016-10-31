@@ -120,7 +120,7 @@ func (c Config) RepoBranch() string {
 
 // Returns the checked out branch for plans directory
 func (c Config) PlanBranch() string {
-	p := filepath.Join(c.Plans, "../.git/modules/plans")
+	p := filepath.Join(c.Plans, "../.git/modules/plans/HEAD")
 	b, err := git.Branch(p)
 	if err != nil {
 		elog.Fatal(err)

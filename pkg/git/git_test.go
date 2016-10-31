@@ -22,10 +22,10 @@ func init() {
 
 func TestBranch(t *testing.T) {
 	var (
-		expect = "linux-x86_64"
+		expect = "master"
 		got    = ""
 	)
-	got, err := Branch("testdata/.git")
+	got, err := Branch("testdata/.git/HEAD")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestBranchFail(t *testing.T) {
 		expect = "nobranch"
 		got    = ""
 	)
-	got, err := Branch("testdata/.git")
+	got, err := Branch("testdata/.git/HEAD")
 	if err != nil {
 		t.Fatal(err)
 	}

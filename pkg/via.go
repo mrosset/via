@@ -2,7 +2,6 @@ package via
 
 import (
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
@@ -67,7 +66,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	case "git":
 		return clone(cache.Sources(), eurl)
 	default:
-		return errors.New(u.Scheme + " URL scheme is not suppported")
+		return fmt.Errorf("%s URL scheme is not supported")
 	}
 	return nil
 }
@@ -137,8 +136,7 @@ func Build(plan *Plan) (err error) {
 	os.Setenv("Flags", expand(flags.String()))
 	err = doCommands(plan.BuildDir(), build)
 	if err != nil {
-		es := fmt.Sprintf("%s in %s", err.Error(), plan.BuildDir())
-		return errors.New(es)
+		return fmt.Errorf("%s in %s", err.Error(), plan.BuildDir())
 	}
 	return nil
 }
@@ -305,8 +303,7 @@ func Install(name string) (err error) {
 		return (err)
 	}
 	if sha != plan.Oid {
-		msg := fmt.Sprintf("%s Plans OID does not match tarballs got %s", plan.NameVersion(), sha)
-		return errors.New(msg)
+		return fmt.Errorf("%s Plans OID does not match tarballs got %s", plan.NameVersion(), sha)
 	}
 	man, err := ReadPackManifest(pfile)
 	if err != nil {
@@ -437,22 +434,22 @@ func Create(url, group string) (err error) {
 	var (
 		xfile   = filepath.Base(url)
 		name    = rexName.FindString(xfile)
-		truple  = rexTruple.FindString(xfile)
+		triple  = rexTruple.FindString(xfile)
 		double  = rexDouble.FindString(xfile)
 		version string
 	)
 	switch {
-	case truple != "":
-		version = truple
+	case triple != "":
+		version = triple
 	case double != "":
 		version = double
 	default:
-		return errors.New("regex fail for " + xfile)
+		return fmt.Errorf("regex fail for %s", xfile)
 	}
 	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
 	plan.Inherit = "gnu"
 	if file.Exists(plan.Path()) {
-		return errors.New(fmt.Sprintf("%s already exists", plan.Path()))
+		return fmt.Errorf("%s already exists", plan.Path())
 	}
 	return plan.Save()
 }
@@ -516,8 +513,11 @@ func Clean(name string) error {
 		return err
 	}
 
-	dir = join(cache.Stages(), plan.stageDir())
-	return os.RemoveAll(dir)
+	if plan.BuildInStage {
+		dir = join(cache.Stages(), plan.stageDir())
+		return os.RemoveAll(dir)
+	}
+	return nil
 }
 
 func PlanFiles() ([]string, error) {

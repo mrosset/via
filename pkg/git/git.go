@@ -2,7 +2,6 @@ package git
 
 import (
 	"fmt"
-	"github.com/mrosset/util/file"
 	"io/ioutil"
 	"path"
 	"strings"
@@ -12,15 +11,7 @@ var (
 	join = path.Join
 )
 
-const (
-	git_head = "%s/HEAD"
-)
-
-func Branch(path string) (string, error) {
-	head := fmt.Sprintf(git_head, path)
-	if !file.Exists(head) {
-		return "", fmt.Errorf(".git not found in %s", path)
-	}
+func Branch(head string) (string, error) {
 	b, err := ioutil.ReadFile(head)
 	if err != nil {
 		return "", err
