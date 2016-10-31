@@ -8,10 +8,10 @@ import (
 
 func TestClone(t *testing.T) {
 	var (
-		expect = "testdata/config.json"
+		expect = "testdata/README"
 	)
 	defer os.RemoveAll("testdata")
-	if err := Clone("testdata", "https://github.com/mrosset/plans"); err != nil {
+	if err := Clone("testdata", "https://github.com/mrosset/gur"); err != nil {
 		t.Error(err)
 	}
 	if !file.Exists(expect) {

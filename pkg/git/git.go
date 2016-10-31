@@ -16,14 +16,9 @@ var (
 	join = filepath.Join
 )
 
-func init() {
-	log.SetFlags(log.Lshortfile)
-}
-
 func Clone(dir, url string) error {
 	r, err := git.NewFilesystemRepository(dir)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
