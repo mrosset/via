@@ -164,3 +164,18 @@ repo/linux-x86_64/file.tar.gz
     config.Expand().DB = "/usr/local/via/db"
     #+END_EXAMPLE
 
+
+* DONE Create static git
+  CLOSED: [2016-11-01 Tue 02:04]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-11-01 Tue 02:04
+  :ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/TODOs.org
+  :ARCHIVE_OLPATH: /Features not implemented
+  :ARCHIVE_CATEGORY: TODOs
+  :ARCHIVE_TODO: DONE
+  :ARCHIVE_ITAGS: devel
+  :END:
+** obsolete since we are using a native go git client
+  git is our only dependency right now for installing packages.  create static
+  git binary that we can host in docker with via.
+
