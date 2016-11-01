@@ -164,7 +164,7 @@ func (p Plan) GetStageDir() string {
 }
 
 func (p Plan) PackagePath() string {
-	return join(config.Repo, p.PackageFile())
+	return join(config.Repo, "repo", p.PackageFile())
 }
 
 func (p Plan) stageDir() string {

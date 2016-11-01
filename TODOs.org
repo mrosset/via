@@ -40,13 +40,6 @@
      needs refining and I think ultimately a RPC method might be better. Still
      thinking on this.
 ** Features not implemented
-*** TODO Field expansion
-    Allow referencing other field values from other fields
-
-    Right now we have many fields that have there values hard code. Example. Url
-    almost always contains the version number for the source package. If we use
-    templates we can deduce the Version from the Version field.
-
 *** TODO Interface to add and remove flags
     Right now we have alot of global flags, some actually have an effect on most
     packages. But in some case they can break a build, or we want to override a

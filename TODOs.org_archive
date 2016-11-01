@@ -130,3 +130,37 @@ repo/linux-x86_64/file.tar.gz
     These generally as a rule are runtimes, all development headers and libraries
     should be included in Plans if AutoDepends does not account for it.
 
+
+* TODO Field expansion
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-11-01 Tue 01:31
+  :ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/TODOs.org
+  :ARCHIVE_OLPATH: /Features not implemented
+  :ARCHIVE_CATEGORY: TODOs
+  :ARCHIVE_TODO: TODO
+  :ARCHIVE_ITAGS: devel
+  :END:
+  Allow referencing other field values from other fields
+  # 
+  Right now we have many fields that have there values hard coded. Example. Url
+  almost always contains the version number for the source package. If we use
+  templates we can deduce the Version from the Version field.
+
+** Implementation details 
+   Attached an Expand() method to structs we need to expand. When we
+   call the expand method it takes the whole struct, encodes it to json then
+   passes the struct through test/template excute. We then encode the expanded
+   json into a new struct. For large plans this could be expensive so we only
+   run this once, and then we cache the results to private field.
+
+*** Example usage
+    If we have a config struct that looks like this.
+    #+BEGIN_EXAMPLE
+    config.Print = "/usr/local/via"
+    config.DB    = "{{.Prefix}}/db"
+    #+END_EXAMPLE
+    We can get the complete value of config.DB through the expand method
+    #+BEGIN_EXAMPLE
+    config.Expand().DB = "/usr/local/via/db"
+    #+END_EXAMPLE
+
