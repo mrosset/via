@@ -12,7 +12,7 @@ func TestClone(t *testing.T) {
 		gitd   = "testdata/git"
 		branch = "refs/heads/master"
 	)
-	os.RemoveAll(gitd)
+	defer os.RemoveAll(gitd)
 	if err := Clone(gitd, branch, "https://github.com/mrosset/gur"); err != nil {
 		t.Fatal(err)
 	}
