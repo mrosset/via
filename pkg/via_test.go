@@ -7,7 +7,6 @@ import (
 
 var (
 	test          = "sed"
-	repo          = "testdata/repo"
 	expectDepends = []string{"glibc"}
 	expectFiles   = []string{
 		"a.out",
@@ -16,8 +15,6 @@ var (
 
 func init() {
 	Verbose(false)
-	os.MkdirAll(repo, 0700)
-	config.Repo = repo
 }
 
 func TestLint(t *testing.T) {
@@ -107,9 +104,5 @@ func TestOwns(t *testing.T) {
 	if expect != got {
 		t.Errorf("expected %s got %s.", expect, got)
 	}
-}
 
-// Clean up test directories
-func TestFinal(t *testing.T) {
-	os.RemoveAll(repo)
 }

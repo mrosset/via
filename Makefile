@@ -13,7 +13,7 @@ fmt:
 	go fmt ./...
 
 run:
-	docker run -it -e TERM=$(TERM) -e DISPLAY=$(DISPLAY) -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /bin/bash --login -o vi
+	docker run -it -e TERM=$(TERM) -e DISPLAY=$(DISPLAY) -v /tmp:/tmp -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /bin/ash --login -o vi
 
 
 root: $(BIN)

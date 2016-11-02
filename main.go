@@ -44,6 +44,7 @@ func main() {
 	command.Add("branch", branch, "prints plan branch to stdout")
 	command.Add("build", build, "build plan")
 	command.Add("dock", dock, "build plan inside docker")
+	command.Add("start", start, "starts rpc server")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("checkout", checkout, "changes plan branch")
 	command.Add("clean", clean, "clean build dir")
@@ -67,18 +68,22 @@ func main() {
 	command.Add("sync", sync, "fetch remote repo data")
 	command.Add("synchashs", synchashs, "DEV ONLY sync the plans Oid with binary banch")
 	if *fdebug {
-		path, _ := os.LookupEnv("PATH")
-		home, _ := os.LookupEnv("HOME")
-		fmt.Println("PATH", path)
-		fmt.Println("HOME", home)
-		which("GCC", "gcc")
-		which("PYTHON", "python")
+		pdebug()
 	}
 	err := command.Run()
 	if err != nil {
 		elog.Fatal(err)
 	}
 	return
+}
+
+func pdebug() {
+	path, _ := os.LookupEnv("PATH")
+	home, _ := os.LookupEnv("HOME")
+	fmt.Println("PATH", path)
+	fmt.Println("HOME", home)
+	which("GCC", "gcc")
+	which("PYTHON", "python")
 }
 
 func which(label, path string) {
@@ -228,7 +233,23 @@ func plog() error {
 	return nil
 }
 
+func start() error {
+	if err := via.Install("devel"); err != nil {
+		return err
+	}
+	pdebug()
+	return via.Listen()
+}
 func dock() error {
+	arg := command.Args()[0]
+	c, dc := via.NewRpcClient()
+	c.Start()
+	defer c.Stop()
+	_, err := dc.Call("build", arg)
+	return err
+}
+
+func odock() error {
 	// FIXME this breaks when no argument is passed
 	arg := command.Args()[0]
 	dargs := []string{

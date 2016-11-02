@@ -2,7 +2,14 @@
 
 
 * TODO                                                                :devel:
-
+** Pre-Release goals
+*** Linux and Darwin base/devel plans
+**** Move non essential plans to another branch.
+**** Trim plans on HEAD to bare minimal plans required for a toolchain
+*** Rpc daemon
+*** Rebuild all base/devel plans in docker
+*** Package upgrading
+*** Plan syncing
 ** Toolchain
 *** TODO Cross building
     Currently we build all packages on there native hosts. But it would be easier
@@ -39,13 +46,6 @@
      instance. And then build a package. There are some draw backs to this it
      needs refining and I think ultimately a RPC method might be better. Still
      thinking on this.
-** Pre-Release goals
-*** Linux and Darwin base/devel plans
-**** Move non essential plans to another branch.
-**** Trim plans on HEAD to bare minimal plans required for a toolchain
-*** Rebuild all base/devel plans in docker
-*** Package upgrading
-*** Plan syncing
 ** Features not implemented
 *** TODO Interface to add and remove flags
     Right now we have alot of global flags, some actually have an effect on most
