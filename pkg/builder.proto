@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package via;
+
+service Builder {
+  rpc Build(BuildRequest) returns (BuildReply) {}
+}
+
+message BuildRequest {
+  string name  = 1;
+  bool   clean = 2;
+}
+
+message BuildReply {
+  string message = 1;
+}

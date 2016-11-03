@@ -283,8 +283,9 @@ func Install(name string) (err error) {
 	pfile := plan.PackagePath()
 	if !file.Exists(pfile) {
 		//return errors.New(fmt.Sprintf("%s does not exist", pfile))
-		os.MkdirAll(config.Repo, 0755)
-		err := gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile())
+		ddir := join(config.Repo, "repo")
+		os.MkdirAll(ddir, 0755)
+		err := gurl.Download(ddir, config.Binary+"/"+plan.PackageFile())
 		if err != nil {
 			elog.Println(pfile)
 			log.Fatal(err)

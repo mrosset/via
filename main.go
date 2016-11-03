@@ -43,7 +43,7 @@ func main() {
 	command.Add("add", add, "add plan/s to git index")
 	command.Add("branch", branch, "prints plan branch to stdout")
 	command.Add("build", build, "build plan")
-	command.Add("dock", dock, "build plan inside docker")
+	command.Add("local", local, "build plan locally")
 	command.Add("start", start, "starts rpc server")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("checkout", checkout, "changes plan branch")
@@ -234,42 +234,15 @@ func plog() error {
 }
 
 func start() error {
-	if err := via.Install("devel"); err != nil {
-		return err
-	}
 	pdebug()
 	return via.Listen()
 }
-func dock() error {
-	arg := command.Args()[0]
-	c, dc := via.NewRpcClient()
-	c.Start()
-	defer c.Stop()
-	_, err := dc.Call("build", arg)
-	return err
-}
-
-func odock() error {
-	// FIXME this breaks when no argument is passed
-	arg := command.Args()[0]
-	dargs := []string{
-		"run", "-it",
-		"-v", "/home:/home",
-		"strings/via:devel",
-		"/usr/bin/via",
-		"-c",
-		"-deps",
-		"build",
-		arg,
-	}
-	cmd := exec.Command("docker", dargs...)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	return cmd.Run()
-}
-
 func build() error {
+	arg := command.Args()[0]
+	return via.ClientRequestBuild(arg, true)
+}
+
+func local() error {
 	for _, arg := range command.Args() {
 		arg = strings.Replace(arg, ".json", "", 1)
 		if *fclean {

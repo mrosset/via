@@ -9,13 +9,13 @@ var (
 	args = os.Args
 )
 
-func TestDiff(t *testing.T) {
-	os.Args = append(args, "diff", "bash")
+func testBuild(t *testing.T) {
+	os.Args = append(args, "build", "make")
 	main()
 }
 
-func TestGroup(t *testing.T) {
-	os.Args = append(args, "build", "sed")
+func TestDiff(t *testing.T) {
+	os.Args = append(args, "diff", "bash")
 	main()
 }
 
