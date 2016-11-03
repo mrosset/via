@@ -10,7 +10,7 @@ func TestRpcBuilder(t *testing.T) {
 			t.Fatal(err)
 		}
 	}()
-	if err := ClientRequestBuild("make", true); err != nil {
+	if err := ClientRequestBuild("devel", true); err != nil {
 		t.Error(err)
 	}
 }

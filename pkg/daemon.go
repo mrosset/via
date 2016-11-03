@@ -29,6 +29,28 @@ func (s *server) Build(ctx context.Context, in *BuildRequest) (*BuildReply, erro
 	}
 	return &BuildReply{Message: "Finished building " + plan.NameVersion()}, BuildSteps(plan)
 }
+
+type BuildWriter struct {
+	stream Builder_BuildStreamServer
+}
+
+func NewBuildWriter(stream Builder_BuildStreamServer) *BuildWriter {
+	return &BuildWriter{stream: stream}
+}
+
+func (bw *BuildWriter) Write(b []byte) (int, error) {
+	bl := &BuildLine{Message: string(b)}
+	return len(b), bw.stream.Send(bl)
+}
+
+func (s *server) BuildStream(in *BuildRequest, stream Builder_BuildStreamServer) error {
+	plan, err := NewPlan(in.Name)
+	if err != nil {
+		return err
+	}
+	return BuildSteps(plan)
+}
+
 func Listen() error {
 	os.Remove(SOCKET)
 	lis, err := net.Listen("unix", SOCKET)
@@ -47,14 +69,21 @@ func unixDialer(addr string, timeout time.Duration) (net.Conn, error) {
 	return sock, err
 }
 
-func ClientRequestBuild(name string, clean bool) error {
+func NewClientConnection() (*grpc.ClientConn, error) {
 	conn, err := grpc.Dial("", grpc.WithInsecure(), grpc.WithDialer(unixDialer))
 	if err != nil {
-		return fmt.Errorf("did not connect: %v", err)
+		return nil, fmt.Errorf("client connection: %v", err)
+	}
+	return conn, nil
+}
+
+func ClientRequestBuild(name string, clean bool) error {
+	conn, err := NewClientConnection()
+	if err != nil {
+		return err
 	}
 	defer conn.Close()
 	c := NewBuilderClient(conn)
-
 	r, err := c.Build(context.Background(), &BuildRequest{Name: name, Clean: clean})
 	if err != nil {
 		return fmt.Errorf("could not greet: %v", err)

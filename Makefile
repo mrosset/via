@@ -1,13 +1,12 @@
-SRC		= $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
+SRC		= $(wildcard *.go Makefile pkg/*.go pkg/*.proto via/*.go docker/Dockerfile)
 BIN		= $(GOPATH)/bin/via
 CMDS	= fmt test install
 REPO  = strings/via:devel
 
 $(BIN): $(SRC)
+	protoc pkg/builder.proto --go_out=plugins=grpc:./
 	CGO_ENABLED=0 go install
 	@git diff --quiet || echo WARNING: git tree is dirty
-
-foo: $(BIN)
 
 fmt:
 	go fmt ./...

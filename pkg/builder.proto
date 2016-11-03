@@ -4,6 +4,11 @@ package via;
 
 service Builder {
   rpc Build(BuildRequest) returns (BuildReply) {}
+  rpc BuildStream(BuildRequest) returns (stream BuildLine){}
+}
+
+message BuildLine {
+  string message = 1;
 }
 
 message BuildRequest {
