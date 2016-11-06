@@ -11,7 +11,11 @@ $(BIN): $(SRC)
 fmt:
 	go fmt ./...
 
-run:
+start:
+	-docker rm via
+	docker run --name via -d -it -v /tmp:/tmp -v /home/strings:/home/strings strings/via:devel
+
+orun:
 	docker run -it -e TERM=$(TERM) -e DISPLAY=$(DISPLAY) -v /tmp:/tmp -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /bin/ash --login -o vi
 
 

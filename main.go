@@ -42,8 +42,8 @@ func main() {
 	via.Debug(*fdebug)
 	command.Add("add", add, "add plan/s to git index")
 	command.Add("branch", branch, "prints plan branch to stdout")
-	command.Add("build", build, "build plan")
-	command.Add("local", local, "build plan locally")
+	command.Add("dock", dock, "build plan inside docker")
+	command.Add("build", local, "build plan locally")
 	command.Add("start", start, "starts rpc server")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("checkout", checkout, "changes plan branch")
@@ -237,7 +237,7 @@ func start() error {
 	pdebug()
 	return via.Listen()
 }
-func build() error {
+func dock() error {
 	arg := command.Args()[0]
 	return via.ClientRequestBuild(arg, true)
 }

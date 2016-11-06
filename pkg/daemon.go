@@ -14,9 +14,16 @@ const (
 	SOCKET = "/tmp/via.socket"
 )
 
-type server struct{}
+type server struct {
+	busy bool
+}
 
 func (s *server) Build(ctx context.Context, in *BuildRequest) (*BuildReply, error) {
+	if s.busy {
+		return nil, fmt.Errorf("Server is busy")
+	}
+	s.busy = true
+	defer func() { s.busy = false }()
 	plan, err := NewPlan(in.Name)
 	if err != nil {
 		return nil, err
@@ -28,27 +35,6 @@ func (s *server) Build(ctx context.Context, in *BuildRequest) (*BuildReply, erro
 		}
 	}
 	return &BuildReply{Message: "Finished building " + plan.NameVersion()}, BuildSteps(plan)
-}
-
-type BuildWriter struct {
-	stream Builder_BuildStreamServer
-}
-
-func NewBuildWriter(stream Builder_BuildStreamServer) *BuildWriter {
-	return &BuildWriter{stream: stream}
-}
-
-func (bw *BuildWriter) Write(b []byte) (int, error) {
-	bl := &BuildLine{Message: string(b)}
-	return len(b), bw.stream.Send(bl)
-}
-
-func (s *server) BuildStream(in *BuildRequest, stream Builder_BuildStreamServer) error {
-	plan, err := NewPlan(in.Name)
-	if err != nil {
-		return err
-	}
-	return BuildSteps(plan)
 }
 
 func Listen() error {
@@ -139,4 +125,25 @@ func OListen() error {
 	s := gorpc.NewUnixServer(SOCKET, NewDispatcher().NewHandlerFunc())
 	s.Concurrency = 1
 	return s.Serve()
+}
+
+type BuildWriter struct {
+	stream Builder_BuildStreamServer
+}
+
+func NewBuildWriter(stream Builder_BuildStreamServer) *BuildWriter {
+	return &BuildWriter{stream: stream}
+}
+
+func (bw *BuildWriter) Write(b []byte) (int, error) {
+	bl := &BuildLine{Message: string(b)}
+	return len(b), bw.stream.Send(bl)
+}
+
+func (s *server) BuildStream(in *BuildRequest, stream Builder_BuildStreamServer) error {
+	plan, err := NewPlan(in.Name)
+	if err != nil {
+		return err
+	}
+	return BuildSteps(plan)
 }
