@@ -1,0 +1,188 @@
+#+TITLE TODO's
+
+
+* TODO                                                                :devel:
+** Pre-Release goals
+*** Linux and Darwin base/devel plans
+**** Move non essential plans to another branch.
+**** Trim plans on HEAD to bare minimal plans required for a toolchain
+*** Rpc daemon
+*** Rebuild all base/devel plans in docker
+*** Package upgrading
+*** Plan syncing
+*** BTRFS snapin's
+** Circuit
+*** Notes
+    install
+    #+BEGIN_SRC sh
+    go get github.com/gocircuit/circuit/cmd/circuit
+    #+END_SRC
+*** starting a circuit
+   #+BEGIN_SRC sh
+   circuit start -if eth0 -discover 228.8.8.8:7711
+   #+END_SRC 
+** Features not implemented
+*** TODO Interface to add and remove flags
+    Right now we have alot of global flags, some actually have an effect on most
+    packages. But in some case they can break a build, or we want to override a
+    flag.
+
+**** Potential solutions
+***** RemoveFlag
+      maybe we can just add a field that removes the flag from config.json this
+      way we can turn on strict configure which would add strict flag
+      enforcement.
+
+***** config.site
+      Another option is to use a config.site file and configure all of our flags
+      there. This would allow us to set site wide defaults. And not break on
+      flags package don't know. This is nice since it's more autotools aware.
+      only handles autotools though.
+*** TODO Provied mechanism to upgrade newer package
+
+**** Syncing
+     use git to sync the plans from remote to local
+
+**** Upgrading
+     check the Oid of the installed package and Oid in the plans repo
+     if they are different this implies an up grade. so install the newer
+     package
+
+*** TODO Rework Test's
+    Test should only handle input's and output's. Many of the test's right now
+    simple invoke function's and test for go error's.
+
+**** TODO Add test for long link
+     on macos when building emacs archive packages fails when nextstep is enabled
+
+*** TODO When packaging check PREFIX is honored
+    We should check the sanity of PKGDIR.
+
+    We only record files in our manifest not directories. so
+    an empty directory can end up in our tarball. But not be listed in the
+    manifest this means we could try to untar a directory outside of our PREFIX.
+
+    We'll have to check the total entries in each of these directories
+    - $PKGDIR
+    - /usr
+    - /usr/local
+
+*** TODO Via initialization
+    When we first run via, it is dependent on the plans git repo for meta data.
+    currently we git clone recursive the via repo, which contains the plans repo
+    as well. We also do not respect the user and just blindly clone it on first run.
+
+**** TODO Create an init via function
+     do not assume and fetch the plans repository. Error gracefully and suggest
+     user to init the plans repo.
+
+*** TODO Make it so package downloading/installing is not so incremental.
+    We should predetermine what is going to be installed and what needs
+    downloading before we actually do it. This allows us to batch download instead
+    of sequentially downloading. It also gives us the option to present to the
+    user what is going to happen, with a potential yes/no prompt
+
+*** TODO Rework the archive logic.
+
+*** TODO Have plans replace alternative builds
+    when installing packages that have provide the same program but with different
+    features. There will be file path clashes. e.g emacs vs emacs-nox. We need to
+    provide a replace mechanism. To remove emacs and to install emacs-nox.
+** Toolchain
+*** TODO Cross building
+    Currently we build all packages on there native hosts. But it would be easier
+    if we could build for any target without using a virtual machine or bare
+    metal install. This would make it so we could working out of one git
+    repository and not have to run and manage virtual machine or ssh hosts.
+
+
+**** Transition to cross compiling all builds
+
+***** TODO create a linux x86_64 target compiler
+      change our current compiler from a native gcc to a cross x86_64.
+      this would not actually change our builds much. Just that we would
+      effectively be cross building our x86_64 packages. this would lay the ground
+      work for building other targets compilers without much work.
+
+****** TODO Notes
+       toolchain package names will change to their gnu triple.
+
+******* x86_64-via-linux-gnu-gcc
+******* x86_64-via-linux-gnu-binutils
+
+***** TODO Create a second cross compiler targeting power8 as a test.
+
+*** TODO Sandbox
+    currently we are starting to build packages in a docker container. but this is
+    not automated we need to manually spin up the container and then interactively
+    build packages.
+
+    we should have a simple mechanism to build package in a container.
+
+**** Partially implemented
+     Right now this is partially implement in that we can spin up a docker
+     instance. And then build a package. There are some draw backs to this it
+     needs refining and I think ultimately a RPC method might be better. Still
+     thinking on this.
+
+* Via a systems package manager
+** Current state
+   _warning_ Via is currently still in early development. And is not recommend
+   for use outside of a VM or container.
+
+** Build system
+
+*** Plans
+    Via plans are how via knows how to download, build and package source
+    packages. The plan's are currently in json format.
+
+* Experimental
+** TODO Snapin's
+   Along with having traditional package management. Via can also install
+   differential image snapshots this is called a "snapin" . The snapin can be installed
+   just like you would a tarball but with the added benefit of all the things
+   that come with btrfs. This means you can easily rollback upgrades. Or can
+   install whole subset's of packages using one complete file.
+
+*** How it works
+   This is how's via's snapin system works.
+
+**** Snapin file creation
+     snapin files are created by using btrfs streamed instruction images.
+     First we image the system before we install a tarball package then we
+     create an image after the package is installed. We then use btrfs to send
+     the differences to a file. This final file is what we call a snapin.
+
+     This is a manual breakdown on how we create a snapin file.
+
+     First we take a read only snapshot of the current system.
+     #+BEGIN_SRC sh
+     btrfs subvolume snapshot -r /usr/local/via/current /usr/local/via/pre
+     #+END_SRC
+
+     Then we install bash using regular via tarball packages.
+     #+BEGIN_SRC sh
+     via install bash
+     #+END_SRC
+
+     Then we take another read only snapshot with bash installed.
+     #+BEGIN_SRC sh
+     btrfs subvolme snapshot -r /usr/local/via/current /usr/local/via/post
+     #+END_SRC
+
+     Now that we have a pre bash and post bash snapshot we can produce a file
+     that only contains bash files.
+     #+BEGIN_SRC sh
+     brtfs send -p /usr/local/via/pre /usr/local/via/post -f bash-3.4.snapin
+     #+END_SRC
+     This tells brtfs to use our pre snapshot as a parent  for our bash sub volume.
+
+**** /usr/local/via
+     This is a btrfs sub volume
+
+**** /usr/local/via/current
+     this a symlink to the current active system. typically this will look like this.
+     #+BEGIN_EXAMPLE
+     /usr/local/via/current -> /usr/local/via/snaptshots/bash-3.4
+     #+END_EXAMPLE
+     bash being the last snapin installed.
