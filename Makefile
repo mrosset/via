@@ -1,10 +1,9 @@
-SRC		= $(wildcard *.go Makefile pkg/*.go pkg/*.proto via/*.go docker/Dockerfile)
+SRC		= $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
 BIN		= $(GOPATH)/bin/via
 CMDS	= fmt test install
 REPO  = strings/via:devel
 
 $(BIN): $(SRC)
-	protoc pkg/builder.proto --go_out=plugins=grpc:./
 	CGO_ENABLED=0 go install
 	@git diff --quiet || echo WARNING: git tree is dirty
 
@@ -13,7 +12,7 @@ fmt:
 
 start:
 	-docker rm via
-	docker run --name via -d -it -v /tmp:/tmp -v /home/strings:/home/strings strings/via:devel
+	docker run --name via -it -d -e TERM=eterm-color -v via_data:/usr/local/via -v /tmp:/tmp -v /home/strings:/home/strings strings/via:devel
 
 orun:
 	docker run -it -e TERM=$(TERM) -e DISPLAY=$(DISPLAY) -v /tmp:/tmp -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /bin/ash --login -o vi
@@ -29,6 +28,7 @@ root: $(BIN)
 
 dock: $(SRC)
 	CGO_ENABLED=0 go build -o docker/usr/bin/via
+	CGO_ENABLED=0 GOPATH=$(PWD)/docker/usr go get -v github.com/gocircuit/circuit/cmd/circuit
 	docker build -t strings/via:devel docker
 
 clean:

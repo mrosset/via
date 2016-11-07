@@ -44,7 +44,6 @@ func main() {
 	command.Add("branch", branch, "prints plan branch to stdout")
 	command.Add("dock", dock, "build plan inside docker")
 	command.Add("build", local, "build plan locally")
-	command.Add("start", start, "starts rpc server")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("checkout", checkout, "changes plan branch")
 	command.Add("clean", clean, "clean build dir")
@@ -56,7 +55,6 @@ func main() {
 	command.Add("install", install, "install package")
 	command.Add("ipfs", ipfs, "test ipfs connection")
 	command.Add("lint", lint, "lint plans")
-	command.Add("list", list, "lists files")
 	command.Add("log", plog, "print config log for plan")
 	command.Add("owns", owns, "finds which package owns a file")
 	command.Add("options", options, "prints the GNU configure options for a package")
@@ -233,10 +231,6 @@ func plog() error {
 	return nil
 }
 
-func start() error {
-	pdebug()
-	return via.Listen()
-}
 func dock() error {
 	arg := command.Args()[0]
 	return via.CircuitBuild(arg)
