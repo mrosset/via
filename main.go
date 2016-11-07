@@ -239,7 +239,7 @@ func start() error {
 }
 func dock() error {
 	arg := command.Args()[0]
-	return via.ClientRequestBuild(arg, true)
+	return via.CircuitBuild(arg)
 }
 
 func local() error {
