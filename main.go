@@ -30,7 +30,8 @@ var (
 	fclean   = flag.Bool("c", false, "clean before build")
 	fupdate  = flag.Bool("u", false, "force download source")
 	fdeps    = flag.Bool("deps", false, "build depends if needed")
-	app      = &cli.App{
+
+	app = &cli.App{
 		Name:  "via",
 		Usage: "a systems package manager",
 	}
@@ -42,12 +43,42 @@ var (
 		Action: local,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:  "c, clean",
+				Name:  "c",
+				Value: false,
+				Usage: "clean build directory before building",
+			},
+			&cli.BoolFlag{
+				Name:  "v",
+				Value: false,
+				Usage: "displays more information when building",
+			},
+			&cli.BoolFlag{
+				Name:  "d",
+				Value: false,
+				Usage: "displays debugging information when building",
+			},
+			&cli.BoolFlag{
+				Name:  "i",
+				Value: false,
+				Usage: "install package after building",
+			},
+		},
+	}
+
+	// dock command
+	cDock = &cli.Command{
+		Name:   "dock",
+		Usage:  "builds a package inside a clean docker image",
+		Action: dock,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "c",
 				Value: false,
 				Usage: "clean build directory before building",
 			},
 		},
 	}
+
 	// install command
 	cInstall = &cli.Command{
 		Name:   "install",
@@ -60,6 +91,7 @@ func main() {
 	app.Commands = []*cli.Command{
 		cInstall,
 		cBuild,
+		cDock,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -76,7 +108,6 @@ func main() {
 	via.Debug(*fdebug)
 	command.Add("add", add, "add plan/s to git index")
 	command.Add("branch", branch, "prints plan branch to stdout")
-	command.Add("dock", dock, "build plan inside docker")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("checkout", checkout, "changes plan branch")
 	command.Add("clean", clean, "clean build dir")
@@ -122,33 +153,20 @@ func local(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	via.Verbose(ctx.Bool("v"))
+	via.Debug(ctx.Bool("d"))
+
+	if ctx.Bool("c") {
+		via.Clean(plan.Name)
+	}
 	err = via.BuildSteps(plan)
 	if err != nil {
 		return err
 	}
-
-	/*
-		arg = strings.Replace(arg, ".json", "", 1)
-		if *fclean {
-			via.Clean(arg)
-		}
-		if *fdeps {
-			err := via.BuildDeps(plan)
-			if err != nil {
-				return err
-			}
-		}
-		err = via.BuildSteps(plan)
-		if err != nil {
-			return err
-		}
-		if *finstall {
-			err := via.Install(plan.Name)
-			if err != nil {
-				return err
-			}
-		}
-	*/
+	if ctx.Bool("i") {
+		return via.Install(plan.Name)
+	}
 	return nil
 }
 
@@ -308,9 +326,8 @@ func plog() error {
 	return nil
 }
 
-func dock() error {
-	arg := command.Args()[0]
-	return via.CircuitBuild(arg)
+func dock(ctx *cli.Context) error {
+	return via.CircuitBuild(ctx.Args().First())
 }
 
 func pack() error {
