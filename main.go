@@ -84,6 +84,13 @@ var (
 		Name:   "install",
 		Usage:  "installs package",
 		Action: install,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "r",
+				Value: "/",
+				Usage: "use `\"DIR\"` as root",
+			},
+		},
 	}
 )
 
@@ -142,6 +149,8 @@ func install(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
+
+	via.Root(ctx.String("r"))
 	return via.Install(ctx.Args().First())
 }
 
