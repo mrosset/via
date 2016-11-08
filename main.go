@@ -10,6 +10,7 @@ import (
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
+	"gopkg.in/urfave/cli.v2"
 	"io"
 	"log"
 	"net/http"
@@ -29,9 +30,42 @@ var (
 	fclean   = flag.Bool("c", false, "clean before build")
 	fupdate  = flag.Bool("u", false, "force download source")
 	fdeps    = flag.Bool("deps", false, "build depends if needed")
+	app      = &cli.App{
+		Name:  "via",
+		Usage: "a systems package manager",
+	}
+
+	// build command
+	cBuild = &cli.Command{
+		Name:   "build",
+		Usage:  "builds a plan locally",
+		Action: local,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "c, clean",
+				Value: false,
+				Usage: "clean build directory before building",
+			},
+		},
+	}
+	// install command
+	cInstall = &cli.Command{
+		Name:   "install",
+		Usage:  "installs package",
+		Action: install,
+	}
 )
 
 func main() {
+	app.Commands = []*cli.Command{
+		cInstall,
+		cBuild,
+	}
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return
 	flag.Parse()
 	via.Verbose(*verbose)
 	via.Update(*fupdate)
@@ -43,7 +77,6 @@ func main() {
 	command.Add("add", add, "add plan/s to git index")
 	command.Add("branch", branch, "prints plan branch to stdout")
 	command.Add("dock", dock, "build plan inside docker")
-	command.Add("build", local, "build plan locally")
 	command.Add("cd", cd, "returns a bash evaluable cd path")
 	command.Add("checkout", checkout, "changes plan branch")
 	command.Add("clean", clean, "clean build dir")
@@ -52,7 +85,6 @@ func main() {
 	command.Add("diff", diff, "prints git diff for plan(s)")
 	command.Add("edit", edit, "calls EDITOR to edit plan")
 	command.Add("elf", elf, "prints elf information to stdout")
-	command.Add("install", install, "install package")
 	command.Add("ipfs", ipfs, "test ipfs connection")
 	command.Add("lint", lint, "lint plans")
 	command.Add("log", plog, "print config log for plan")
@@ -68,11 +100,56 @@ func main() {
 	if *fdebug {
 		pdebug()
 	}
-	err := command.Run()
+	err = command.Run()
 	if err != nil {
 		elog.Fatal(err)
 	}
 	return
+}
+
+func install(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
+	}
+	return via.Install(ctx.Args().First())
+}
+
+func local(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
+	}
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	err = via.BuildSteps(plan)
+	if err != nil {
+		return err
+	}
+
+	/*
+		arg = strings.Replace(arg, ".json", "", 1)
+		if *fclean {
+			via.Clean(arg)
+		}
+		if *fdeps {
+			err := via.BuildDeps(plan)
+			if err != nil {
+				return err
+			}
+		}
+		err = via.BuildSteps(plan)
+		if err != nil {
+			return err
+		}
+		if *finstall {
+			err := via.Install(plan.Name)
+			if err != nil {
+				return err
+			}
+		}
+	*/
+	return nil
 }
 
 func pdebug() {
@@ -236,36 +313,6 @@ func dock() error {
 	return via.CircuitBuild(arg)
 }
 
-func local() error {
-	for _, arg := range command.Args() {
-		arg = strings.Replace(arg, ".json", "", 1)
-		if *fclean {
-			via.Clean(arg)
-		}
-		plan, err := via.NewPlan(arg)
-		if err != nil {
-			return err
-		}
-		if *fdeps {
-			err := via.BuildDeps(plan)
-			if err != nil {
-				return err
-			}
-		}
-		err = via.BuildSteps(plan)
-		if err != nil {
-			return err
-		}
-		if *finstall {
-			err := via.Install(plan.Name)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 func pack() error {
 	for _, arg := range command.Args() {
 		plan, err := via.NewPlan(arg)
@@ -291,10 +338,6 @@ func list() error {
 		}
 	}
 	return nil
-}
-
-func install() error {
-	return command.ArgsDo(via.Install)
 }
 
 func remove() error {

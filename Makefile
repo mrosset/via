@@ -37,4 +37,4 @@ clean:
 	-rm $(BIN)
 
 test: $(BIN)
-	go test -v ./...
+	via help
