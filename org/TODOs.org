@@ -3,14 +3,14 @@
 
 * TODO                                                                :devel:
 ** Pre-Release goals
-*** Linux and Darwin base/devel plans
+*** TODO Linux and Darwin base/devel plans
 **** Move non essential plans to another branch.
 **** Trim plans on HEAD to bare minimal plans required for a toolchain
-*** Rpc daemon
-*** Rebuild all base/devel plans in docker
-*** Package upgrading
-*** Plan syncing
-*** BTRFS snapin's
+*** TODO Rpc daemon
+*** TODO Rebuild all base/devel plans in docker
+*** TODO Package upgrading
+*** TODO Plan syncing
+*** TODO Command flags
 ** Circuit
 *** Notes
     install
