@@ -6,7 +6,9 @@ ENV GOPATH /home/$USER/gocode
 ENV PATH /usr/local/via/bin:$GOPATH/bin:/sbin:/bin:/usr/bin:/usr/sbin
 COPY etc /etc
 COPY usr /usr
-#RUN chown -R strings /usr/local/via
+RUN mkdir -p /usr/local/via
+RUN chown -R strings /usr/local/via
+RUN ln -s /usr/local/via/lib /lib64
 WORKDIR /home/$USER
 USER $USER
 EXPOSE 1122
