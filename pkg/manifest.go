@@ -27,13 +27,7 @@ func strip(p string) error {
 	return cmd.Run()
 }
 
-// Walk the package directory and make a file list.
-// The resulting file list and plan data, is saved
-// to manifest.json which then gets tar/gzipped into
-// the package file.
-//
-// CreateManifest also perform strip and removale of
-// blacklisted files.
+// Walks the plans PKGDIR and creates a gzipped manifest file.
 func CreateManifest(dir string, plan *Plan) (err error) {
 	var (
 		size  int64
