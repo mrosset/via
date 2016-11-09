@@ -63,15 +63,13 @@ func DownloadSrc(plan *Plan) (err error) {
 		wget(cache.Sources(), eurl)
 	case "http", "https":
 		return gurl.Download(cache.Sources(), eurl)
-	case "git":
-		return fmt.Errorf("%s URL scheme is not supported")
 	default:
 		return fmt.Errorf("%s URL scheme is not supported")
 	}
 	return nil
 }
 
-// Stages the downloaded source via's cache directory
+// Stages the downloaded source in via's cache directory
 // the stage only happens once unless BuilInStage is used
 func Stage(plan *Plan) (err error) {
 	if plan.Url == "" || file.Exists(plan.GetStageDir()) {
@@ -118,14 +116,9 @@ func Build(plan *Plan) (err error) {
 	if file.Exists(plan.PackagePath()) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}
-	flags := config.Flags
-	if plan.Flags != nil {
-		flags = append(flags, plan.Flags...)
-	}
-	if !file.Exists(plan.BuildDir()) {
-		os.MkdirAll(plan.BuildDir(), 0755)
-	}
-	// Parent plan's Build is run first this plans is added at the end.
+	flags := append(config.Flags, plan.Flags...)
+	os.MkdirAll(plan.BuildDir(), 0755)
+	// Parent plan Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
 		parent, _ := NewPlan(plan.Inherit)
 		build = append(parent.Build, plan.Build...)
@@ -190,8 +183,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	os.Setenv("PKGDIR", pdir)
 	if plan.Inherit != "" {
 		parent, _ := NewPlan(plan.Inherit)
-		pack = parent.Package
-		pack = append(pack, plan.Package...)
+		pack = append(parent.Package, plan.Package...)
 	}
 	err = doCommands(bdir, pack)
 	if err != nil {

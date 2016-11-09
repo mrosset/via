@@ -100,7 +100,7 @@ func (c *Config) Expand() *Config {
 	return o
 }
 
-// Checks all branches match the Config branch
+// Checks plan branch match the Config branch
 func (c Config) CheckBranches() error {
 	pb := c.PlanBranch()
 	if pb != config.Branch {
