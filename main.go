@@ -2,42 +2,26 @@ package main
 
 import (
 	"bytes"
-	"errors"
-	"flag"
 	"fmt"
-	"github.com/mrosset/util"
-	"github.com/mrosset/util/console/command"
-	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 var (
-	elog     = log.New(os.Stderr, "", log.Lshortfile)
-	root     = flag.String("r", "/", "root directory")
-	verbose  = flag.Bool("v", false, "verbose output")
-	finstall = flag.Bool("i", true, "install package after build (default true)")
-	fdebug   = flag.Bool("d", false, "debug output")
-	config   = via.GetConfig()
-	fclean   = flag.Bool("c", false, "clean before build")
-	fupdate  = flag.Bool("u", false, "force download source")
-	fdeps    = flag.Bool("deps", false, "build depends if needed")
-
-	app = &cli.App{
+	elog   = log.New(os.Stderr, "", log.Lshortfile)
+	config = via.GetConfig()
+	app    = &cli.App{
 		Name:  "via",
 		Usage: "a systems package manager",
 	}
 
 	// build command
-	cBuild = &cli.Command{
+	cbuild = &cli.Command{
 		Name:   "build",
 		Usage:  "builds a plan locally",
 		Action: local,
@@ -66,7 +50,7 @@ var (
 	}
 
 	// dock command
-	cDock = &cli.Command{
+	cdock = &cli.Command{
 		Name:   "dock",
 		Usage:  "builds a package inside a clean docker image",
 		Action: dock,
@@ -80,7 +64,7 @@ var (
 	}
 
 	// install command
-	cInstall = &cli.Command{
+	cinstall = &cli.Command{
 		Name:   "install",
 		Usage:  "installs package",
 		Action: install,
@@ -92,55 +76,41 @@ var (
 			},
 		},
 	}
+
+	// edit command
+	cedit = &cli.Command{
+		Name:   "edit",
+		Usage:  "calls EDITOR to edit plan",
+		Action: edit,
+	}
+
+	// show command
+	cshow = &cli.Command{
+		Name:   "show",
+		Usage:  "prints plan to stdout",
+		Action: show,
+	}
+
+	// config command
+	cconfig = &cli.Command{
+		Name:   "config",
+		Usage:  "prints config to stdout",
+		Action: fconfig,
+	}
 )
 
 func main() {
 	app.Commands = []*cli.Command{
-		cInstall,
-		cBuild,
-		cDock,
+		cinstall,
+		cbuild,
+		cedit,
+		cconfig,
+		cshow,
+		cdock,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
-	}
-	return
-	flag.Parse()
-	via.Verbose(*verbose)
-	via.Update(*fupdate)
-	via.Deps(*fdeps)
-
-	via.Root(*root)
-	util.Verbose = *verbose
-	via.Debug(*fdebug)
-	command.Add("add", add, "add plan/s to git index")
-	command.Add("branch", branch, "prints plan branch to stdout")
-	command.Add("cd", cd, "returns a bash evaluable cd path")
-	command.Add("checkout", checkout, "changes plan branch")
-	command.Add("clean", clean, "clean build dir")
-	command.Add("config", fnConfig, "prints config to stdout")
-	command.Add("create", create, "create plan from URL")
-	command.Add("diff", diff, "prints git diff for plan(s)")
-	command.Add("edit", edit, "calls EDITOR to edit plan")
-	command.Add("elf", elf, "prints elf information to stdout")
-	command.Add("ipfs", ipfs, "test ipfs connection")
-	command.Add("lint", lint, "lint plans")
-	command.Add("log", plog, "print config log for plan")
-	command.Add("owns", owns, "finds which package owns a file")
-	command.Add("options", options, "prints the GNU configure options for a package")
-	command.Add("pack", pack, "package plan")
-	command.Add("remove", remove, "remove package")
-	command.Add("repo", repo, "update repo")
-	command.Add("search", search, "search for plans (currently lists all use grep)")
-	command.Add("show", fnShow, "prints plan to stdout")
-	command.Add("sync", sync, "fetch remote repo data")
-	command.Add("synchashs", synchashs, "DEV ONLY sync the plans Oid with binary banch")
-	if *fdebug {
-		pdebug()
-	}
-	err = command.Run()
-	if err != nil {
-		elog.Fatal(err)
 	}
 	return
 }
@@ -152,6 +122,10 @@ func install(ctx *cli.Context) error {
 
 	via.Root(ctx.String("r"))
 	return via.Install(ctx.Args().First())
+}
+
+func remove(ctx *cli.Context) error {
+	return via.Remove(ctx.Args().First())
 }
 
 func local(ctx *cli.Context) error {
@@ -179,6 +153,37 @@ func local(ctx *cli.Context) error {
 	return nil
 }
 
+func edit(ctx *cli.Context) error {
+	var (
+		editor = os.Getenv("EDITOR")
+		arg0   = ctx.Args().First()
+		p      = filepath.Join(config.Plans, "config.json")
+		err    error
+	)
+	if arg0 != "config" {
+		p, err = via.FindPlanPath(arg0)
+		if err != nil {
+			return err
+		}
+	}
+	cmd := exec.Command(editor, p)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+	elog.Println("linting...")
+	via.Verbose(false)
+	return via.Lint()
+}
+
+func dock(ctx *cli.Context) error {
+	return via.CircuitBuild(ctx.Args().First())
+}
+
+/*
 func pdebug() {
 	path, _ := os.LookupEnv("PATH")
 	home, _ := os.LookupEnv("HOME")
@@ -219,7 +224,9 @@ func cd() error {
 	}
 	return nil
 }
+*/
 
+/*
 func add() error {
 	if len(command.Args()) < 1 {
 		return errors.New("no plans specified")
@@ -241,7 +248,9 @@ func add() error {
 	}
 	return nil
 }
+*/
 
+/*
 func diff() error {
 	if len(command.Args()) < 1 {
 		return errors.New("no plans specified")
@@ -284,31 +293,6 @@ func branch() error {
 	return git.Run()
 
 }
-func edit() error {
-	var (
-		editor = os.Getenv("EDITOR")
-		arg0   = command.Args()[0]
-		p      = filepath.Join(config.Plans, "config.json")
-		err    error
-	)
-	if arg0 != "config" {
-		p, err = via.FindPlanPath(arg0)
-		if err != nil {
-			return err
-		}
-	}
-	cmd := exec.Command(editor, p)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		return err
-	}
-	elog.Println("linting...")
-	via.Verbose(false)
-	return via.Lint()
-}
 
 func create() error {
 	url := command.Args()[0]
@@ -333,10 +317,6 @@ func plog() error {
 		}
 	}
 	return nil
-}
-
-func dock(ctx *cli.Context) error {
-	return via.CircuitBuild(ctx.Args().First())
 }
 
 func pack() error {
@@ -365,36 +345,34 @@ func list() error {
 	}
 	return nil
 }
-
-func remove() error {
-	return command.ArgsDo(via.Remove)
-}
+*/
 
 func lint() error {
 	return via.Lint()
 }
 
-func fnShow() error {
-	for _, arg := range command.Args() {
-		plan, err := via.NewPlan(arg)
-		if err != nil {
-			elog.Fatal(err)
-		}
-		buf := new(bytes.Buffer)
-		less := exec.Command("less")
-		less.Stdin = buf
-		less.Stdout = os.Stdout
-		less.Stderr = os.Stderr
-		err = json.WritePretty(&plan, buf)
-		if err != nil {
-			fmt.Println(err)
-		}
-		less.Run()
+func show(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help show'")
 	}
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		elog.Fatal(err)
+	}
+	buf := new(bytes.Buffer)
+	less := exec.Command("less")
+	less.Stdin = buf
+	less.Stdout = os.Stdout
+	less.Stderr = os.Stderr
+	err = json.WritePretty(&plan, buf)
+	if err != nil {
+		fmt.Println(err)
+	}
+	less.Run()
 	return nil
 }
 
-func fnConfig() error {
+func fconfig(ctx *cli.Context) error {
 	err := json.WritePretty(via.GetConfig(), os.Stdout)
 	if err != nil {
 		return err
@@ -402,6 +380,7 @@ func fnConfig() error {
 	return nil
 }
 
+/*
 func clean() error {
 	return command.ArgsDo(via.Clean)
 }
@@ -471,3 +450,52 @@ func search() error {
 	plans.SortSize().Print()
 	return nil
 }
+
+func oldCommands() {
+	// Old Flags
+	root     = flag.String("r", "/", "root directory")
+	verbose  = flag.Bool("v", false, "verbose output")
+	finstall = flag.Bool("i", true, "install package after build (default true)")
+	fdebug   = flag.Bool("d", false, "debug output")
+	fclean   = flag.Bool("c", false, "clean before build")
+	fupdate  = flag.Bool("u", false, "force download source")
+	fdeps    = flag.Bool("deps", false, "build depends if needed")
+
+	// Old Commands
+	flag.Parse()
+	via.Verbose(*verbose)
+	via.Update(*fupdate)
+	via.Deps(*fdeps)
+
+	via.Root(*root)
+	util.Verbose = *verbose
+	via.Debug(*fdebug)
+	command.Add("add", add, "add plan/s to git index")
+	command.Add("branch", branch, "prints plan branch to stdout")
+	command.Add("cd", cd, "returns a bash evaluable cd path")
+	command.Add("checkout", checkout, "changes plan branch")
+	command.Add("clean", clean, "clean build dir")
+	command.Add("create", create, "create plan from URL")
+	command.Add("diff", diff, "prints git diff for plan(s)")
+	command.Add("elf", elf, "prints elf information to stdout")
+	command.Add("ipfs", ipfs, "test ipfs connection")
+	command.Add("lint", lint, "lint plans")
+	command.Add("log", plog, "print config log for plan")
+	command.Add("owns", owns, "finds which package owns a file")
+	command.Add("options", options, "prints the GNU configure options for a package")
+	command.Add("pack", pack, "package plan")
+	command.Add("remove", remove, "remove package")
+	command.Add("repo", repo, "update repo")
+	command.Add("search", search, "search for plans (currently lists all use grep)")
+	command.Add("sync", sync, "fetch remote repo data")
+	command.Add("synchashs", synchashs, "DEV ONLY sync the plans Oid with binary banch")
+	if *fdebug {
+		pdebug()
+	}
+	err = command.Run()
+	if err != nil {
+		elog.Fatal(err)
+	}
+	return
+}
+*/
