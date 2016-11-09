@@ -102,10 +102,9 @@ func (c *Config) Expand() *Config {
 
 // Checks all branches match the Config branch
 func (c Config) CheckBranches() error {
-	rb := c.RepoBranch()
 	pb := c.PlanBranch()
-	if pb != config.Branch || rb != config.Branch {
-		return fmt.Errorf("%s: repo:%s plan:%s", ERR_BRANCH_MISMATCH, rb, pb)
+	if pb != config.Branch {
+		return fmt.Errorf("%s: plan:%s", ERR_BRANCH_MISMATCH, pb)
 	}
 	return nil
 }
