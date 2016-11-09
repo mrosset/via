@@ -46,6 +46,11 @@ var (
 				Value: false,
 				Usage: "install package after building",
 			},
+			&cli.BoolFlag{
+				Name:  "u",
+				Value: false,
+				Usage: "force downloading of sources",
+			},
 		},
 	}
 
@@ -139,6 +144,7 @@ func local(ctx *cli.Context) error {
 
 	via.Verbose(ctx.Bool("v"))
 	via.Debug(ctx.Bool("d"))
+	via.Update(ctx.Bool("u"))
 
 	if ctx.Bool("c") {
 		via.Clean(plan.Name)
