@@ -12,7 +12,7 @@ fmt:
 
 start:
 	-docker rm via
-	docker run --name via -it -d -e TERM=eterm-color -v via_data:/usr/local/via -v /tmp:/tmp -v /home/strings:/home/strings strings/via:devel
+	docker run --name via -it -d -e TERM=eterm-color -v via_local:/usr/local/via -v /tmp:/tmp -v /home/strings:/home/strings strings/via:devel
 
 orun:
 	docker run -it -e TERM=$(TERM) -e DISPLAY=$(DISPLAY) -v /tmp:/tmp -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /bin/ash --login -o vi

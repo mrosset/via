@@ -82,6 +82,13 @@ var (
 		},
 	}
 
+	// remove command
+	cremove = &cli.Command{
+		Name:   "remove",
+		Usage:  "uninstall package",
+		Action: remove,
+	}
+
 	// edit command
 	cedit = &cli.Command{
 		Name:   "edit",
@@ -102,15 +109,40 @@ var (
 		Usage:  "prints config to stdout",
 		Action: fconfig,
 	}
+
+	// list command
+	clist = &cli.Command{
+		Name:   "list",
+		Usage:  "list files for `PLAN`",
+		Action: list,
+	}
+
+	// lint command
+	clint = &cli.Command{
+		Name:   "lint",
+		Usage:  "lint and format plans",
+		Action: lint,
+	}
+
+	// repo command
+	crepo = &cli.Command{
+		Name:   "repo",
+		Usage:  "recreates file db",
+		Action: repo,
+	}
 )
 
 func main() {
 	app.Commands = []*cli.Command{
 		cinstall,
+		cremove,
 		cbuild,
-		cedit,
+		clist,
 		cconfig,
 		cshow,
+		crepo
+		clint,
+		cedit,
 		cdock,
 	}
 	err := app.Run(os.Args)
@@ -187,6 +219,57 @@ func edit(ctx *cli.Context) error {
 
 func dock(ctx *cli.Context) error {
 	return via.CircuitBuild(ctx.Args().First())
+}
+
+func list(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("list requires a 'PLAN' argument. see: 'via help list'")
+	}
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	for _, f := range plan.Files {
+		fmt.Println(f)
+	}
+	return nil
+}
+
+func lint(ctx *cli.Context) error {
+	return via.Lint()
+}
+
+func show(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help show'")
+	}
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		elog.Fatal(err)
+	}
+	buf := new(bytes.Buffer)
+	less := exec.Command("less")
+	less.Stdin = buf
+	less.Stdout = os.Stdout
+	less.Stderr = os.Stderr
+	err = json.WritePretty(&plan, buf)
+	if err != nil {
+		fmt.Println(err)
+	}
+	less.Run()
+	return nil
+}
+
+func fconfig(ctx *cli.Context) error {
+	err := json.WritePretty(via.GetConfig(), os.Stdout)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func repo(ctx *cli.Context) error {
+	return via.RepoCreate()
 }
 
 /*
@@ -339,52 +422,7 @@ func pack() error {
 	return nil
 }
 
-func list() error {
-	for _, arg := range command.Args() {
-		plan, err := via.NewPlan(arg)
-		if err != nil {
-			return err
-		}
-		for _, f := range plan.Files {
-			fmt.Println(f)
-		}
-	}
-	return nil
-}
 */
-
-func lint() error {
-	return via.Lint()
-}
-
-func show(ctx *cli.Context) error {
-	if !ctx.Args().Present() {
-		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help show'")
-	}
-	plan, err := via.NewPlan(ctx.Args().First())
-	if err != nil {
-		elog.Fatal(err)
-	}
-	buf := new(bytes.Buffer)
-	less := exec.Command("less")
-	less.Stdin = buf
-	less.Stdout = os.Stdout
-	less.Stderr = os.Stderr
-	err = json.WritePretty(&plan, buf)
-	if err != nil {
-		fmt.Println(err)
-	}
-	less.Run()
-	return nil
-}
-
-func fconfig(ctx *cli.Context) error {
-	err := json.WritePretty(via.GetConfig(), os.Stdout)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 /*
 func clean() error {
@@ -442,10 +480,6 @@ func options() error {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
-}
-
-func repo() error {
-	return via.RepoCreate()
 }
 
 func search() error {
