@@ -140,7 +140,7 @@ func main() {
 		clist,
 		cconfig,
 		cshow,
-		crepo
+		crepo,
 		clint,
 		cedit,
 		cdock,
