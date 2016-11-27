@@ -7,6 +7,7 @@ import (
 )
 
 func TestClone(t *testing.T) {
+	t.Parallel()
 	var (
 		expect = "testdata/git/README"
 		gitd   = "testdata/git"
@@ -30,6 +31,7 @@ func TestClone(t *testing.T) {
 }
 
 func TestSubBranch(t *testing.T) {
+	t.Parallel()
 	var (
 		expect = "linux-x86_64"
 		got    = ""

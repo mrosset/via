@@ -7,7 +7,6 @@ import (
 	"github.com/str1ngs/util/json"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"sort"
 	"time"
@@ -125,7 +124,7 @@ func needs(file string) []string {
 
 func ReadManifest(name string) (man *Plan, err error) {
 	man = new(Plan)
-	err = json.Read(man, path.Join(config.DB.Installed(), name, "manifest.json"))
+	err = json.Read(man, join(config.DB.Installed(), name, "manifest.json"))
 	if err != nil {
 		return
 	}

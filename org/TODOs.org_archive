@@ -179,3 +179,16 @@ repo/linux-x86_64/file.tar.gz
   git is our only dependency right now for installing packages.  create static
   git binary that we can host in docker with via.
 
+
+* TODO Rebuild all base/devel plans in docker
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2016-11-09 Wed 17:55
+  :ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/org/TODOs.org
+  :ARCHIVE_OLPATH: /Pre-Release goals
+  :ARCHIVE_CATEGORY: TODOs
+  :ARCHIVE_TODO: TODO
+  :ARCHIVE_ITAGS: devel
+  :END:
+** derive new publish branch from blank master
+** create new plans branch for rebuild
+** rebuild each devel package one by one in docker
