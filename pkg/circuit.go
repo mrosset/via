@@ -11,7 +11,7 @@ import (
 
 const (
 	FMT_CIRCUIT_ADDRESS = "circuit://%s/%s/%s"
-	CIRCUIT_IP          = "172.17.0.2:1122"
+	CIRCUIT_IP          = "192.168.0.22:1122"
 )
 
 // Search for a running circuit in /tmp and returns its formatted circuit address
@@ -35,14 +35,15 @@ func pickServer(c *cclient.Client) cclient.Anchor {
 }
 
 func CircuitBuild(name string) error {
-	a, err := CircuitAddress()
+	_, err := CircuitAddress()
 	if err != nil {
 		return err
 	}
-	c := cclient.Dial(a, nil)
+	c := cclient.DialDiscover("228.8.8.8:8822", nil)
+	//c := cclient.Dial(a, nil)
 	cmd := cclient.Cmd{
 		Path:  "/home/strings/gocode/bin/via",
-		Args:  []string{"-c", "build", name},
+		Args:  []string{"build", "-c", name},
 		Scrub: true,
 	}
 	t := pickServer(c).Walk([]string{"via", "build"})
