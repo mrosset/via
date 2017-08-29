@@ -152,6 +152,13 @@ var (
 		Usage:  "diff's plan working directory against git HEAD",
 		Action: diff,
 	}
+
+	// repo command
+	csearch = &cli.Command{
+		Name:   "search",
+		Usage:  "lists all of the available packages",
+		Action: search,
+	}
 )
 
 func main() {
@@ -169,6 +176,7 @@ func main() {
 		cdock,
 		celf,
 		cdiff,
+		csearch,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -324,6 +332,15 @@ func diff(ctx *cli.Context) error {
 	git.Stdout = os.Stdout
 	git.Stderr = os.Stderr
 	return git.Run()
+}
+
+func search(ctx *cli.Context) error {
+	plans, err := via.GetPlans()
+	if err != nil {
+		return err
+	}
+	plans.SortSize().Print()
+	return nil
 }
 
 /*
@@ -509,15 +526,6 @@ func options() error {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
-}
-
-func search() error {
-	plans, err := via.GetPlans()
-	if err != nil {
-		return err
-	}
-	plans.SortSize().Print()
-	return nil
 }
 
 func oldCommands() {
