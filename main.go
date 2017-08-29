@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
@@ -130,6 +131,13 @@ var (
 		Usage:  "recreates file db",
 		Action: repo,
 	}
+
+	// repo command
+	clog = &cli.Command{
+		Name:   "log",
+		Usage:  "output's configure.log for build",
+		Action: plog,
+	}
 )
 
 func main() {
@@ -143,6 +151,7 @@ func main() {
 		crepo,
 		clint,
 		cedit,
+		clog,
 		cdock,
 	}
 	err := app.Run(os.Args)
@@ -272,6 +281,22 @@ func repo(ctx *cli.Context) error {
 	return via.RepoCreate()
 }
 
+func plog(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help log'")
+	}
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	f := filepath.Join(plan.BuildDir(), "config.log")
+	err = file.Cat(os.Stdout, f)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
 /*
 func pdebug() {
 	path, _ := os.LookupEnv("PATH")
@@ -389,21 +414,6 @@ func create() error {
 	err := via.Create(url, group)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func plog() error {
-	for _, arg := range command.Args() {
-		plan, err := via.NewPlan(arg)
-		if err != nil {
-			return err
-		}
-		f := filepath.Join(plan.BuildDir(), "config.log")
-		err = file.Cat(os.Stdout, f)
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 	return nil
 }
