@@ -44,7 +44,7 @@ var (
 			},
 			&cli.BoolFlag{
 				Name:  "i",
-				Value: false,
+				Value: true,
 				Usage: "install package after building",
 			},
 			&cli.BoolFlag{
@@ -138,6 +138,20 @@ var (
 		Usage:  "output's configure.log for build",
 		Action: plog,
 	}
+
+	// repo command
+	celf = &cli.Command{
+		Name:   "elf",
+		Usage:  "prints elf information to stdout",
+		Action: elf,
+	}
+
+	// repo command
+	cdiff = &cli.Command{
+		Name:   "diff",
+		Usage:  "diff's plan working directory against git HEAD",
+		Action: diff,
+	}
 )
 
 func main() {
@@ -153,6 +167,8 @@ func main() {
 		cedit,
 		clog,
 		cdock,
+		celf,
+		cdiff,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -297,6 +313,19 @@ func plog(ctx *cli.Context) error {
 	return nil
 }
 
+func elf(ctx *cli.Context) error {
+	fmt.Println(ctx.Args().First())
+	return via.Readelf(ctx.Args().First())
+}
+
+func diff(ctx *cli.Context) error {
+	git := exec.Command("git", "diff")
+	git.Dir = config.Plans
+	git.Stdout = os.Stdout
+	git.Stderr = os.Stderr
+	return git.Run()
+}
+
 /*
 func pdebug() {
 	path, _ := os.LookupEnv("PATH")
@@ -437,16 +466,6 @@ func pack() error {
 /*
 func clean() error {
 	return command.ArgsDo(via.Clean)
-}
-
-func elf() error {
-	for _, arg := range command.Args() {
-		err := via.Readelf(arg)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func sync() error {
