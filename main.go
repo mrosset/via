@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
@@ -280,16 +279,10 @@ func show(ctx *cli.Context) error {
 	if err != nil {
 		elog.Fatal(err)
 	}
-	buf := new(bytes.Buffer)
-	less := exec.Command("less")
-	less.Stdin = buf
-	less.Stdout = os.Stdout
-	less.Stderr = os.Stderr
-	err = json.WritePretty(&plan, buf)
+	err = json.WritePretty(&plan, os.Stdout)
 	if err != nil {
 		fmt.Println(err)
 	}
-	less.Run()
 	return nil
 }
 
