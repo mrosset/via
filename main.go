@@ -76,7 +76,7 @@ var (
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "r",
-				Value: "/",
+				Value: config.Root,
 				Usage: "use `\"DIR\"` as root",
 			},
 		},
