@@ -131,32 +131,34 @@ var (
 		Action: repo,
 	}
 
-	// repo command
 	clog = &cli.Command{
 		Name:   "log",
 		Usage:  "output's configure.log for build",
 		Action: plog,
 	}
 
-	// repo command
 	celf = &cli.Command{
 		Name:   "elf",
 		Usage:  "prints elf information to stdout",
 		Action: elf,
 	}
 
-	// repo command
 	cdiff = &cli.Command{
 		Name:   "diff",
 		Usage:  "diff's plan working directory against git HEAD",
 		Action: diff,
 	}
 
-	// repo command
 	csearch = &cli.Command{
 		Name:   "search",
 		Usage:  "lists all of the available packages",
 		Action: search,
+	}
+
+	coptions = &cli.Command{
+		Name:   "options",
+		Usage:  "prints the GNU configure options for a package",
+		Action: options,
 	}
 )
 
@@ -176,6 +178,7 @@ func main() {
 		celf,
 		cdiff,
 		csearch,
+		coptions,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -334,6 +337,23 @@ func search(ctx *cli.Context) error {
 	}
 	plans.SortSize().Print()
 	return nil
+}
+
+func options(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help options'")
+	}
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	c := filepath.Join(plan.GetStageDir(), "configure")
+	fmt.Println(c)
+	cmd := exec.Command(c, "--help")
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 /*
@@ -500,25 +520,6 @@ func owns() error {
 		fmt.Println(owner)
 	}
 	return nil
-}
-
-func options() error {
-	if len(command.Args()) < 1 {
-
-	}
-	arg := command.Args()[0]
-
-	plan, err := via.NewPlan(arg)
-	if err != nil {
-		return err
-	}
-	c := filepath.Join(plan.GetStageDir(), "configure")
-	fmt.Println(c)
-	cmd := exec.Command(c, "--help")
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }
 
 func oldCommands() {

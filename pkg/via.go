@@ -76,6 +76,7 @@ func Stage(plan *Plan) (err error) {
 		// nothing to stage
 		return nil
 	}
+	fmt.Printf(lfmt, "stage", plan.NameVersion())
 	u, err := url.Parse(plan.Expand().Url)
 	if err != nil {
 		elog.Println(err)
@@ -397,7 +398,6 @@ func BuildSteps(plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
-	fmt.Printf(lfmt, "stage", plan.NameVersion())
 	if err := Stage(plan); err != nil {
 		elog.Println(err)
 		return err
