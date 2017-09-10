@@ -14,6 +14,7 @@ import (
 
 var (
 	elog   = log.New(os.Stderr, "", log.Lshortfile)
+	lfmt   = "%-20.20s %v\n"
 	config = via.GetConfig()
 	app    = &cli.App{
 		Name:  "via",
@@ -160,6 +161,12 @@ var (
 		Usage:  "prints the GNU configure options for a package",
 		Action: options,
 	}
+
+	cstrap = &cli.Command{
+		Name:   "strap",
+		Usage:  "rebuilds each package in the devel group",
+		Action: strap,
+	}
 )
 
 func main() {
@@ -179,12 +186,42 @@ func main() {
 		cdiff,
 		csearch,
 		coptions,
+		cstrap,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return
+}
+
+func strap(ctx *cli.Context) error {
+
+	dplan, err := via.NewPlan("devel")
+
+	if err != nil {
+		return err
+	}
+
+	for _, p := range dplan.ManualDepends {
+		plan, err := via.NewPlan(p)
+		if plan.IsRebuilt {
+			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		via.Clean(plan.Name)
+		err = via.BuildSteps(plan)
+		if err != nil {
+			return err
+		}
+		via.Install(plan.Name)
+		plan.IsRebuilt = true
+		plan.Save()
+	}
+	return nil
 }
 
 func install(ctx *cli.Context) error {

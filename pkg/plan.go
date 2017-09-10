@@ -76,6 +76,7 @@ type Plan struct {
 	Inherit       string
 	Oid           string
 	BuildInStage  bool
+	IsRebuilt     bool
 	BuildTime     time.Duration
 	Date          time.Time
 	Size          int64

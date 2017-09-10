@@ -45,7 +45,7 @@ systemd-journal-remote:x:998:
 systemd-coredump:x:997:
 git:x:996:
 polkitd:x:102:
-strings:x:1000:
+mrosset:x:1000:
 lightdm:x:620:
 rtkit:x:133:
 avahi:x:84:

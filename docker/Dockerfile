@@ -1,16 +1,19 @@
 #FROM scratch
 FROM busybox
-ENV USER strings
+ENV USER mrosset
 ENV HOME /home/$USER
 ENV GOPATH /home/$USER/gocode
-ENV PATH /usr/local/via/bin:$GOPATH/bin:/sbin:/bin:/usr/bin:/usr/sbin
+ENV PATH $HOME/via/bin:$GOPATH/bin:/sbin:/bin:/usr/bin:/usr/sbin
+COPY bin /bin
 COPY etc /etc
 COPY usr /usr
-RUN mkdir -p /usr/local/via
-RUN chown -R strings /usr/local/via
-RUN ln -s /usr/local/via/lib /lib64
+RUN ln -s $HOME/via/lib /lib64
+RUN mkdir -p /usr/bin
+RUN mkdir -p $HOME/via
+RUN chown $USER.$USER $HOME/via
+RUN ln -s $HOME/via/bin/file /usr/bin/file
 WORKDIR /home/$USER
 USER $USER
 EXPOSE 1122
-CMD ["/usr/local/via/bin/bash","--login"]
+CMD ["/bin/bash","--login"]
 #CMD ["/usr/bin/circuit","start","-a","172.17.0.2:1122"]
