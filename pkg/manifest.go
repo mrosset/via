@@ -4,7 +4,7 @@ import (
 	"debug/elf"
 	"errors"
 	"fmt"
-	"github.com/str1ngs/util/json"
+	"github.com/mrosset/util/json"
 	"os"
 	"os/exec"
 	"path/filepath"

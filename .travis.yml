@@ -2,3 +2,11 @@ language: go
 
 go:
   - 1.9
+
+install:
+  - go get github.com/gocircuit/circuit
+  - go get github.com/mrosset/gurl
+  - go get github.com/mrosset/util
+  - go get golang.org/x/crypto/openpgp
+  - go get gopkg.in/src-d/go-git.v4
+  - go get gopkg.in/urfave/cli.v2
