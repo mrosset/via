@@ -4,7 +4,7 @@ go:
   - 1.9
 
 install:
-  - go get github.com/gocircuit/circuit
+  - go get github.com/gocircuit/circuit/client
   - go get github.com/mrosset/gurl
   - go get github.com/mrosset/util
   - go get golang.org/x/crypto/openpgp
