@@ -1,10 +1,12 @@
 #+TITLE: Via
 
+[[https://travis-ci.org/mrosset/via.svg?branch=master]]
+
 * Description
 Via is a systems package manager written in go language. It's primary purpose is
 is to download and install precompiled binary packages.
 
-The binary packages are installed to /usr/local/via . This allows packages to be 
+The binary packages are installed to /usr/local/via . This allows packages to be
 installed along side any modern Unix like system.
 
 Via builds the binary packages from upstream sources. The package meta data and
