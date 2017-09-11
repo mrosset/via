@@ -18,6 +18,11 @@ files.
 go get github.com/mrosset/via
 #+END_SRC
 
+* Installing the development group
+#+BEGIN_SRC sh
+via install devel
+#+END_SRC
+
 * Installing a package
 #+BEGIN_SRC sh
 via install bash
@@ -25,10 +30,5 @@ via install bash
 
 * Build bash
 #+BEGIN_SRC sh
-via -c build bash
-#+END_SRC
-
-* Installing the development group
-#+BEGIN_SRC sh
-via install devel
+via build -c bash
 #+END_SRC
