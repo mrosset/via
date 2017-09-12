@@ -11,10 +11,9 @@ func TestClone(t *testing.T) {
 	var (
 		expect = "testdata/git/README"
 		gitd   = "testdata/git"
-		branch = "refs/heads/master"
 	)
 	defer os.RemoveAll(gitd)
-	if err := Clone(gitd, branch, "https://github.com/mrosset/gur"); err != nil {
+	if err := Clone(gitd, "https://github.com/mrosset/gur"); err != nil {
 		t.Fatal(err)
 	}
 	if !file.Exists(expect) {

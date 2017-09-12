@@ -51,7 +51,7 @@ func TestFindPlan(t *testing.T) {
 
 func TestBuildDir(t *testing.T) {
 	var (
-		expect = "/home/strings/via_cache/stg/plan-1.0"
+		expect = "/home/mrosset/.cache/via/stg/plan-1.0"
 		got    = testPlan.BuildDir()
 	)
 	if got != expect {
@@ -60,7 +60,7 @@ func TestBuildDir(t *testing.T) {
 }
 func TestStageDir(t *testing.T) {
 	var (
-		expect = "/home/strings/via_cache/stg/plan-1.0"
+		expect = "/home/mrosset/.cache/via/stg/plan-1.0"
 		got    = testPlan.GetStageDir()
 	)
 	if got != expect {

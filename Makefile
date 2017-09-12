@@ -45,8 +45,8 @@ clean:
 
 rebuild: clean default
 
-test: $(BIN)
-	via lint
+test:
+	go test ./pkg/...
 
 devel:
 	bin/bdevel

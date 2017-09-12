@@ -12,6 +12,7 @@ import (
 
 const (
 	ERR_BRANCH_MISMATCH = "Branches do not Match"
+	RUNTIME_LINKER      = "%s/lib/ld-linux-x86-64.so.2"
 )
 
 var (
@@ -44,6 +45,20 @@ func init() {
 		elog.Fatal(err)
 	}
 
+	config = config.Expand()
+
+	// Setup Dynamic linker
+	if !file.Exists(config.Linker) {
+		if err := os.MkdirAll(filepath.Dir(config.Linker), 0755); err != nil {
+			elog.Fatal(err)
+		}
+		rlinker := fmt.Sprintf(RUNTIME_LINKER, config.Prefix)
+		if err := os.Symlink(rlinker, config.Linker); err != nil {
+			elog.Fatal(err)
+		}
+
+	}
+
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	cache.Init()
 	config.Plans = os.ExpandEnv(config.Plans)
@@ -67,7 +82,7 @@ type Config struct {
 	OS        string
 	Root      string
 	PlansRepo string
-
+	Linker    string
 	// Paths
 	Cache  Cache
 	DB     DB
