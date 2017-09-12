@@ -27,7 +27,7 @@ func init() {
 	// TODO rework this to error and suggest user use 'via init'
 	pdir := filepath.Dir(cfile)
 	if !file.Exists(pdir) {
-		err := Clone(pdir, "refs/heads/linux-x86_64", planUrl)
+		err := Clone(pdir, planUrl)
 		if err != nil {
 			elog.Fatal(err)
 		}

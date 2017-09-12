@@ -12,7 +12,7 @@ import (
 // Clones remote URL into directory
 // name is the reference name to clone.
 // e.g reference name ref/heads/master
-func Clone(dir, name, url string) error {
+func Clone(dir, url string) error {
 	_, err := git.PlainClone(dir, false, &git.CloneOptions{
 		URL: url,
 	})

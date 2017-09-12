@@ -166,6 +166,13 @@ var (
 		Name:   "strap",
 		Usage:  "rebuilds each package in the devel group",
 		Action: strap,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "m",
+				Value: false,
+				Usage: "marks package in development group for rebuild",
+			},
+		},
 	}
 )
 
@@ -205,6 +212,11 @@ func strap(ctx *cli.Context) error {
 
 	for _, p := range dplan.ManualDepends {
 		plan, err := via.NewPlan(p)
+		if ctx.Bool("m") {
+			plan.IsRebuilt = false
+			plan.Save()
+			continue
+		}
 		if plan.IsRebuilt {
 			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
 			continue

@@ -8,8 +8,9 @@ btarball  = tmp/bash-4.4.tar.gz
 default: $(BIN)
 
 $(BIN): $(SRC)
-	CGO_ENABLED=0 go install
+	CGO_ENABLED=0 go build -o $(BIN)
 	@git diff --quiet || echo WARNING: git tree is dirty
+	file $(BIN)
 
 fmt:
 	go fmt ./...
@@ -42,9 +43,10 @@ clean:
 	-rm -fr root
 	-rm $(BIN)
 
+rebuild: clean default
+
 test: $(BIN)
-	via help
-	via elf /usr/local/via/bin/bash
+	via lint
 
 devel:
 	bin/bdevel
