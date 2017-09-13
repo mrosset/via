@@ -532,7 +532,7 @@ func CheckLink() error {
 	ldir := filepath.Dir(config.Linker)
 
 	if !file.Exists(real) {
-		return fmt.Errorf("%s real linker does not exist", real)
+		elog.Printf("%s real linker does not exist", real)
 	}
 
 	os.MkdirAll(ldir, 0755)
