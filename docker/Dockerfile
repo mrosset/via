@@ -10,7 +10,9 @@ COPY usr /usr
 RUN ln -s $HOME/via/lib /lib64
 RUN mkdir -p /usr/bin
 RUN mkdir -p $HOME/via
+RUN mkdir -p /via
 RUN chown $USER.$USER $HOME/via
+RUN chown $USER.$USER /via
 RUN ln -s $HOME/via/bin/file /usr/bin/file
 WORKDIR /home/$USER
 USER $USER

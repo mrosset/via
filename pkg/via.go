@@ -526,6 +526,23 @@ func conflicts(man *Plan) (errs []error) {
 	return errs
 }
 
+// Setup Dynamic linker
+func CheckLink() error {
+	real := fmt.Sprintf(RUNTIME_LINKER, filepath.Join(config.Root, config.Prefix))
+	ldir := filepath.Dir(config.Linker)
+
+	if !file.Exists(real) {
+		return fmt.Errorf("%s real linker does not exist", real)
+	}
+
+	os.MkdirAll(ldir, 0755)
+
+	if file.Exists(ldir) {
+		return nil
+	}
+	return os.Symlink(real, config.Linker)
+}
+
 func GetConfig() *Config {
 	return config
 }

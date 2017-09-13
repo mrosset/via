@@ -47,16 +47,8 @@ func init() {
 
 	config = config.Expand()
 
-	// Setup Dynamic linker
-	if !file.Exists(config.Linker) {
-		if err := os.MkdirAll(filepath.Dir(config.Linker), 0755); err != nil {
-			elog.Fatal(err)
-		}
-		rlinker := fmt.Sprintf(RUNTIME_LINKER, config.Prefix)
-		if err := os.Symlink(rlinker, config.Linker); err != nil {
-			elog.Fatal(err)
-		}
-
+	if err := CheckLink(); err != nil {
+		elog.Fatal(err)
 	}
 
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
