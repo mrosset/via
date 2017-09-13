@@ -304,10 +304,10 @@ func Install(name string) (err error) {
 	}
 	errs := conflicts(man)
 	if len(errs) > 0 {
+		//return errs[0]
 		for _, e := range errs {
 			elog.Println(e)
 		}
-		//return errs[0]
 	}
 	fd, err := os.Open(pfile)
 	if err != nil {
@@ -537,9 +537,7 @@ func CheckLink() error {
 
 	os.MkdirAll(ldir, 0755)
 
-	if file.Exists(ldir) {
-		return nil
-	}
+	elog.Printf("linking\t %s\t %s", config.Linker, real)
 	return os.Symlink(real, config.Linker)
 }
 

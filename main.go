@@ -174,6 +174,12 @@ var (
 			},
 		},
 	}
+
+	ccreate = &cli.Command{
+		Name:   "create",
+		Usage:  "creats a plan from tarball URL",
+		Action: create,
+	}
 )
 
 func main() {
@@ -194,6 +200,7 @@ func main() {
 		csearch,
 		coptions,
 		cstrap,
+		ccreate,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -405,6 +412,17 @@ func options(ctx *cli.Context) error {
 	return cmd.Run()
 }
 
+func create(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("create requires a 'PLAN' argument. see: 'via help options'")
+	}
+	err := via.Create(ctx.Args().First(), "core")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 /*
 func pdebug() {
 	path, _ := os.LookupEnv("PATH")
@@ -514,16 +532,6 @@ func branch() error {
 	git.Stderr = os.Stderr
 	return git.Run()
 
-}
-
-func create() error {
-	url := command.Args()[0]
-	group := command.Args()[1]
-	err := via.Create(url, group)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func pack() error {

@@ -40,7 +40,7 @@ func (ps Plans) SortSize() Plans {
 // TODO: use template
 func (ps Plans) Print() {
 	for _, p := range ps {
-		console.Println(p.Name, human.ByteSize(p.Size))
+		console.Println(p.NameVersion(), human.ByteSize(p.Size))
 	}
 	console.Flush()
 }

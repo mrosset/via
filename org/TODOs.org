@@ -2,7 +2,7 @@
 
 
 * TODO Todo                                                           :devel:
-** Pre-Release goals
+** Pre-Release
 *** TODO Linux and Darwin base/devel plans
 **** DONE Move non essential plans to another branch.
      CLOSED: [2016-11-09 Wed 06:50]
@@ -10,7 +10,8 @@
 *** TODO Rpc daemon
 *** TODO Package upgrading
 *** TODO Plan syncing
-*** TODO Command flags
+*** DONE Command flags
+CLOSED: [2017-09-13 Wed 15:57]
 ** Circuit
 *** Notes
     install
@@ -83,7 +84,6 @@
     user what is going to happen, with a potential yes/no prompt
 
 *** TODO Rework the archive logic.
-
 *** TODO Have plans replace alternative builds
     when installing packages that have provide the same program but with different
     features. There will be file path clashes. e.g emacs vs emacs-nox. We need to
