@@ -47,9 +47,9 @@ func init() {
 
 	config = config.Expand()
 
-	if err := CheckLink(); err != nil {
-		elog.Fatal(err)
-	}
+	// if err := CheckLink(); err != nil {
+	//	elog.Fatal(err)
+	// }
 
 	cache = Cache(os.ExpandEnv(string(config.Cache)))
 	cache.Init()

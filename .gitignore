@@ -2,3 +2,4 @@ root
 .stfolder
 .fetch.done
 /docker/
+tmp
