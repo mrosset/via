@@ -219,8 +219,9 @@ func main() {
 func patch(ctx *cli.Context) error {
 
 	fnWalk := func(path string, fi os.FileInfo, err error) error {
-		patch := exec.Command("patchelf", "--set-interpreter",
-			filepath.Join(config.Root, config.Prefix, "lib/ld-linux-x86-64.so.2"),
+		patch := exec.Command("patchelf",
+			"--set-rpath", filepath.Join(config.Root, config.Prefix, "lib"),
+			"--set-interpreter", filepath.Join(config.Root, config.Prefix, "lib/ld-linux-x86-64.so.2"),
 			path,
 		)
 		patch.Stdout = os.Stdout
