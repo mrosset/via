@@ -177,8 +177,14 @@ var (
 
 	ccreate = &cli.Command{
 		Name:   "create",
-		Usage:  "creats a plan from tarball URL",
+		Usage:  "creates a plan from tarball URL",
 		Action: create,
+	}
+
+	cpatch = &cli.Command{
+		Name:   "patch",
+		Usage:  "patches dynamic linker",
+		Action: patch,
 	}
 )
 
@@ -201,12 +207,28 @@ func main() {
 		coptions,
 		cstrap,
 		ccreate,
+		cpatch,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return
+}
+
+func patch(ctx *cli.Context) error {
+
+	fnWalk := func(path string, fi os.FileInfo, err error) error {
+		patch := exec.Command("patchelf", "--set-interpreter",
+			filepath.Join(config.Root, config.Prefix, "lib/ld-linux-x86-64.so.2"),
+			path,
+		)
+		patch.Stdout = os.Stdout
+		patch.Run()
+		return nil
+	}
+	path := filepath.Join(config.Root, config.Prefix)
+	return filepath.Walk(path, fnWalk)
 }
 
 func strap(ctx *cli.Context) error {
