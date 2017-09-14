@@ -143,7 +143,7 @@ func (p *Plan) PackageFile() string {
 	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
 }
 
-func (p *Plan) SourceFile() string {
+func (p *Plan) SourceFileName() string {
 	return join(filepath.Base(p.Expand().Url))
 }
 

@@ -72,33 +72,18 @@ func DownloadSrc(plan *Plan) (err error) {
 // Stages the downloaded source in via's cache directory
 // the stage only happens once unless BuilInStage is used
 func Stage(plan *Plan) (err error) {
-	if plan.Url == "" || file.Exists(plan.GetStageDir()) {
+	con := NewConstruct(config, plan)
+	if plan.Url == "" || file.Exists(con.StagesPath()) {
 		// nothing to stage
 		return nil
 	}
-	fmt.Printf(lfmt, "stage", plan.NameVersion())
-	u, err := url.Parse(plan.Expand().Url)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	if u.Scheme == "git" {
-		fmt.Println(cache.Stages())
-		fmt.Println(plan.SourcePath())
-		cmd := exec.Command("git", "clone", plan.SourcePath(), plan.SourceFile())
-		cmd.Dir = cache.Stages()
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Run()
-		goto ret
-	}
-	switch filepath.Ext(plan.SourceFile()) {
+	fmt.Printf(lfmt, "stage", con.Plan.NameVersion())
+	switch filepath.Ext(plan.SourceFileName()) {
 	case ".zip":
-		unzip(cache.Stages(), plan.SourcePath())
+		unzip(con.StagesPath(), plan.SourcePath())
 	default:
-		GNUUntar(cache.Stages(), plan.SourcePath())
+		GNUUntar(con.StagesPath(), plan.SourcePath())
 	}
-ret:
 	fmt.Printf(lfmt, "patch", plan.NameVersion())
 	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
 		return err
