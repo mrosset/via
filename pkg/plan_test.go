@@ -37,7 +37,7 @@ func TestFindPlan(t *testing.T) {
 	var (
 		expect = &Plan{
 			Name: "sed",
-			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.gz",
+			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
 		}
 	)
 	got, err := NewPlan("sed")

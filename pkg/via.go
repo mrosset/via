@@ -243,7 +243,6 @@ func SyncHashs() {
 			log.Println(p.Oid, p.Name)
 		}
 	}
-	os.Exit(0)
 }
 
 func Install(name string) (err error) {

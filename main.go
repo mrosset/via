@@ -25,7 +25,7 @@ var (
 	cbuild = &cli.Command{
 		Name:   "build",
 		Usage:  "builds a plan locally",
-		Action: local,
+		Action: build,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "c",
@@ -51,20 +51,6 @@ var (
 				Name:  "u",
 				Value: false,
 				Usage: "force downloading of sources",
-			},
-		},
-	}
-
-	// dock command
-	cdock = &cli.Command{
-		Name:   "dock",
-		Usage:  "builds a package inside a clean docker image",
-		Action: dock,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "c",
-				Value: false,
-				Usage: "clean build directory before building",
 			},
 		},
 	}
@@ -186,6 +172,12 @@ var (
 		Usage:  "patches dynamic linker",
 		Action: patch,
 	}
+
+	cdaemon = &cli.Command{
+		Name:   "daemon",
+		Usage:  "starts build daemon",
+		Action: daemon,
+	}
 )
 
 func main() {
@@ -200,7 +192,6 @@ func main() {
 		clint,
 		cedit,
 		clog,
-		cdock,
 		celf,
 		cdiff,
 		csearch,
@@ -208,6 +199,7 @@ func main() {
 		cstrap,
 		ccreate,
 		cpatch,
+		cdaemon,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -216,10 +208,13 @@ func main() {
 	return
 }
 
+func daemon(ctx *cli.Context) error {
+	return via.StartDaemon()
+}
 func patch(ctx *cli.Context) error {
-
 	fnWalk := func(path string, fi os.FileInfo, err error) error {
-		patch := exec.Command("patchelf",
+		patch := exec.Command(
+			"patchelf",
 			"--set-rpath", filepath.Join(config.Root, config.Prefix, "lib"),
 			"--set-interpreter", filepath.Join(config.Root, config.Prefix, "lib/ld-linux-x86-64.so.2"),
 			path,
@@ -240,6 +235,11 @@ func strap(ctx *cli.Context) error {
 		return err
 	}
 
+	c, err := via.Connect()
+	if err != nil {
+		return err
+	}
+
 	for _, p := range dplan.ManualDepends {
 		plan, err := via.NewPlan(p)
 		if ctx.Bool("m") {
@@ -255,11 +255,15 @@ func strap(ctx *cli.Context) error {
 			return err
 		}
 		via.Clean(plan.Name)
-		err = via.BuildSteps(plan)
+
+		res := via.Response{}
+		req := via.Request{*plan}
+
+		err = c.Call("Builder.RpcBuild", req, &res)
+
 		if err != nil {
 			return err
 		}
-		via.Install(plan.Name)
 		plan.IsRebuilt = true
 		plan.Save()
 	}
@@ -305,6 +309,20 @@ func local(ctx *cli.Context) error {
 	return nil
 }
 
+func build(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
+	}
+	c, err := via.Connect()
+	if err != nil {
+		return err
+	}
+	res := via.Response{}
+	p, _ := via.NewPlan(ctx.Args().First())
+	req := via.Request{*p}
+	return c.Call("Builder.RpcBuild", req, &res)
+}
+
 func edit(ctx *cli.Context) error {
 	var (
 		editor = os.Getenv("EDITOR")
@@ -329,10 +347,6 @@ func edit(ctx *cli.Context) error {
 	elog.Println("linting...")
 	via.Verbose(false)
 	return via.Lint()
-}
-
-func dock(ctx *cli.Context) error {
-	return via.CircuitBuild(ctx.Args().First())
 }
 
 func list(ctx *cli.Context) error {

@@ -15,5 +15,4 @@ RUN ln -s /via/bin/file /usr/bin/file
 WORKDIR /home/$USER
 USER $USER
 EXPOSE 1122
-CMD ["/bin/bash","--login"]
-#CMD ["/usr/bin/circuit","start","-a","172.17.0.2:1122"]
+CMD ["/home/mrosset/gocode/bin/via","daemon"]

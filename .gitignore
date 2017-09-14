@@ -1,5 +1,3 @@
-root
-.stfolder
-.fetch.done
-/docker/
 tmp
+/docker/bin/bash
+/docker/usr/bin/via
