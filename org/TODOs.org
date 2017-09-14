@@ -3,25 +3,33 @@
 
 * TODO Todo                                                           :devel:
 ** Pre-Release
+*** TODO Config and Plan context
+**** TODO Config
+Right now we are loading and keeping the Config as a global variable. This
+causes issues with a client server model. Move Config so that it is refreanced
+as a Context.
+**** TODO Plan
+For the most part we pass Plan's as a context, but there are still some
+functions that refreance a plan by Name. The only function that should reference
+by name is probably NewPlan and possibly some query functions.
+*** TODO Sane Path referencing
+**** Problem
+We have over abused filepath.Join, there are paths hard coded all over the
+place. Windows path's will never work at this rate.
+**** Solution
+***** TODO Path scope
+Remove filepath.Join imports from via.go. All path reference should occur at the
+object level.
+***** TODO Path test's
+Create much more intensive test's in relation to Path and there sanity
+*** TODO Rpc daemon
 *** TODO Linux and Darwin base/devel plans
 **** DONE Move non essential plans to another branch.
      CLOSED: [2016-11-09 Wed 06:50]
-**** TODO Trim plans on HEAD to bare minimal plans required for a toolchain
-*** TODO Rpc daemon
+**** DONE Trim plans on HEAD to bare minimal plans required for a toolchain
+CLOSED: [2017-09-14 Thu 00:34]
 *** TODO Package upgrading
 *** TODO Plan syncing
-*** DONE Command flags
-CLOSED: [2017-09-13 Wed 15:57]
-** Circuit
-*** Notes
-    install
-    #+BEGIN_SRC sh
-    go get github.com/gocircuit/circuit/cmd/circuit
-    #+END_SRC
-*** starting a circuit
-   #+BEGIN_SRC sh
-   circuit start -if eth0 -discover 228.8.8.8:7711
-   #+END_SRC
 ** Features not implemented
 *** TODO Interface to add and remove flags
     Right now we have alot of global flags, some actually have an effect on most
@@ -180,9 +188,7 @@ CLOSED: [2017-09-13 Wed 15:57]
 ** Current state
    _warning_ Via is currently still in early development. And is not recommend
    for use outside of a VM or container.
-
 ** Build system
-
 *** Plans
     Via plans are how via knows how to download, build and package source
     packages. The plan's are currently in json format.

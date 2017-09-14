@@ -15,15 +15,15 @@ Archived entries from file /home/strings/gocode/src/github.com/mrosset/via/TODOs
 ** Problem
    Currently we hard code the HTTP GET endpoints for the current plan branch
    the plan branches are designed target specific machines and OS configurations
-   see [[file:plans/config.json::"Repo"%20:%20"$GOPATH/src/github.com/mrosset/via/publish/repo/master",][Repo]] 
+   see [[file:plans/config.json::"Repo"%20:%20"$GOPATH/src/github.com/mrosset/via/publish/repo/master",][Repo]]
 
-   When we package our tarball we should publish into the right name space. For 
+   When we package our tarball we should publish into the right name space. For
    example  the linux-x86_64 branch is the base branch so it's endpoint looks
    like this.
 
 #+BEGIN_EXAMPLE
 repo/linux-x86_64/file.tar.gz
-#+END_EXAMPLE 
+#+END_EXAMPLE
 
 ** Solution
   When building packages get the current plan branch and add it to the
@@ -37,11 +37,11 @@ repo/linux-x86_64/file.tar.gz
   :END:
 ** DONE Don't ever hard code branches
    CLOSED: [2016-10-20 Thu 18:32]
-   We should never hard code branches they should be explicitly set in 
+   We should never hard code branches they should be explicitly set in
    config.json
 ** DONE Check branch when building
    CLOSED: [2016-10-20 Thu 18:32]
-   when building we should check that plans git branch that is checkedout 
+   when building we should check that plans git branch that is checkedout
    matches the configuration branch
 
 * DONE Add OID to plan struct
@@ -58,7 +58,7 @@ repo/linux-x86_64/file.tar.gz
 
   This gets tricky with the manifest in the tarball because there is no way
   to embed the OID into it. We'll have to update the manifest once the package is
-  installed. The side benefit is we can then use OID to upgrade packages. And we 
+  installed. The side benefit is we can then use OID to upgrade packages. And we
   don't have to worry about package increments or version increments.
 
 * DONE ManDepends only works for building. And support for Install as well.
@@ -141,12 +141,12 @@ repo/linux-x86_64/file.tar.gz
   :ARCHIVE_ITAGS: devel
   :END:
   Allow referencing other field values from other fields
-  # 
+  #
   Right now we have many fields that have there values hard coded. Example. Url
   almost always contains the version number for the source package. If we use
   templates we can deduce the Version from the Version field.
 
-** Implementation details 
+** Implementation details
    Attached an Expand() method to structs we need to expand. When we
    call the expand method it takes the whole struct, encodes it to json then
    passes the struct through test/template excute. We then encode the expanded
@@ -192,3 +192,32 @@ repo/linux-x86_64/file.tar.gz
 ** derive new publish branch from blank master
 ** create new plans branch for rebuild
 ** rebuild each devel package one by one in docker
+
+* Circuit
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-09-14 Thu 00:35
+:ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/org/TODOs.org
+:ARCHIVE_OLPATH: Todo
+:ARCHIVE_CATEGORY: TODOs
+:ARCHIVE_ITAGS: devel
+:END:
+** Notes
+    install
+    #+BEGIN_SRC sh
+    go get github.com/gocircuit/circuit/cmd/circuit
+    #+END_SRC
+** starting a circuit
+   #+BEGIN_SRC sh
+   circuit start -if eth0 -discover 228.8.8.8:7711
+   #+END_SRC
+
+* DONE Command flags
+CLOSED: [2017-09-13 Wed 15:57]
+:PROPERTIES:
+:ARCHIVE_TIME: 2017-09-14 Thu 01:03
+:ARCHIVE_FILE: ~/gocode/src/github.com/mrosset/via/org/TODOs.org
+:ARCHIVE_OLPATH: Todo/Pre-Release
+:ARCHIVE_CATEGORY: TODOs
+:ARCHIVE_TODO: DONE
+:ARCHIVE_ITAGS: devel
+:END:
