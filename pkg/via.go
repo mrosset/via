@@ -108,7 +108,7 @@ func Build(plan *Plan) (err error) {
 	os.MkdirAll(cons.BuildPath(), 0755)
 	// Parent plan Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(cons.Config, plan.Inherit)
+		parent, _ := FindPlan(cons.Config, plan.Inherit)
 		build = append(parent.Build, plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}
@@ -171,7 +171,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	}
 	os.Setenv("PKGDIR", pdir)
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(cons.Config, plan.Inherit)
+		parent, _ := FindPlan(cons.Config, plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
 	}
 	err = doCommands(bdir, pack)
@@ -179,7 +179,7 @@ func Package(bdir string, plan *Plan) (err error) {
 		return err
 	}
 	for _, j := range plan.SubPackages {
-		sub, err := NewPlan(cons.Config, j)
+		sub, err := FindPlan(cons.Config, j)
 		if err != nil {
 			return err
 		}
@@ -235,12 +235,12 @@ func SyncHashs(cons *Construct) {
 }
 
 func Install(name string) (err error) {
-	plan, err := NewPlan(config, name)
-	cons := NewConstruct(config, plan)
+	plan, err := FindPlan(config, name)
 	if err != nil {
 		elog.Println(name, err)
 		return
 	}
+	cons := NewConstruct(config, plan)
 	fmt.Printf(lfmt, "installing", plan.Name)
 	if IsInstalled(name) {
 		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
@@ -357,7 +357,7 @@ func BuildDeps(plan *Plan) (err error) {
 		if IsInstalled(d) {
 			continue
 		}
-		p, _ := NewPlan(config, d)
+		p, _ := FindPlan(config, d)
 		if file.Exists(cons.PackageFilePath()) {
 			err := Install(p.Name)
 			if err != nil {
@@ -486,7 +486,7 @@ func fatal(err error) {
 	}
 }
 func Clean(name string) error {
-	plan, err := NewPlan(config, name)
+	plan, err := FindPlan(config, name)
 	if err != nil {
 		return err
 	}

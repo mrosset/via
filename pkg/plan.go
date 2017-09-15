@@ -69,7 +69,7 @@ type Plan struct {
 	Files         []string
 }
 
-func NewPlan(config *Config, name string) (plan *Plan, err error) {
+func FindPlan(config *Config, name string) (plan *Plan, err error) {
 	path, err := FindPlanPath(config, name)
 	if err != nil {
 		return nil, err
