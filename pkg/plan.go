@@ -1,14 +1,12 @@
 package via
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
 	"github.com/mrosset/util/json"
 	"path/filepath"
 	"sort"
-	"text/template"
 	"time"
 )
 
@@ -45,28 +43,6 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-func OExpand(i interface{}, s string) string {
-	buf := new(bytes.Buffer)
-	tmpl, err := template.New("").Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	err = tmpl.Execute(buf, i)
-	if err != nil {
-		panic(err)
-	}
-	return buf.String()
-}
-
-func (p *Plan) Expand() *Plan {
-	o := new(Plan)
-	err := json.Parse(o, p)
-	if err != nil {
-		panic(err)
-	}
-	return o
-}
-
 type Plan struct {
 	Name          string
 	Version       string
@@ -93,20 +69,19 @@ type Plan struct {
 	Files         []string
 }
 
-func (p *Plan) NameVersion() string {
-	return fmt.Sprintf("%s-%s", p.Name, p.Version)
+func NewPlan(config *Config, name string) (plan *Plan, err error) {
+	path, err := FindPlanPath(config, name)
+	if err != nil {
+		return nil, err
+	}
+	plan, err = ReadPath(path)
+	if err != nil {
+		return nil, err
+	}
+	return plan, nil
 }
 
-func (p *Plan) Path() string {
-	return filepath.Join(config.Plans, p.Group, p.Name+".json")
-}
-
-// TODO: make this atomic
-func (p *Plan) Save() (err error) {
-	return json.Write(p, p.Path())
-}
-
-func FindPlanPath(n string) (string, error) {
+func FindPlanPath(config *Config, n string) (string, error) {
 	glob := join(config.Plans, "*", n+".json")
 	e, err := filepath.Glob(glob)
 	if err != nil {
@@ -118,16 +93,26 @@ func FindPlanPath(n string) (string, error) {
 	return e[0], nil
 }
 
-func NewPlan(n string) (plan *Plan, err error) {
-	path, err := FindPlanPath(n)
+func (p *Plan) Expand() *Plan {
+	o := new(Plan)
+	err := json.Parse(o, p)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	plan, err = ReadPath(path)
-	if err != nil {
-		return nil, err
-	}
-	return plan, nil
+	return o
+}
+
+func (p *Plan) NameVersion() string {
+	return fmt.Sprintf("%s-%s", p.Name, p.Version)
+}
+
+func (p *Plan) Path() string {
+	return filepath.Join(config.Plans, p.Group, p.Name+".json")
+}
+
+// TODO: make this atomic
+func (p *Plan) Save() (err error) {
+	return json.Write(p, p.Path())
 }
 
 func ReadPath(p string) (plan *Plan, err error) {

@@ -6,7 +6,6 @@ import (
 )
 
 var (
-	test          = "sed"
 	expectDepends = []string{"glibc"}
 	expectFiles   = []string{
 		"a.out",
@@ -25,16 +24,14 @@ func TestLint(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	var (
-		c      = Cache("testdata/cache")
 		expect = "1.0"
 	)
-	c.Init()
-	os.Remove(testPlan.Path())
+	defer os.Remove(testPlan.Path())
 	err := Create(testPlan.Expand().Url, "core")
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = NewPlan(testPlan.Name)
+	_, err = NewPlan(config, testPlan.Name)
 	if err != nil {
 		t.Error(err)
 	}
@@ -43,7 +40,6 @@ func TestCreate(t *testing.T) {
 
 		t.Errorf("expected '%s' got '%s'", expect, got)
 	}
-	os.Remove(testPlan.Path())
 }
 
 func TestRepoCreate(t *testing.T) {

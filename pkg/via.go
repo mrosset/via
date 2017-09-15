@@ -48,13 +48,12 @@ func Debug(b bool) {
 	debug = b
 }
 
-func DownloadSrc(plan *Plan) (err error) {
-	con := NewConstruct(config, plan)
-	if file.Exists(con.PlanSourcePath()) && !update {
+func DownloadSource(cons *Construct) (err error) {
+	if file.Exists(cons.PlanSourcePath()) && !update {
 		return nil
 	}
-	fmt.Printf(lfmt, "download", con.Plan.NameVersion())
-	eurl := con.Plan.Expand().Url
+	fmt.Printf(lfmt, "download", cons.Plan.NameVersion())
+	eurl := cons.Plan.Expand().Url
 	u, err := url.Parse(eurl)
 	if err != nil {
 		elog.Println(err)
@@ -64,7 +63,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	case "ftp":
 		wget(cache.Sources(), eurl)
 	case "http", "https":
-		return gurl.Download(con.Cache.Sources(), eurl)
+		return gurl.Download(cons.Cache.Sources(), eurl)
 	default:
 		return fmt.Errorf("%s URL scheme is not supported")
 	}
@@ -74,20 +73,20 @@ func DownloadSrc(plan *Plan) (err error) {
 // Stages the downloaded source in via's cache directory
 // the stage only happens once unless BuilInStage is used
 func Stage(plan *Plan) (err error) {
-	con := NewConstruct(config, plan)
-	if plan.Url == "" || file.Exists(con.PlanStagePath()) {
+	cons := NewConstruct(config, plan)
+	if plan.Url == "" || file.Exists(cons.PlanStagePath()) {
 		// nothing to stage
 		return nil
 	}
-	fmt.Printf(lfmt, "stage", con.Plan.NameVersion())
-	switch filepath.Ext(con.Plan.SourceFileName()) {
+	fmt.Printf(lfmt, "stage", cons.Plan.NameVersion())
+	switch filepath.Ext(cons.Plan.SourceFileName()) {
 	case ".zip":
-		unzip(con.Cache.Stages(), con.PlanSourcePath())
+		unzip(cons.Cache.Stages(), cons.PlanSourcePath())
 	default:
-		GNUUntar(con.Cache.Stages(), con.PlanSourcePath())
+		GNUUntar(cons.Cache.Stages(), cons.PlanSourcePath())
 	}
 	fmt.Printf(lfmt, "patch", plan.NameVersion())
-	if err := doCommands(con.PlanStagePath(), plan.Patch); err != nil {
+	if err := doCommands(cons.PlanStagePath(), plan.Patch); err != nil {
 		return err
 	}
 	return
@@ -95,29 +94,29 @@ func Stage(plan *Plan) (err error) {
 
 // Calls each shell command in the plans Build field.
 func Build(plan *Plan) (err error) {
-	con := NewConstruct(config, plan)
+	cons := NewConstruct(config, plan)
 	var (
 		build = plan.Build
 	)
 	if err = config.CheckBranches(); err != nil {
 		return (err)
 	}
-	if file.Exists(con.PackageFilePath()) {
-		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", con.PackageFilePath())
+	if file.Exists(cons.PackageFilePath()) {
+		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", cons.PackageFilePath())
 	}
 	flags := append(config.Flags, plan.Flags...)
-	os.MkdirAll(con.BuildPath(), 0755)
+	os.MkdirAll(cons.BuildPath(), 0755)
 	// Parent plan Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(plan.Inherit)
+		parent, _ := NewPlan(cons.Config, plan.Inherit)
 		build = append(parent.Build, plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}
-	os.Setenv("SRCDIR", con.PlanStagePath())
+	os.Setenv("SRCDIR", cons.PlanStagePath())
 	os.Setenv("Flags", expand(flags.String()))
-	err = doCommands(con.BuildPath(), build)
+	err = doCommands(cons.BuildPath(), build)
 	if err != nil {
-		return fmt.Errorf("%s in %s", err.Error(), con.BuildPath())
+		return fmt.Errorf("%s in %s", err.Error(), cons.BuildPath())
 	}
 	return nil
 }
@@ -144,7 +143,7 @@ func doCommands(dir string, cmds []string) (err error) {
 }
 
 func Package(bdir string, plan *Plan) (err error) {
-	con := NewConstruct(config, plan)
+	cons := NewConstruct(config, plan)
 	var (
 		pack = plan.Package
 	)
@@ -172,7 +171,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	}
 	os.Setenv("PKGDIR", pdir)
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(plan.Inherit)
+		parent, _ := NewPlan(cons.Config, plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
 	}
 	err = doCommands(bdir, pack)
@@ -180,7 +179,7 @@ func Package(bdir string, plan *Plan) (err error) {
 		return err
 	}
 	for _, j := range plan.SubPackages {
-		sub, err := NewPlan(j)
+		sub, err := NewPlan(cons.Config, j)
 		if err != nil {
 			return err
 		}
@@ -192,7 +191,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	if err != nil {
 		return (err)
 	}
-	plan.Oid, err = file.Sha256sum(con.PackageFilePath())
+	plan.Oid, err = file.Sha256sum(cons.PackageFilePath())
 	if err != nil {
 		return (err)
 	}
@@ -207,8 +206,8 @@ func Package(bdir string, plan *Plan) (err error) {
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	con := NewConstruct(config, plan)
-	pfile := con.PackageFilePath()
+	cons := NewConstruct(config, plan)
+	pfile := cons.PackageFilePath()
 	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
@@ -224,11 +223,11 @@ func CreatePackage(plan *Plan) (err error) {
 // Updates each plans Oid to the Oid of the tarball in publish git repo
 // this function should never be used in production. It's used for making sure
 // the plans Oid match the git repo's Oid
-func SyncHashs(con *Construct) {
+func SyncHashs(cons *Construct) {
 	plans, _ := GetPlans()
 	for _, p := range plans {
-		if file.Exists(con.PackageFilePath()) {
-			p.Oid, _ = file.Sha256sum(con.PackageFilePath())
+		if file.Exists(cons.PackageFilePath()) {
+			p.Oid, _ = file.Sha256sum(cons.PackageFilePath())
 			p.Save()
 			log.Println(p.Oid, p.Name)
 		}
@@ -236,8 +235,8 @@ func SyncHashs(con *Construct) {
 }
 
 func Install(name string) (err error) {
-	plan, err := NewPlan(name)
-	con := NewConstruct(config, plan)
+	plan, err := NewPlan(config, name)
+	cons := NewConstruct(config, plan)
 	if err != nil {
 		elog.Println(name, err)
 		return
@@ -263,7 +262,7 @@ func Install(name string) (err error) {
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}
-	pfile := con.PackageFilePath()
+	pfile := cons.PackageFilePath()
 	if !file.Exists(pfile) {
 		//return errors.New(fmt.Sprintf("%s does not exist", pfile))
 		ddir := join(config.Repo, "repo")
@@ -281,7 +280,7 @@ func Install(name string) (err error) {
 			return
 		}
 	*/
-	sha, err := file.Sha256sum(con.PackageFilePath())
+	sha, err := file.Sha256sum(cons.PackageFilePath())
 	if err != nil {
 		return (err)
 	}
@@ -352,14 +351,14 @@ func Remove(name string) (err error) {
 }
 
 func BuildDeps(plan *Plan) (err error) {
-	con := NewConstruct(config, plan)
+	cons := NewConstruct(config, plan)
 	deps := append(plan.AutoDepends, plan.ManualDepends...)
 	for _, d := range deps {
 		if IsInstalled(d) {
 			continue
 		}
-		p, _ := NewPlan(d)
-		if file.Exists(con.PackageFilePath()) {
+		p, _ := NewPlan(config, d)
+		if file.Exists(cons.PackageFilePath()) {
 			err := Install(p.Name)
 			if err != nil {
 				return err
@@ -382,10 +381,11 @@ func BuildDeps(plan *Plan) (err error) {
 
 // Run all of the functions required to build a package
 func BuildSteps(plan *Plan) (err error) {
-	if file.Exists(plan.PackageFile()) {
-		return fmt.Errorf("package %s exists", plan.PackageFile())
+	cons := NewConstruct(config, plan)
+	if file.Exists(cons.PackageFilePath()) {
+		return fmt.Errorf("package %s exists", cons.PackageFilePath())
 	}
-	if err := DownloadSrc(plan); err != nil {
+	if err := DownloadSource(cons); err != nil {
 		elog.Println(err)
 		return err
 	}
@@ -486,7 +486,7 @@ func fatal(err error) {
 	}
 }
 func Clean(name string) error {
-	plan, err := NewPlan(name)
+	plan, err := NewPlan(config, name)
 	if err != nil {
 		return err
 	}
