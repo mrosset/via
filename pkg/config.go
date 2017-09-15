@@ -127,8 +127,7 @@ func (c Config) RepoBranch() string {
 
 // Returns the checked out branch for plans directory
 func (c Config) PlanBranch() string {
-	p := filepath.Join(c.Plans)
-	b, err := Branch(p)
+	b, err := Branch(c.Plans)
 	if err != nil {
 		elog.Fatal(err)
 	}

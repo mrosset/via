@@ -13,6 +13,7 @@ func init() {
 	tConstruct = NewConstruct(config, plan)
 	tConstruct.Cache = "testdata/cache"
 }
+
 func ExamplePaths() {
 	fmt.Println(tConstruct.PackageFilePath())
 	fmt.Println(tConstruct.PlanSourcePath())

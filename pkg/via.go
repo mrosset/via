@@ -9,7 +9,6 @@ import (
 	"github.com/mrosset/util/json"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -48,79 +47,6 @@ func Debug(b bool) {
 	debug = b
 }
 
-func DownloadSource(cons *Construct) (err error) {
-	if file.Exists(cons.PlanSourcePath()) && !update {
-		return nil
-	}
-	fmt.Printf(lfmt, "download", cons.Plan.NameVersion())
-	eurl := cons.Plan.Expand().Url
-	u, err := url.Parse(eurl)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	switch u.Scheme {
-	case "ftp":
-		wget(cache.Sources(), eurl)
-	case "http", "https":
-		return gurl.Download(cons.Cache.Sources(), eurl)
-	default:
-		return fmt.Errorf("%s URL scheme is not supported")
-	}
-	return nil
-}
-
-// Stages the downloaded source in via's cache directory
-// the stage only happens once unless BuilInStage is used
-func Stage(plan *Plan) (err error) {
-	cons := NewConstruct(config, plan)
-	if plan.Url == "" || file.Exists(cons.PlanStagePath()) {
-		// nothing to stage
-		return nil
-	}
-	fmt.Printf(lfmt, "stage", cons.Plan.NameVersion())
-	switch filepath.Ext(cons.Plan.SourceFileName()) {
-	case ".zip":
-		unzip(cons.Cache.Stages(), cons.PlanSourcePath())
-	default:
-		GNUUntar(cons.Cache.Stages(), cons.PlanSourcePath())
-	}
-	fmt.Printf(lfmt, "patch", plan.NameVersion())
-	if err := doCommands(cons.PlanStagePath(), plan.Patch); err != nil {
-		return err
-	}
-	return
-}
-
-// Calls each shell command in the plans Build field.
-func Build(plan *Plan) (err error) {
-	cons := NewConstruct(config, plan)
-	var (
-		build = plan.Build
-	)
-	if err = config.CheckBranches(); err != nil {
-		return (err)
-	}
-	if file.Exists(cons.PackageFilePath()) {
-		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", cons.PackageFilePath())
-	}
-	flags := append(config.Flags, plan.Flags...)
-	os.MkdirAll(cons.BuildPath(), 0755)
-	// Parent plan Build is run first this plans is added at the end.
-	if plan.Inherit != "" {
-		parent, _ := FindPlan(cons.Config, plan.Inherit)
-		build = append(parent.Build, plan.Build...)
-		flags = append(flags, parent.Flags...)
-	}
-	os.Setenv("SRCDIR", cons.PlanStagePath())
-	os.Setenv("Flags", expand(flags.String()))
-	err = doCommands(cons.BuildPath(), build)
-	if err != nil {
-		return fmt.Errorf("%s in %s", err.Error(), cons.BuildPath())
-	}
-	return nil
-}
-
 func doCommands(dir string, cmds []string) (err error) {
 	for i, j := range cmds {
 		if debug {
@@ -140,69 +66,6 @@ func doCommands(dir string, cmds []string) (err error) {
 		}
 	}
 	return nil
-}
-
-func Package(bdir string, plan *Plan) (err error) {
-	cons := NewConstruct(config, plan)
-	var (
-		pack = plan.Package
-	)
-	err = config.CheckBranches()
-	if err != nil {
-		return (err)
-	}
-	pdir := join(cache.Packages(), plan.NameVersion())
-	if bdir == "" {
-		bdir = join(cache.Builds(), plan.NameVersion())
-	}
-	if plan.BuildInStage {
-		bdir = join(cache.Stages(), plan.stageDir())
-	}
-	if file.Exists(pdir) {
-		err := os.RemoveAll(pdir)
-		if err != nil {
-			return err
-		}
-	}
-	err = os.Mkdir(pdir, 0755)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	os.Setenv("PKGDIR", pdir)
-	if plan.Inherit != "" {
-		parent, _ := FindPlan(cons.Config, plan.Inherit)
-		pack = append(parent.Package, plan.Package...)
-	}
-	err = doCommands(bdir, pack)
-	if err != nil {
-		return err
-	}
-	for _, j := range plan.SubPackages {
-		sub, err := FindPlan(cons.Config, j)
-		if err != nil {
-			return err
-		}
-		if err = Package(bdir, sub); err != nil {
-			return err
-		}
-	}
-	err = CreatePackage(plan)
-	if err != nil {
-		return (err)
-	}
-	plan.Oid, err = file.Sha256sum(cons.PackageFilePath())
-	if err != nil {
-		return (err)
-	}
-	return plan.Save(config)
-	/*
-		err = CreatePackage(plan)
-		if err != nil {
-			return err
-		}
-		return Sign(plan)
-	*/
 }
 
 func CreatePackage(plan *Plan) (err error) {
@@ -372,38 +235,11 @@ func BuildDeps(plan *Plan) (err error) {
 			return err
 		}
 	}
-	err = BuildSteps(plan)
+	err = cons.BuildSteps()
 	if err != nil {
 		return err
 	}
 	return Install(plan.Name)
-}
-
-// Run all of the functions required to build a package
-func BuildSteps(plan *Plan) (err error) {
-	cons := NewConstruct(config, plan)
-	if file.Exists(cons.PackageFilePath()) {
-		elog.Printf("package %s exists", cons.PackageFileName())
-	}
-	if err := DownloadSource(cons); err != nil {
-		elog.Println(err)
-		return err
-	}
-	if err := Stage(plan); err != nil {
-		elog.Println(err)
-		return err
-	}
-	fmt.Printf(lfmt, "build", plan.NameVersion())
-	if err := Build(plan); err != nil {
-		elog.Println(err)
-		return err
-	}
-	fmt.Printf(lfmt, "package", plan.NameVersion())
-	if err := Package("", plan); err != nil {
-		elog.Println(err)
-		return err
-	}
-	return nil
 }
 
 var (
@@ -485,6 +321,7 @@ func fatal(err error) {
 		log.Fatal(err)
 	}
 }
+
 func Clean(name string) error {
 	plan, err := FindPlan(config, name)
 	if err != nil {

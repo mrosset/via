@@ -23,8 +23,8 @@ type Builder struct {
 }
 
 func (t *Builder) RpcBuild(req Request, resp *Response) error {
-	Clean(req.Plan.Name)
-	err := BuildSteps(&req.Plan)
+	construct := NewConstruct(GetConfig(), &req.Plan)
+	err := construct.BuildSteps()
 	if err != nil {
 		return err
 	}

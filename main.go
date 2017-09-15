@@ -292,6 +292,7 @@ func local(ctx *cli.Context) error {
 		return err
 	}
 
+	construct := via.NewConstruct(via.GetConfig(), plan)
 	via.Verbose(ctx.Bool("v"))
 	via.Debug(ctx.Bool("d"))
 	via.Update(ctx.Bool("u"))
@@ -299,7 +300,7 @@ func local(ctx *cli.Context) error {
 	if ctx.Bool("c") {
 		via.Clean(plan.Name)
 	}
-	err = via.BuildSteps(plan)
+	err = construct.BuildSteps()
 	if err != nil {
 		return err
 	}
