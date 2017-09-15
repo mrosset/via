@@ -195,7 +195,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	if err != nil {
 		return (err)
 	}
-	return plan.Save()
+	return plan.Save(config)
 	/*
 		err = CreatePackage(plan)
 		if err != nil {
@@ -228,7 +228,7 @@ func SyncHashs(cons *Construct) {
 	for _, p := range plans {
 		if file.Exists(cons.PackageFilePath()) {
 			p.Oid, _ = file.Sha256sum(cons.PackageFilePath())
-			p.Save()
+			p.Save(config)
 			log.Println(p.Oid, p.Name)
 		}
 	}
@@ -383,7 +383,7 @@ func BuildDeps(plan *Plan) (err error) {
 func BuildSteps(plan *Plan) (err error) {
 	cons := NewConstruct(config, plan)
 	if file.Exists(cons.PackageFilePath()) {
-		return fmt.Errorf("package %s exists", cons.PackageFilePath())
+		elog.Printf("package %s exists", cons.PackageFileName())
 	}
 	if err := DownloadSource(cons); err != nil {
 		elog.Println(err)
@@ -431,10 +431,10 @@ func Create(url, group string) (err error) {
 	}
 	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
 	plan.Inherit = "gnu"
-	if file.Exists(plan.Path()) {
-		return fmt.Errorf("%s already exists", plan.Path())
+	if file.Exists(plan.Path(config)) {
+		return fmt.Errorf("%s already exists", plan.Path(config))
 	}
-	return plan.Save()
+	return plan.Save(config)
 }
 
 func IsInstalled(name string) bool {
@@ -470,7 +470,7 @@ func Lint() (err error) {
 		sort.Strings(plan.ManualDepends)
 		sort.Strings(plan.BuildDepends)
 		refactor(plan)
-		err = plan.Save()
+		err = plan.Save(config)
 		if err != nil {
 			elog.Println(err)
 			return err

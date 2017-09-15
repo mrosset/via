@@ -9,7 +9,7 @@ var (
 )
 
 func init() {
-	plan, _ := NewPlan(config, "bash")
+	plan, _ := FindPlan(config, "bash")
 	tConstruct = NewConstruct(config, plan)
 	tConstruct.Cache = "testdata/cache"
 }

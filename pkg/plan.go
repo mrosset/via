@@ -106,13 +106,13 @@ func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
 }
 
-func (p *Plan) Path() string {
+func (p *Plan) Path(config *Config) string {
 	return filepath.Join(config.Plans, p.Group, p.Name+".json")
 }
 
 // TODO: make this atomic
-func (p *Plan) Save() (err error) {
-	return json.Write(p, p.Path())
+func (p *Plan) Save(config *Config) (err error) {
+	return json.Write(p, p.Path(config))
 }
 
 func ReadPath(p string) (plan *Plan, err error) {
@@ -130,14 +130,6 @@ func (p *Plan) PackageFile() string {
 
 func (p *Plan) SourceFileName() string {
 	return join(filepath.Base(p.Expand().Url))
-}
-
-func (p Plan) deleteBuildDir() string {
-	bdir := join(cache.Builds(), p.NameVersion())
-	if p.BuildInStage {
-		bdir = join(cache.Stages(), p.stageDir())
-	}
-	return bdir
 }
 
 func (p Plan) stageDir() string {

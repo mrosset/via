@@ -71,7 +71,7 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	}
 	plan.Date = time.Now()
 	plan.Size = size
-	plan.Save()
+	plan.Save(config)
 	return json.WriteGz(&plan, mfile)
 }
 

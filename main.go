@@ -244,7 +244,7 @@ func strap(ctx *cli.Context) error {
 		plan, err := via.FindPlan(via.GetConfig(), p)
 		if ctx.Bool("m") {
 			plan.IsRebuilt = false
-			plan.Save()
+			plan.Save(config)
 			continue
 		}
 		if plan.IsRebuilt {
@@ -265,7 +265,7 @@ func strap(ctx *cli.Context) error {
 			return err
 		}
 		plan.IsRebuilt = true
-		plan.Save()
+		plan.Save(config)
 	}
 	return nil
 }

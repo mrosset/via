@@ -26,12 +26,12 @@ func TestCreate(t *testing.T) {
 	var (
 		expect = "1.0"
 	)
-	defer os.Remove(testPlan.Path())
+	defer os.Remove(testPlan.Path(config))
 	err := Create(testPlan.Expand().Url, "core")
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = NewPlan(config, testPlan.Name)
+	_, err = FindPlan(config, testPlan.Name)
 	if err != nil {
 		t.Error(err)
 	}

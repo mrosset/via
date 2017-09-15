@@ -40,7 +40,7 @@ func TestFindPlan(t *testing.T) {
 			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
 		}
 	)
-	got, err := NewPlan(config, "sed")
+	got, err := FindPlan(config, "sed")
 	if err != nil {
 		t.Fatal(err)
 	}
