@@ -25,7 +25,7 @@ var (
 	cbuild = &cli.Command{
 		Name:   "build",
 		Usage:  "builds a plan locally",
-		Action: build,
+		Action: local,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "c",
@@ -399,10 +399,11 @@ func plog(ctx *cli.Context) error {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help log'")
 	}
 	plan, err := via.NewPlan(ctx.Args().First())
+	con := via.NewConstruct(via.GetConfig(), plan)
 	if err != nil {
 		return err
 	}
-	f := filepath.Join(plan.BuildDir(), "config.log")
+	f := filepath.Join(con.BuildPath(), "config.log")
 	err = file.Cat(os.Stdout, f)
 	if err != nil {
 		log.Fatal(err)
@@ -437,10 +438,11 @@ func options(ctx *cli.Context) error {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help options'")
 	}
 	plan, err := via.NewPlan(ctx.Args().First())
+	con := via.NewConstruct(via.GetConfig(), plan)
 	if err != nil {
 		return err
 	}
-	c := filepath.Join(plan.GetStageDir(), "configure")
+	c := filepath.Join(con.PlanStagePath(), "configure")
 	fmt.Println(c)
 	cmd := exec.Command(c, "--help")
 	cmd.Stdout = os.Stdout

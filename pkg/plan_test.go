@@ -51,8 +51,8 @@ func TestFindPlan(t *testing.T) {
 
 func TestBuildDir(t *testing.T) {
 	var (
-		expect = "/home/mrosset/.cache/via/stg/plan-1.0"
-		got    = testPlan.BuildDir()
+		expect = "testdata/cache/bld/bash-4.3"
+		got    = tConstruct.BuildPath()
 	)
 	if got != expect {
 		t.Errorf("expect '%s' -> got '%s'", expect, got)
@@ -60,8 +60,8 @@ func TestBuildDir(t *testing.T) {
 }
 func TestStageDir(t *testing.T) {
 	var (
-		expect = "/home/mrosset/.cache/via/stg/plan-1.0"
-		got    = testPlan.GetStageDir()
+		expect = "testdata/cache/stg/bash-4.3"
+		got    = tConstruct.PlanStagePath()
 	)
 	if got != expect {
 		t.Errorf("expect '%s' -> got '%s'", expect, got)

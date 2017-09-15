@@ -15,27 +15,27 @@ type Construct struct {
 
 func (c *Construct) BuildPath() string {
 	if c.Plan.BuildInStage {
-		return filepath.Join(c.Cache.Stages(), c.Plan.NameVersion())
+		return filepath.Join(c.Cache.Stages(), c.Plan.stageDir())
 	}
+	return filepath.Join(c.Cache.Builds(), c.Plan.NameVersion())
+}
+
+func (c *Construct) PlanStagePath() string {
 	return filepath.Join(c.Cache.Stages(), c.Plan.stageDir())
 }
 
-func (c *Construct) StagesPath() string {
-	return filepath.Join(c.Cache.Stages(), c.Plan.stageDir())
-}
-
-func (c *Construct) PackageFilePath() string {
+func (c *Construct) PackageFileName() string {
 	return fmt.Sprintf("%s-%s-%s.tar.gz", c.Plan.NameVersion(), c.Config.OS, c.Config.Arch)
 }
 
-func (c *Construct) PackagePath() string {
-	return filepath.Join(c.Config.Repo, "repo", c.PackageFilePath())
+func (c *Construct) PackageFilePath() string {
+	return filepath.Join(c.Config.Repo, "repo", c.PackageFileName())
 }
 
-func (c *Construct) SourcePath() string {
+func (c *Construct) PlanSourcePath() string {
 	return filepath.Join(c.Cache.Sources(), filepath.Base(c.Plan.Expand().Url))
 }
 
 func NewConstruct(config *Config, plan *Plan) *Construct {
-	return &Construct{Config: config, Plan: plan}
+	return &Construct{Config: config, Plan: plan, Cache: config.Cache}
 }

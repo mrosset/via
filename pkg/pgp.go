@@ -5,7 +5,6 @@ import (
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/packet"
 	"os"
-	"path"
 	"path/filepath"
 )
 
@@ -13,6 +12,7 @@ import (
 var keyring = filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
 
 func Sign(plan *Plan) (err error) {
+	con := NewConstruct(config, plan)
 	var (
 		entity   *openpgp.Entity
 		identity *openpgp.Identity
@@ -50,18 +50,17 @@ func Sign(plan *Plan) (err error) {
 			return err
 		}
 	}
-	ppath := path.Join(config.Repo, plan.PackageFile())
-	pkg, err := os.Open(ppath)
+	pkg, err := os.Open(con.PackageFilePath())
 	if err != nil {
 		return err
 	}
 	defer pkg.Close()
-	sig, err := os.Create(ppath + ".sig")
+	sig, err := os.Create(con.PackageFilePath() + ".sig")
 	if err != nil {
 		return err
 	}
 	defer sig.Close()
-	fmt.Printf(lfmt, "signing", plan.PackageFile())
+	fmt.Printf(lfmt, "signing", con.PackageFilePath())
 	err = openpgp.DetachSign(sig, entity, pkg, new(packet.Config))
 	if err != nil {
 		return err

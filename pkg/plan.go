@@ -147,25 +147,12 @@ func (p *Plan) SourceFileName() string {
 	return join(filepath.Base(p.Expand().Url))
 }
 
-func (p *Plan) SourcePath() string {
-	return filepath.Join(cache.Sources(), filepath.Base(p.Expand().Url))
-}
-
-func (p Plan) BuildDir() string {
+func (p Plan) deleteBuildDir() string {
 	bdir := join(cache.Builds(), p.NameVersion())
 	if p.BuildInStage {
 		bdir = join(cache.Stages(), p.stageDir())
 	}
 	return bdir
-}
-
-func (p Plan) GetStageDir() string {
-	path := join(cache.Stages(), p.stageDir())
-	return path
-}
-
-func (p Plan) PackagePath() string {
-	return join(config.Repo, "repo", p.PackageFile())
 }
 
 func (p Plan) stageDir() string {

@@ -87,8 +87,7 @@ func TestPackage(t *testing.T) {
 
 */
 
-func TestRepoSync(t *testing.T) {
-	return
+func testRepoSync(t *testing.T) {
 	err := PlanSync()
 	if err != nil {
 		t.Error(err)

@@ -2,25 +2,29 @@ package via
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 )
 
 type Cache string
 
 func (c Cache) Packages() string {
-	return path.Join(string(c), "pkg")
+	return filepath.Join(c.String(), "pkg")
 }
 
 func (c Cache) Sources() string {
-	return path.Join(string(c), "src")
+	return filepath.Join(c.String(), "src")
 }
 
 func (c Cache) Builds() string {
-	return path.Join(string(c), "bld")
+	return filepath.Join(c.String(), "bld")
 }
 
 func (c Cache) Stages() string {
-	return path.Join(string(c), "stg")
+	return filepath.Join(c.String(), "stg")
+}
+
+func (c Cache) String() string {
+	return os.ExpandEnv(string(c))
 }
 
 func (c Cache) Init() {

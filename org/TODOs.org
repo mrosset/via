@@ -1,17 +1,20 @@
-#+TITLE TODO's
+#+TITLE: TODO's
 
 
 * TODO Todo                                                           :devel:
 ** Pre-Release
-*** TODO Config and Plan context
+*** TODO Config and Plan Construct
+**** DONE Contruct type
+CLOSED: [2017-09-14 Thu 17:23]
+Contruct type, will hold everything needed to build and install package. this
+will include Cache, Config, and Plan  references
+***** TODO Provide interfaces to Plan, Config, and Cache
+**** TODO Plan
+Remove all references to Config and Cache
 **** TODO Config
 Right now we are loading and keeping the Config as a global variable. This
-causes issues with a client server model. Move Config so that it is refreanced
-as a Context.
-**** TODO Plan
-For the most part we pass Plan's as a context, but there are still some
-functions that refreance a plan by Name. The only function that should reference
-by name is probably NewPlan and possibly some query functions.
+causes issues with a client server model. Move Config so that it is referenced
+as a Construct.
 *** TODO Sane Path referencing
 **** Problem
 We have over abused filepath.Join, there are paths hard coded all over the
