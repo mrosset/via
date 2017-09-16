@@ -28,7 +28,7 @@ func (t *Builder) RpcBuild(req Request, resp *Response) error {
 	if err != nil {
 		return err
 	}
-	return Install(req.Plan.Name)
+	return Install(construct.Config, req.Plan.Name)
 }
 
 func StartDaemon() error {
@@ -38,7 +38,7 @@ func StartDaemon() error {
 		return err
 	}
 	if !IsInstalled("devel") {
-		Install("devel")
+		Install(GetConfig(), "devel")
 	}
 	defer os.Remove(SOCKET_FILE)
 	go rpc.Accept(l)

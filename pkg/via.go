@@ -82,7 +82,7 @@ func SyncHashs(cons *Construct) {
 	}
 }
 
-func Install(name string) (err error) {
+func Install(config *Config, name string) (err error) {
 	plan, err := FindPlan(config, name)
 	if err != nil {
 		elog.Println(name, err)
@@ -101,7 +101,7 @@ func Install(name string) (err error) {
 		if IsInstalled(d) {
 			continue
 		}
-		err := Install(d)
+		err := Install(config, d)
 		if err != nil {
 			return err
 		}
@@ -205,9 +205,9 @@ func BuildDeps(plan *Plan) (err error) {
 		if IsInstalled(d) {
 			continue
 		}
-		p, _ := FindPlan(config, d)
+		p, _ := FindPlan(cons.Config, d)
 		if file.Exists(cons.PackageFilePath()) {
-			err := Install(p.Name)
+			err := Install(cons.Config, p.Name)
 			if err != nil {
 				return err
 			}
@@ -224,7 +224,7 @@ func BuildDeps(plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	return Install(plan.Name)
+	return Install(cons.Config, plan.Name)
 }
 
 var (
