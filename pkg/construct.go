@@ -1,6 +1,7 @@
 package via
 
 import (
+	"compress/gzip"
 	"fmt"
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/file"
@@ -160,7 +161,7 @@ func (c *Construct) Package() (err error) {
 			return err
 		}
 	}
-	err = CreatePackage(c.Plan)
+	err = c.GzipPackageDir()
 	if err != nil {
 		return (err)
 	}
@@ -176,6 +177,19 @@ func (c *Construct) Package() (err error) {
 		}
 		return Sign(plan)
 	*/
+}
+
+func (construct *Construct) GzipPackageDir() (err error) {
+	os.MkdirAll(filepath.Dir(construct.PackageFilePath()), 0755)
+	fd, err := os.Create(construct.PackageFilePath())
+	if err != nil {
+		elog.Println(err)
+		return err
+	}
+	defer fd.Close()
+	gz := gzip.NewWriter(fd)
+	defer gz.Close()
+	return Tarball(gz, construct.Plan)
 }
 
 func (c *Construct) DownloadSource() (err error) {

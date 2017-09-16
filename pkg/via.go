@@ -68,21 +68,6 @@ func doCommands(dir string, cmds []string) (err error) {
 	return nil
 }
 
-func CreatePackage(plan *Plan) (err error) {
-	cons := NewConstruct(config, plan)
-	pfile := cons.PackageFilePath()
-	os.MkdirAll(filepath.Dir(pfile), 0755)
-	fd, err := os.Create(pfile)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	defer fd.Close()
-	gz := gzip.NewWriter(fd)
-	defer gz.Close()
-	return Tarball(gz, plan)
-}
-
 // Updates each plans Oid to the Oid of the tarball in publish git repo
 // this function should never be used in production. It's used for making sure
 // the plans Oid match the git repo's Oid
