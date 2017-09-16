@@ -15,4 +15,5 @@ RUN ln -s /via/bin/file /usr/bin/file
 WORKDIR /home/$USER
 USER $USER
 EXPOSE 1122
-CMD ["/home/mrosset/gocode/bin/via","daemon"]
+#CMD ["/home/mrosset/gocode/bin/via","daemon"]
+CMD ["/bin/bash","--login"]

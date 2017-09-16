@@ -229,7 +229,7 @@ func patch(ctx *cli.Context) error {
 
 func strap(ctx *cli.Context) error {
 
-	dplan, err := via.FindPlan(via.GetConfig(), "devel")
+	dplan, err := via.FindPlan(config, "devel")
 
 	if err != nil {
 		return err
@@ -241,7 +241,7 @@ func strap(ctx *cli.Context) error {
 	}
 
 	for _, p := range dplan.ManualDepends {
-		plan, err := via.FindPlan(via.GetConfig(), p)
+		plan, err := via.FindPlan(config, p)
 		if ctx.Bool("m") {
 			plan.IsRebuilt = false
 			plan.Save(config)
@@ -276,7 +276,7 @@ func install(ctx *cli.Context) error {
 	}
 
 	via.Root(ctx.String("r"))
-	return via.Install(ctx.Args().First())
+	return via.Install(config, ctx.Args().First())
 }
 
 func remove(ctx *cli.Context) error {
@@ -287,12 +287,12 @@ func local(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
 	}
-	plan, err := via.FindPlan(via.GetConfig(), ctx.Args().First())
+	plan, err := via.FindPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
 
-	construct := via.NewConstruct(via.GetConfig(), plan)
+	construct := via.NewConstruct(config, plan)
 	via.Verbose(ctx.Bool("v"))
 	via.Debug(ctx.Bool("d"))
 	via.Update(ctx.Bool("u"))
@@ -305,7 +305,7 @@ func local(ctx *cli.Context) error {
 		return err
 	}
 	if ctx.Bool("i") {
-		return via.Install(plan.Name)
+		return via.Install(construct.Config, plan.Name)
 	}
 	return nil
 }
@@ -319,7 +319,7 @@ func build(ctx *cli.Context) error {
 		return err
 	}
 	res := via.Response{}
-	p, _ := via.FindPlan(via.GetConfig(), ctx.Args().First())
+	p, _ := via.FindPlan(config, ctx.Args().First())
 	req := via.Request{*p}
 	return c.Call("Builder.RpcBuild", req, &res)
 }
@@ -332,7 +332,7 @@ func edit(ctx *cli.Context) error {
 		err    error
 	)
 	if arg0 != "config" {
-		p, err = via.FindPlanPath(via.GetConfig(), arg0)
+		p, err = via.FindPlanPath(config, arg0)
 		if err != nil {
 			return err
 		}
@@ -354,7 +354,7 @@ func list(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("list requires a 'PLAN' argument. see: 'via help list'")
 	}
-	plan, err := via.FindPlan(via.GetConfig(), ctx.Args().First())
+	plan, err := via.FindPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -372,7 +372,7 @@ func show(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help show'")
 	}
-	plan, err := via.FindPlan(via.GetConfig(), ctx.Args().First())
+	plan, err := via.FindPlan(config, ctx.Args().First())
 	if err != nil {
 		elog.Fatal(err)
 	}
@@ -384,7 +384,7 @@ func show(ctx *cli.Context) error {
 }
 
 func fconfig(ctx *cli.Context) error {
-	err := json.WritePretty(via.GetConfig(), os.Stdout)
+	err := json.WritePretty(config, os.Stdout)
 	if err != nil {
 		return err
 	}
@@ -399,8 +399,8 @@ func plog(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help log'")
 	}
-	plan, err := via.FindPlan(via.GetConfig(), ctx.Args().First())
-	con := via.NewConstruct(via.GetConfig(), plan)
+	plan, err := via.FindPlan(config, ctx.Args().First())
+	con := via.NewConstruct(config, plan)
 	if err != nil {
 		return err
 	}
@@ -438,8 +438,8 @@ func options(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help options'")
 	}
-	plan, err := via.FindPlan(via.GetConfig(), ctx.Args().First())
-	con := via.NewConstruct(via.GetConfig(), plan)
+	plan, err := via.FindPlan(config, ctx.Args().First())
+	con := via.NewConstruct(config, plan)
 	if err != nil {
 		return err
 	}

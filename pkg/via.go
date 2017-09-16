@@ -76,7 +76,7 @@ func SyncHashs(cons *Construct) {
 	for _, p := range plans {
 		if file.Exists(cons.PackageFilePath()) {
 			p.Oid, _ = file.Sha256sum(cons.PackageFilePath())
-			p.Save(config)
+			p.Save(cons.Config)
 			log.Println(p.Oid, p.Name)
 		}
 	}
@@ -110,14 +110,13 @@ func Install(config *Config, name string) (err error) {
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}
-	pfile := cons.PackageFilePath()
-	if !file.Exists(pfile) {
+	if !file.Exists(cons.PackageFilePath()) {
 		//return errors.New(fmt.Sprintf("%s does not exist", pfile))
 		ddir := join(config.Repo, "repo")
 		os.MkdirAll(ddir, 0755)
 		err := gurl.Download(ddir, config.Binary+"/"+plan.PackageFile())
 		if err != nil {
-			elog.Println(pfile)
+			elog.Println(cons.PackageFilePath())
 			log.Fatal(err)
 		}
 		//fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()+".sig"))
@@ -135,7 +134,7 @@ func Install(config *Config, name string) (err error) {
 	if sha != plan.Oid {
 		return fmt.Errorf("%s Plans OID does not match tarballs got %s", plan.NameVersion(), sha)
 	}
-	man, err := ReadPackManifest(pfile)
+	man, err := ReadPackManifest(cons.PackageFilePath())
 	if err != nil {
 		return err
 	}
@@ -146,7 +145,7 @@ func Install(config *Config, name string) (err error) {
 			elog.Println(e)
 		}
 	}
-	fd, err := os.Open(pfile)
+	fd, err := os.Open(cons.PackageFilePath())
 	if err != nil {
 		return
 	}

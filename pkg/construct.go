@@ -128,8 +128,7 @@ func (c *Construct) Package() (err error) {
 	var (
 		pack = c.Plan.Package
 	)
-	err = config.CheckBranches()
-	if err != nil {
+	if err = c.Config.CheckBranches(); err != nil {
 		return (err)
 	}
 	if file.Exists(c.PackageDirPath()) {
