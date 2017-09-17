@@ -25,7 +25,7 @@ var (
 	cbuild = &cli.Command{
 		Name:   "build",
 		Usage:  "builds a plan locally",
-		Action: build,
+		Action: local,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "c",
@@ -235,13 +235,11 @@ func strap(ctx *cli.Context) error {
 		return err
 	}
 
-	c, err := via.Connect()
-	if err != nil {
-		return err
-	}
-
 	for _, p := range dplan.ManualDepends {
 		plan, err := via.NewPlan(p)
+		if err != nil {
+			return err
+		}
 		if ctx.Bool("m") {
 			plan.IsRebuilt = false
 			plan.Save()
@@ -251,19 +249,12 @@ func strap(ctx *cli.Context) error {
 			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
 			continue
 		}
-		if err != nil {
-			return err
-		}
 		via.Clean(plan.Name)
 
-		res := via.Response{}
-		req := via.Request{*plan}
-
-		err = c.Call("Builder.RpcBuild", req, &res)
-
-		if err != nil {
+		if err := via.BuildSteps(plan); err != nil {
 			return err
 		}
+
 		plan.IsRebuilt = true
 		plan.Save()
 	}

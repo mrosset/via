@@ -24,7 +24,8 @@ attach: start
 	docker container attach via
 
 run:
-	docker run -it -e TERM=$(TERM) -e DISPLAY=$(DISPLAY) -v /tmp:/tmp -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /bin/bash --login -o vi
+	-docker rm bash
+	docker run --name bash -it -e TERM=$(TERM) -e DISPLAY=$(DISPLAY) -v via:/via -v /tmp:/tmp -v /tmp/.X11-unix:/tmp/.X11-unix:rw  -v /home:/home strings/via:devel /bin/bash --login -o vi
 
 dock: $(SRC) bash
 	CGO_ENABLED=0 go build -o docker/usr/bin/via
