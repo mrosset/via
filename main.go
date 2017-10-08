@@ -120,7 +120,7 @@ var (
 
 	clog = &cli.Command{
 		Name:   "log",
-		Usage:  "output's configure.log for build",
+		Usage:  "output's config.log for build",
 		Action: plog,
 	}
 
@@ -178,6 +178,12 @@ var (
 		Usage:  "starts build daemon",
 		Action: daemon,
 	}
+
+	chash = &cli.Command{
+		Name:   "hash",
+		Usage:  "DEV ONLY sync the plans Oid with binary banch",
+		Action: hash,
+	}
 )
 
 func main() {
@@ -200,6 +206,7 @@ func main() {
 		ccreate,
 		cpatch,
 		cdaemon,
+		chash,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -451,6 +458,11 @@ func create(ctx *cli.Context) error {
 	return nil
 }
 
+func hash(ctx *cli.Context) error {
+	via.SyncHashs()
+	return nil
+}
+
 /*
 func pdebug() {
 	path, _ := os.LookupEnv("PATH")
@@ -587,10 +599,6 @@ func sync() error {
 	return via.PlanSync()
 }
 
-func synchashs() error {
-	via.SyncHashs()
-	return nil
-}
 func owns() error {
 	rfiles, err := via.ReadRepoFiles()
 	if err != nil {
