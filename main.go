@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
@@ -10,6 +11,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
+	"strings"
 )
 
 var (
@@ -36,6 +39,11 @@ var (
 				Name:  "v",
 				Value: false,
 				Usage: "displays more information when building",
+			},
+			&cli.BoolFlag{
+				Name:  "dd",
+				Value: false,
+				Usage: "build depends aswell",
 			},
 			&cli.BoolFlag{
 				Name:  "d",
@@ -184,6 +192,24 @@ var (
 		Usage:  "DEV ONLY sync the plans Oid with binary banch",
 		Action: hash,
 	}
+
+	cpack = &cli.Command{
+		Name:   "pack",
+		Usage:  "package plan",
+		Action: pack,
+	}
+
+	cdebug = &cli.Command{
+		Name:   "debug",
+		Usage:  "displays enviroment and PATH details",
+		Action: debug,
+	}
+
+	cprovides = &cli.Command{
+		Name:   "provides",
+		Usage:  "find which plans provides 'file'",
+		Action: provides,
+	}
 )
 
 func main() {
@@ -207,6 +233,9 @@ func main() {
 		cpatch,
 		cdaemon,
 		chash,
+		cpack,
+		cdebug,
+		cprovides,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
@@ -274,7 +303,13 @@ func install(ctx *cli.Context) error {
 	}
 
 	via.Root(ctx.String("r"))
-	return via.Install(ctx.Args().First())
+
+	for _, arg := range ctx.Args().Slice() {
+		if err := via.Install(arg); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func remove(ctx *cli.Context) error {
@@ -297,9 +332,16 @@ func local(ctx *cli.Context) error {
 	if ctx.Bool("c") {
 		via.Clean(plan.Name)
 	}
-	err = via.BuildSteps(plan)
-	if err != nil {
-		return err
+	if ctx.Bool("dd") {
+		err = via.BuildDeps(plan)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = via.BuildSteps(plan)
+		if err != nil {
+			return err
+		}
 	}
 	if ctx.Bool("i") {
 		return via.Install(plan.Name)
@@ -414,11 +456,25 @@ func elf(ctx *cli.Context) error {
 }
 
 func diff(ctx *cli.Context) error {
-	git := exec.Command("git", "diff")
-	git.Dir = config.Plans
-	git.Stdout = os.Stdout
-	git.Stderr = os.Stderr
-	return git.Run()
+	if !ctx.Args().Present() {
+		return fmt.Errorf("diff requires a 'PLAN' argument. see: 'via help diff'")
+	}
+	for _, arg := range ctx.Args().Slice() {
+		glob := filepath.Join(config.Plans, "*", arg+".json")
+		res, err := filepath.Glob(glob)
+		if err != nil {
+			return err
+		}
+		git := exec.Command("git", "diff", strings.Join(res, " "))
+		git.Dir = config.Plans
+		git.Stdout = os.Stdout
+		git.Stderr = os.Stderr
+		err = git.Run()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func search(ctx *cli.Context) error {
@@ -432,7 +488,7 @@ func search(ctx *cli.Context) error {
 
 func options(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
-		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help options'")
+		return fmt.Errorf("options requires a 'PLAN' argument. see: 'via help options'")
 	}
 	plan, err := via.NewPlan(ctx.Args().First())
 	if err != nil {
@@ -449,7 +505,7 @@ func options(ctx *cli.Context) error {
 
 func create(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
-		return fmt.Errorf("create requires a 'PLAN' argument. see: 'via help options'")
+		return fmt.Errorf("pack requires a 'URL' argument. see: 'via help create'")
 	}
 	err := via.Create(ctx.Args().First(), "core")
 	if err != nil {
@@ -463,27 +519,75 @@ func hash(ctx *cli.Context) error {
 	return nil
 }
 
-/*
-func pdebug() {
-	path, _ := os.LookupEnv("PATH")
-	home, _ := os.LookupEnv("HOME")
-	fmt.Println("PATH", path)
-	fmt.Println("HOME", home)
-	which("GCC", "gcc")
-	which("PYTHON", "python")
+func pack(ctx *cli.Context) error {
+	for _, arg := range ctx.Args().Slice() {
+		plan, err := via.NewPlan(arg)
+		if err != nil {
+			return err
+		}
+		err = via.Package("", plan)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func which(label, path string) {
-	fmt.Printf("%s ", label)
-	cmd := exec.Command("which", path)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		elog.Println(err)
+func debug(ctx *cli.Context) error {
+	cmds := []string{"gcc", "python", "make"}
+	env := os.Environ()
+	sort.Strings(env)
+	for _, v := range env {
+		e := strings.SplitN(v, "=", 2)
+		console.Println(e[0], e[1])
+	}
+	console.Flush()
+	which(cmds...)
+	return nil
+}
+
+// Executes 'cmd' with 'args' useing os.Stdout and os.Stderr
+func execs(cmd string, args ...string) {
+	e := exec.Command(cmd, args...)
+	e.Stderr = os.Stderr
+	e.Stdout = os.Stdout
+	e.Run()
+}
+
+func wversion(path string) {
+}
+
+// Finds all locations of each 'cmd' in PATH and prints to stdout
+func which(cmds ...string) {
+	paths := strings.Split(os.Getenv("PATH"), string(os.PathListSeparator))
+	for _, c := range cmds {
+		fmt.Printf("%s:\n", strings.ToUpper(c))
+		for _, p := range paths {
+			j := filepath.Join(p, c)
+			if file.Exists(j) {
+				fmt.Println(j)
+			}
+		}
 	}
 }
 
+func provides(ctx *cli.Context) error {
+	rfiles, err := via.ReadRepoFiles()
+	if err != nil {
+		return err
+	}
+	for _, arg := range ctx.Args().Slice() {
+		owner := rfiles.Owns(arg)
+		if owner == "" {
+			fmt.Println(arg+":", "owner not found.")
+			continue
+		}
+		fmt.Println(owner)
+	}
+	return nil
+}
+
+/*
 func ipfs() error {
 	res, err := http.Get(config.Binary)
 	io.Copy(os.Stdout, res.Body)
@@ -531,27 +635,7 @@ func add() error {
 */
 
 /*
-func diff() error {
-	if len(command.Args()) < 1 {
-		return errors.New("no plans specified")
-	}
-	for _, arg := range command.Args() {
-		glob := filepath.Join(config.Plans, "*", arg+".json")
-		res, err := filepath.Glob(glob)
-		if err != nil {
-			return err
-		}
-		git := exec.Command("git", "diff", strings.Join(res, " "))
-		git.Dir = config.Plans
-		git.Stdout = os.Stdout
-		git.Stderr = os.Stderr
-		err = git.Run()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+
 
 func checkout() error {
 	if len(command.Args()) < 1 {
@@ -574,20 +658,6 @@ func branch() error {
 
 }
 
-func pack() error {
-	for _, arg := range command.Args() {
-		plan, err := via.NewPlan(arg)
-		if err != nil {
-			return err
-		}
-		err = via.Package("", plan)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 */
 
 /*
@@ -597,22 +667,6 @@ func clean() error {
 
 func sync() error {
 	return via.PlanSync()
-}
-
-func owns() error {
-	rfiles, err := via.ReadRepoFiles()
-	if err != nil {
-		return err
-	}
-	for _, arg := range command.Args() {
-		owner := rfiles.Owns(arg)
-		if owner == "" {
-			fmt.Println(arg+":", "owner not found.")
-			continue
-		}
-		fmt.Println(owner)
-	}
-	return nil
 }
 
 func oldCommands() {

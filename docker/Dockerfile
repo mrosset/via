@@ -12,6 +12,8 @@ RUN mkdir -p /usr/bin
 RUN mkdir -p /via
 RUN chown $USER.$USER /via
 RUN ln -s /via/bin/file /usr/bin/file
+RUN ln -s /via/bin/env /usr/bin/env
+RUN ln -s /via/bin/bash /usr/bin/bash
 WORKDIR /home/$USER
 USER $USER
 EXPOSE 1122

@@ -11,14 +11,14 @@ $(BIN): $(SRC)
 	CGO_ENABLED=0 go build -o $(BIN)
 	@git diff --quiet || echo WARNING: git tree is dirty
 	strip $(BIN)
-	file $(BIN)
+	$(BIN) debug
 
 fmt:
 	go fmt ./...
 
 start:
 	-docker rm -f via
-	docker run --name via -it -d -e TERM=$(TERM) -v via:/via -v /tmp:/tmp -v /home:/home strings/via:devel
+	docker run --privileged --name via -it -d -e DISPLAY=$(DISPLAY) -e TERM=$(TERM) -v via:/via -v /tmp:/tmp -v /home:/home strings/via:devel
 
 attach: start
 	docker container attach via
