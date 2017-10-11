@@ -156,6 +156,9 @@ func archive(wr io.Writer, dir string) error {
 			}
 			// Treat the long link as a file, flush so we can write the real data.
 			tw.Flush()
+			if fi.IsDir() {
+				return nil
+			}
 			// Write a header so the writer knows the size of the data.
 			hdr.Size = fi.Size()
 			hdr.Typeflag = tar.TypeReg
