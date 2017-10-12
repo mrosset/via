@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/template"
 )
 
 var (
@@ -96,6 +97,18 @@ var (
 		Name:   "show",
 		Usage:  "prints plan to stdout",
 		Action: show,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "t",
+				Value: "",
+				Usage: "use go template",
+			},
+			&cli.BoolFlag{
+				Name:  "d",
+				Value: false,
+				Usage: "output depends",
+			},
+		},
 	}
 
 	// config command
@@ -414,6 +427,20 @@ func show(ctx *cli.Context) error {
 	plan, err := via.NewPlan(ctx.Args().First())
 	if err != nil {
 		elog.Fatal(err)
+	}
+	if ctx.String("t") != "" {
+		tmpl, err := template.New("stdout").Parse(ctx.String("t") + "\n")
+		if err != nil {
+			panic(err)
+		}
+		return tmpl.Execute(os.Stdout, plan)
+	}
+	if ctx.Bool("d") {
+		tmpl, err := template.New("stdout").Parse("{{.AutoDepends}}\n")
+		if err != nil {
+			panic(err)
+		}
+		return tmpl.Execute(os.Stdout, plan)
 	}
 	err = json.WritePretty(&plan, os.Stdout)
 	if err != nil {
