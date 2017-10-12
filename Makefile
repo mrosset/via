@@ -5,20 +5,21 @@ REPO      = strings/via:devel
 bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
 
+export CGO_ENABLED=0
+
 default: $(BIN)
 
 $(BIN): $(SRC)
-	CGO_ENABLED=0 go build -o $(BIN)
+	go build -o $(BIN)
 	@git diff --quiet || echo WARNING: git tree is dirty
 	strip $(BIN)
-	$(BIN) debug
 
 fmt:
 	go fmt ./...
 
 start:
 	-docker rm -f via
-	docker run --privileged --name via -it -d -e DISPLAY=$(DISPLAY) -e TERM=$(TERM) -v via:/via -v /tmp:/tmp -v /home:/home strings/via:devel
+	docker run --privileged --name via -it -d -e DISPLAY=$(DISPLAY) -e TERM=$(TERM) -v /tmp:/tmp -v /home:/home strings/via:devel
 
 attach: start
 	docker container attach via

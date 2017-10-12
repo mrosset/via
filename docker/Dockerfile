@@ -2,18 +2,17 @@
 FROM busybox
 ENV USER mrosset
 ENV HOME /home/$USER
+ENV PREFIX /tmp/via
 ENV GOPATH /home/$USER/gocode
-ENV PATH /via/bin:$GOPATH/bin:/sbin:/bin:/usr/bin:/usr/sbin
+ENV PATH $PREFIX/bin:$GOPATH/bin:/sbin:/bin:/usr/bin:/usr/sbin
 COPY bin /bin
 COPY etc /etc
 COPY usr /usr
-RUN ln -s /via/lib /lib64
+RUN ln -s $PREFIX/lib /lib64
 RUN mkdir -p /usr/bin
-RUN mkdir -p /via
-RUN chown $USER.$USER /via
-RUN ln -s /via/bin/file /usr/bin/file
-RUN ln -s /via/bin/env /usr/bin/env
-RUN ln -s /via/bin/bash /usr/bin/bash
+RUN ln -s $PREFIX/bin/file /usr/bin/file
+RUN ln -s $PREFIX/bin/env /usr/bin/env
+RUN ln -s $PREFIX/bin/bash /usr/bin/bash
 WORKDIR /home/$USER
 USER $USER
 EXPOSE 1122

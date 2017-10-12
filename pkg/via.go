@@ -18,15 +18,34 @@ import (
 )
 
 var (
-	client  = new(http.Client)
-	verbose = false
-	elog    = log.New(os.Stderr, "", log.Lshortfile)
-	lfmt    = "%-20.20s %v\n"
-	debug   = false
-	expand  = os.ExpandEnv
-	update  = false
-	deps    = false
+	client         = new(http.Client)
+	verbose        = false
+	elog           = log.New(os.Stderr, "", log.Lshortfile)
+	lfmt           = "%-20.20s %v\n"
+	debug          = false
+	expand         = os.ExpandEnv
+	update         = false
+	deps           = false
+	INSTALL_PREFIX = Path("$HOME/via")
+	PREFIX         = Path("/tmp/via")
 )
+
+func init() {
+	if !Symlinked() {
+		INSTALL_PREFIX.MkDirAll(0700)
+		err := INSTALL_PREFIX.Symlink(PREFIX)
+		if err != nil {
+			elog.Fatal(err)
+		}
+	}
+	if !Symlinked() {
+		elog.Fatalf("could not setup symlink %s to %s", INSTALL_PREFIX, PREFIX)
+	}
+}
+
+func Symlinked() bool {
+	return PREFIX.Exists() && INSTALL_PREFIX.Exists()
+}
 
 func Root(s string) {
 	config.Root = s
@@ -116,6 +135,14 @@ func Build(plan *Plan) (err error) {
 	}
 	if file.Exists(plan.PackagePath()) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
+	}
+	for _, p := range plan.BuildDepends {
+		if IsInstalled(p) {
+			continue
+		}
+		if err := Install(p); err != nil {
+			return err
+		}
 	}
 	flags := append(config.Flags, plan.Flags...)
 	os.MkdirAll(plan.BuildDir(), 0755)

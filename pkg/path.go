@@ -26,7 +26,18 @@ func (path Path) JoinS(paths ...string) Path {
 	return Path(filepath.Join(paths...))
 }
 
-// Returns true of this Path exists
+// Symlinks this path to 'new' Path
+func (path Path) Symlink(new Path) error {
+	elog.Println("symlink", path, new)
+	return os.Symlink(path.String(), new.String())
+}
+
+// Makes directory's in this Path with 'mode'
+func (path Path) MkDirAll(mode os.FileMode) error {
+	return os.MkdirAll(path.String(), mode)
+}
+
+// Returns true if this Path exists
 func (path Path) Exists() bool {
 	return file.Exists(path.String())
 }
