@@ -12,7 +12,7 @@ func TestPathJoin(t *testing.T) {
 	)
 
 	if got != expect {
-		t.Errorf("expectd: %s got %s", expect, got)
+		t.Errorf("expect: %s got %s", expect, got)
 	}
 }
 
@@ -23,7 +23,16 @@ func TestPathJoinS(t *testing.T) {
 		got    = tmp.JoinS("foo")
 	)
 	if got != expect {
+		t.Errorf("expect: %s got %s", expect, got)
+	}
+}
 
-		t.Errorf("expectd: %s got %s", expect, got)
+func TestToUnix(t *testing.T) {
+	var (
+		expect = "/c/msys64/usr/bin"
+		got = Path("c:\\msys64\\usr\\bin").ToUnix()
+	)
+	if got != expect {
+		t.Errorf("expect: %s got %s", expect, got)
 	}
 }

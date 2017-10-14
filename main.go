@@ -523,7 +523,7 @@ func options(ctx *cli.Context) error {
 	}
 	c := filepath.Join(plan.GetStageDir(), "configure")
 	fmt.Println(c)
-	cmd := exec.Command(c, "--help")
+	cmd := exec.Command("sh", c, "--help")
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -561,7 +561,7 @@ func pack(ctx *cli.Context) error {
 }
 
 func debug(ctx *cli.Context) error {
-	cmds := []string{"gcc", "python", "make"}
+	cmds := []string{"gcc", "python", "make", "bash", "ld"}
 	env := os.Environ()
 	sort.Strings(env)
 	for _, v := range env {
@@ -569,7 +569,15 @@ func debug(ctx *cli.Context) error {
 		console.Println(e[0], e[1])
 	}
 	console.Flush()
-	which(cmds...)
+	fmt.Println("PATHS:")
+	for _, p := range strings.Split(os.Getenv("PATH"),string(os.PathListSeparator)) {
+		console.Println(p)
+	}
+	for _, c := range cmds {
+		fmt.Printf("%s:\n", strings.ToUpper(c))
+		execs("which", "-a", c)
+		execs(c, "--version")
+	}
 	return nil
 }
 

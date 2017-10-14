@@ -10,9 +10,8 @@ export CGO_ENABLED=0
 default: $(BIN)
 
 $(BIN): $(SRC)
-	go build -o $(BIN)
+	go install
 	@git diff --quiet || echo WARNING: git tree is dirty
-	strip $(BIN)
 
 fmt:
 	go fmt ./...

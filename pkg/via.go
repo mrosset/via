@@ -31,16 +31,16 @@ var (
 )
 
 func init() {
-	if !Symlinked() {
-		INSTALL_PREFIX.MkDirAll(0700)
-		err := INSTALL_PREFIX.Symlink(PREFIX)
-		if err != nil {
-			elog.Fatal(err)
-		}
-	}
-	if !Symlinked() {
-		elog.Fatalf("could not setup symlink %s to %s", INSTALL_PREFIX, PREFIX)
-	}
+	// if !Symlinked() {
+	//	INSTALL_PREFIX.MkDirAll(0700)
+	//	err := INSTALL_PREFIX.Symlink(PREFIX)
+	//	if err != nil {
+	//		elog.Fatal(err)
+	//	}
+	// }
+	// if !Symlinked() {
+	//	elog.Fatalf("could not setup symlink %s to %s", INSTALL_PREFIX, PREFIX)
+	// }
 }
 
 func Symlinked() bool {
@@ -115,7 +115,9 @@ func Stage(plan *Plan) (err error) {
 	case ".zip":
 		unzip(cache.Stages(), plan.SourcePath())
 	default:
-		GNUUntar(cache.Stages(), plan.SourcePath())
+		s := Path(plan.SourcePath()).ToUnix()
+		err := GNUUntar(cache.Stages(),s)
+		if err != nil {return err}
 	}
 ret:
 	fmt.Printf(lfmt, "patch", plan.NameVersion())
@@ -130,9 +132,9 @@ func Build(plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	if err = config.CheckBranches(); err != nil {
-		return (err)
-	}
+	// if err = config.CheckBranches(); err != nil {
+	//	return (err)
+	// }
 	if file.Exists(plan.PackagePath()) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}
@@ -152,7 +154,7 @@ func Build(plan *Plan) (err error) {
 		build = append(parent.Build, plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}
-	os.Setenv("SRCDIR", plan.GetStageDir())
+	os.Setenv("SRCDIR", Path(plan.GetStageDir()).ToUnix())
 	os.Setenv("Flags", expand(flags.String()))
 	err = doCommands(plan.BuildDir(), build)
 	if err != nil {
@@ -186,10 +188,10 @@ func Package(bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
-	err = config.CheckBranches()
-	if err != nil {
-		return (err)
-	}
+	// err = config.CheckBranches()
+	// if err != nil {
+	//	return (err)
+	// }
 	pdir := join(cache.Packages(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(cache.Builds(), plan.NameVersion())
@@ -208,7 +210,7 @@ func Package(bdir string, plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
-	os.Setenv("PKGDIR", pdir)
+	os.Setenv("PKGDIR", Path(pdir).ToUnix())
 	if plan.Inherit != "" {
 		parent, _ := NewPlan(plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
