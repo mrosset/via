@@ -3,11 +3,11 @@ package via
 import (
 	"compress/gzip"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
-	. "github.com/mrosset/ansi/color"
 	"log"
 	"net/http"
 	"net/url"
@@ -29,19 +29,20 @@ var (
 	deps           = false
 	INSTALL_PREFIX = Path("$HOME/via")
 	PREFIX         = Path("/tmp/via")
+	blue           = color.New(color.FgBlue).SprintFunc()
 )
 
 func init() {
-	// if !Symlinked() {
-	//	INSTALL_PREFIX.MkDirAll(0700)
-	//	err := INSTALL_PREFIX.Symlink(PREFIX)
-	//	if err != nil {
-	//		elog.Fatal(err)
-	//	}
-	// }
-	// if !Symlinked() {
-	//	elog.Fatalf("could not setup symlink %s to %s", INSTALL_PREFIX, PREFIX)
-	// }
+	if !Symlinked() {
+		INSTALL_PREFIX.MkDirAll(0700)
+		err := INSTALL_PREFIX.Symlink(PREFIX)
+		if err != nil {
+			elog.Fatal(err)
+		}
+	}
+	if !Symlinked() {
+		elog.Fatalf("could not setup symlink %s to %s", INSTALL_PREFIX, PREFIX)
+	}
 }
 
 func Symlinked() bool {
@@ -117,8 +118,10 @@ func Stage(plan *Plan) (err error) {
 		unzip(cache.Stages(), plan.SourcePath())
 	default:
 		s := Path(plan.SourcePath()).ToUnix()
-		err := GNUUntar(cache.Stages(),s)
-		if err != nil {return err}
+		err := GNUUntar(cache.Stages(), s)
+		if err != nil {
+			return err
+		}
 	}
 ret:
 	fmt.Printf(lfmt, "patch", plan.NameVersion())
@@ -431,12 +434,12 @@ func BuildSteps(plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
-	fmt.Printf(lfmt, Blue("build"), plan.NameVersion())
+	fmt.Printf(lfmt, blue("build"), plan.NameVersion())
 	if err := Build(plan); err != nil {
 		elog.Println(err)
 		return err
 	}
-	fmt.Printf(lfmt, Blue("package"), plan.NameVersion())
+	fmt.Printf(lfmt, blue("package"), plan.NameVersion())
 	if err := Package("", plan); err != nil {
 		elog.Println(err)
 		return err
