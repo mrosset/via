@@ -7,6 +7,7 @@ import (
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
+	. "github.com/mrosset/ansi/color"
 	"log"
 	"net/http"
 	"net/url"
@@ -430,12 +431,12 @@ func BuildSteps(plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
-	fmt.Printf(lfmt, "build", plan.NameVersion())
+	fmt.Printf(lfmt, Blue("build"), plan.NameVersion())
 	if err := Build(plan); err != nil {
 		elog.Println(err)
 		return err
 	}
-	fmt.Printf(lfmt, "package", plan.NameVersion())
+	fmt.Printf(lfmt, Blue("package"), plan.NameVersion())
 	if err := Package("", plan); err != nil {
 		elog.Println(err)
 		return err
