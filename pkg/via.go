@@ -225,6 +225,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	}
 	for _, j := range plan.SubPackages {
 		sub, err := NewPlan(j)
+		sub.Version = plan.Version
 		if err != nil {
 			return err
 		}
