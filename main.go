@@ -570,7 +570,7 @@ func debug(ctx *cli.Context) error {
 	}
 	console.Flush()
 	fmt.Println("PATHS:")
-	for _, p := range strings.Split(os.Getenv("PATH"),string(os.PathListSeparator)) {
+	for _, p := range strings.Split(os.Getenv("PATH"), string(os.PathListSeparator)) {
 		console.Println(p)
 	}
 	for _, c := range cmds {

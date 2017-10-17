@@ -1,33 +1,57 @@
 package via
 
 import (
-	"context"
+	"bufio"
+	"bytes"
 	"fmt"
-	"github.com/ipfs/go-ipfs/core"
-	"github.com/ipfs/go-ipfs/core/coreunix"
-	"github.com/ipfs/go-ipfs/repo"
-	rconfig "github.com/ipfs/go-ipfs/repo/config"
-	ds2 "github.com/ipfs/go-ipfs/thirdparty/datastore2"
-	"github.com/mrosset/util/json"
+	"io"
 	"os"
+	"os/exec"
+	"strings"
 )
 
-func AddR(path string) (string, error) {
-	conf := rconfig.Config{}
-	if err := json.Read(&conf, Path("$HOME/.ipfs/config").String()); err != nil {
-		return "", err
-	}
-	json.WritePretty(conf, os.Stdout)
-	fmt.Println(conf)
-	r := &repo.Mock{
-		C: conf,
-		D: ds2.ThreadSafeCloserMapDatastore(),
-	}
-	node, err := core.NewNode(context.TODO(), &core.BuildCfg{
-		Repo: r,
-	})
+const (
+	IPFS_BIN = "ipfs"
+)
+
+func lookPathPanic(path string) string {
+	arg0, err := exec.LookPath(path)
 	if err != nil {
+		panic(err)
+	}
+	return arg0
+}
+
+// Add 'path' to ipfs, returns content ID as a string
+// TODO: use ipfs coreunix instead of this hackish exec
+func Store(path Path) (string, error) {
+	buf := new(bytes.Buffer)
+	tee := io.MultiWriter(os.Stdout, buf)
+	ipfs := exec.Cmd{
+		Path: lookPathPanic("ipfs"),
+		Args: []string{
+			"ipfs", "add", "-rHn", "--local", path.String(),
+		},
+		Stdout: tee,
+		Stdin:  os.Stdin,
+		Stderr: os.Stderr,
+	}
+
+	if err := ipfs.Run(); err != nil {
 		return "", err
 	}
-	return coreunix.AddR(node, path)
+	scan := bufio.NewScanner(buf)
+	last := p""
+	// TODO: wrap this in a go func
+	for scan.Scan() {
+		last = scan.Text()
+	}
+	if scan.Err() != nil {
+		return "", scan.Err()
+	}
+	s := strings.Split(last, " ")
+	if len(s) != 3 {
+		return "", fmt.Errorf("could not parse CID")
+	}
+	return s[1], scan.Err()
 }

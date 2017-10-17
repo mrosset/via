@@ -39,7 +39,7 @@ clean:
 rebuild: clean default
 
 test:
-	go test ./pkg/...
+	go test -run TestIpfs ./pkg/...
 
 bash: $(btarball) tmp/bash-4.4 tmp/bash-4.4/config.status tmp/bash-4.4/bash $(bash)
 
