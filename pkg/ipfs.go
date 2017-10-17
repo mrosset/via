@@ -74,24 +74,34 @@ func SetStat(path Path) error {
 
 // Add 'path' to ipfs, returns content ID as a string
 // TODO: use ipfs coreunix instead of this hackish exec
-func IpfsAdd(path Path) (string, error) {
-	buf := new(bytes.Buffer)
-	tee := io.MultiWriter(os.Stdout, buf)
+func IpfsAdd(path Path, hashOnly bool) (string, error) {
+	var (
+		buf   = new(bytes.Buffer)
+		tee   = io.MultiWriter(os.Stdout, buf)
+		flags = "-rH"
+		scan  = bufio.NewScanner(buf)
+		last  = ""
+	)
+	if hashOnly {
+		flags += "n"
+	}
 	ipfs := exec.Cmd{
 		Path: lookPathPanic("ipfs"),
 		Args: []string{
-			"ipfs", "add", "-rH", "--local", path.String(),
+			"ipfs", "add", flags, "--local", path.String(),
 		},
 		Stdout: tee,
 		Stdin:  os.Stdin,
 		Stderr: os.Stderr,
 	}
-	MakeStat(path)
+	if path.IsDir() {
+		if err := MakeStat(path); err != nil {
+			return "", err
+		}
+	}
 	if err := ipfs.Run(); err != nil {
 		return "", err
 	}
-	scan := bufio.NewScanner(buf)
-	last := ""
 	// TODO: wrap this in a go func
 	for scan.Scan() {
 		last = scan.Text()

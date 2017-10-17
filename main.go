@@ -223,6 +223,18 @@ var (
 		Usage:  "find which plans provides 'file'",
 		Action: provides,
 	}
+
+	cfix = &cli.Command{
+		Name:   "fix",
+		Usage:  "DEV ONLY used to mass modify plans",
+		Action: fix,
+	}
+
+	cclean = &cli.Command{
+		Name:   "clean",
+		Usage:  "cleans cache directory",
+		Action: clean,
+	}
 )
 
 func main() {
@@ -249,17 +261,41 @@ func main() {
 		cpack,
 		cdebug,
 		cprovides,
+		cfix,
+		cclean,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return
+}
+
+func clean(ctx *cli.Context) error {
+	if err := os.RemoveAll(via.Path(config.Cache.Builds()).String()); err != nil {
+		return err
+	}
+	if err := os.RemoveAll(via.Path(config.Cache.Stages()).String()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func fix(ctx *cli.Context) error {
+	plans, err := via.GetPlans()
+	if err != nil {
+		return err
+	}
+	for _, p := range plans {
+		p.SourceCid = ""
+		p.Save()
+	}
+	return nil
 }
 
 func daemon(ctx *cli.Context) error {
 	return via.StartDaemon()
 }
+
 func patch(ctx *cli.Context) error {
 	fnWalk := func(path string, fi os.FileInfo, err error) error {
 		patch := exec.Command(
@@ -643,9 +679,7 @@ func cd() error {
 	}
 	return nil
 }
-*/
 
-/*
 func add() error {
 	if len(command.Args()) < 1 {
 		return errors.New("no plans specified")
@@ -665,12 +699,12 @@ func add() error {
 			return err
 		}
 	}
-	return nil
-}
 */
 
 /*
 
+	return nil
+}
 
 func checkout() error {
 	if len(command.Args()) < 1 {
@@ -691,13 +725,6 @@ func branch() error {
 	git.Stderr = os.Stderr
 	return git.Run()
 
-}
-
-*/
-
-/*
-func clean() error {
-	return command.ArgsDo(via.Clean)
 }
 
 func sync() error {

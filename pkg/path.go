@@ -20,6 +20,18 @@ func (path Path) Join(paths ...Path) Path {
 	return Path(gpath.Join(spaths...))
 }
 
+func (path Path) Stat() (os.FileInfo, error) {
+	return os.Stat(path.String())
+}
+
+func (path Path) IsDir() bool {
+	fi, err := path.Stat()
+	if err != nil {
+		panic(err)
+	}
+	return fi.IsDir()
+}
+
 // like filepath.Join but joins the strings to this Path then returns a Path
 func (path Path) JoinS(paths ...string) Path {
 	paths = append([]string{string(path)}, paths...)
@@ -54,8 +66,8 @@ func (path Path) ToUnix() string {
 	}
 	spath = toUnixSlash(spath)
 	switch spath[:2] {
-		case "c:", "C:":
-		return gpath.Join("/c",spath[2:])
+	case "c:", "C:":
+		return gpath.Join("/c", spath[2:])
 	}
 	return spath
 }
@@ -69,7 +81,7 @@ func toUnixSlash(path string) string {
 		if c == '\\' {
 			npath = npath + string('/')
 		} else {
-			npath = npath+string(c)
+			npath = npath + string(c)
 		}
 	}
 	return npath

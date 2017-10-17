@@ -59,7 +59,7 @@ type Plan struct {
 	Group         string
 	StageDir      string
 	Inherit       string
-	Oid           string
+	Cid           string
 	SourceCid     string
 	BuildInStage  bool
 	IsRebuilt     bool

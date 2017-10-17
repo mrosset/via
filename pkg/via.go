@@ -115,7 +115,7 @@ func Stage(plan *Plan) (err error) {
 		}
 	}
 	if plan.SourceCid == "" {
-		cid, err := IpfsAdd(Path(cache.Stages()).JoinS(plan.stageDir()))
+		cid, err := IpfsAdd(Path(cache.Stages()).JoinS(plan.stageDir()), false)
 		if err != nil {
 			return err
 		}
@@ -187,8 +187,8 @@ func Package(bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
-	err = config.CheckBranches()
-	if err != nil {
+
+	if err := config.CheckBranches(); err != nil {
 		return (err)
 	}
 	pdir := join(cache.Packages(), plan.NameVersion())
@@ -204,8 +204,8 @@ func Package(bdir string, plan *Plan) (err error) {
 			return err
 		}
 	}
-	err = os.Mkdir(pdir, 0755)
-	if err != nil {
+
+	if os.Mkdir(pdir, 0755) != nil {
 		elog.Println(err)
 		return err
 	}
@@ -214,8 +214,8 @@ func Package(bdir string, plan *Plan) (err error) {
 		parent, _ := NewPlan(plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
 	}
-	err = doCommands(bdir, pack)
-	if err != nil {
+
+	if err := doCommands(bdir, pack); err != nil {
 		return err
 	}
 	for _, j := range plan.SubPackages {
@@ -228,14 +228,15 @@ func Package(bdir string, plan *Plan) (err error) {
 			return err
 		}
 	}
-	err = CreatePackage(plan)
-	if err != nil {
+
+	if err := CreatePackage(plan); err != nil {
 		return (err)
 	}
-	plan.Oid, err = file.Sha256sum(plan.PackagePath())
+	cid, err := IpfsAdd(Path(plan.PackagePath()), false)
 	if err != nil {
-		return (err)
+		return err
 	}
+	plan.Cid = cid
 	return plan.Save()
 	/*
 		err = CreatePackage(plan)
@@ -264,14 +265,15 @@ func CreatePackage(plan *Plan) (err error) {
 // this function should never be used in production. It's used for making sure
 // the plans Oid match the git repo's Oid
 func SyncHashs() {
-	plans, _ := GetPlans()
-	for _, p := range plans {
-		if file.Exists(p.PackagePath()) {
-			p.Oid, _ = file.Sha256sum(p.PackagePath())
-			p.Save()
-			log.Println(p.Oid, p.Name)
-		}
-	}
+	panic("not implimented")
+	// plans, _ := GetPlans()
+	// for _, p := range plans {
+	//	if file.Exists(p.PackagePath()) {
+	//		p.Oid, _ = file.Sha256sum(p.PackagePath())
+	//		p.Save()
+	//		log.Println(p.Oid, p.Name)
+	//	}
+	// }
 }
 
 func Install(name string) (err error) {
@@ -319,12 +321,12 @@ func Install(name string) (err error) {
 			return
 		}
 	*/
-	sha, err := file.Sha256sum(plan.PackagePath())
+	cid, err := IpfsAdd(Path(plan.PackagePath()), true)
 	if err != nil {
 		return (err)
 	}
-	if sha != plan.Oid {
-		return fmt.Errorf("%s Plans OID does not match tarballs got %s", plan.NameVersion(), sha)
+	if cid != plan.Cid {
+		return fmt.Errorf("%s Plans CID does not match tarballs got %s", plan.NameVersion(), cid)
 	}
 	man, err := ReadPackManifest(pfile)
 	if err != nil {
