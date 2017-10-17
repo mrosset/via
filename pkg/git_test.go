@@ -32,7 +32,7 @@ func TestClone(t *testing.T) {
 func TestSubBranch(t *testing.T) {
 	t.Parallel()
 	var (
-		expect = "linux-x86_64"
+		expect = "x86_64-via-linux-gnu"
 		got    = ""
 	)
 	got, err := Branch("../publish")

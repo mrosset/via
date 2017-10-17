@@ -5,6 +5,7 @@ import (
 	"github.com/mrosset/util/file"
 	"gopkg.in/src-d/go-git.v4"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -33,7 +34,11 @@ func Branch(path string) (string, error) {
 		dir  = filepath.Base(path)
 		sub  = join(path, "../.git/modules", dir, "HEAD")
 	)
-	if file.Exists(sub) {
+	fi, err := os.Stat(join(path, ".git"))
+	if err != nil {
+		return "", err
+	}
+	if file.Exists(sub) && !fi.IsDir() {
 		head = sub
 	}
 	b, err := ioutil.ReadFile(head)

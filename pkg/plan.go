@@ -1,14 +1,12 @@
 package via
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
 	"github.com/mrosset/util/json"
 	"path/filepath"
 	"sort"
-	"text/template"
 	"time"
 )
 
@@ -45,19 +43,6 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-func OExpand(i interface{}, s string) string {
-	buf := new(bytes.Buffer)
-	tmpl, err := template.New("").Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	err = tmpl.Execute(buf, i)
-	if err != nil {
-		panic(err)
-	}
-	return buf.String()
-}
-
 func (p *Plan) Expand() *Plan {
 	o := new(Plan)
 	err := json.Parse(o, p)
@@ -75,6 +60,7 @@ type Plan struct {
 	StageDir      string
 	Inherit       string
 	Oid           string
+	SourceCid     string
 	BuildInStage  bool
 	IsRebuilt     bool
 	BuildTime     time.Duration
@@ -160,8 +146,10 @@ func (p Plan) BuildDir() string {
 }
 
 func (p Plan) GetStageDir() string {
-	path := join(cache.Stages(), p.stageDir())
-	return path
+	if p.SourceCid != "" {
+		return join(cache.Stages(), p.SourceCid)
+	}
+	return join(cache.Stages(), p.stageDir())
 }
 
 func (p Plan) PackagePath() string {

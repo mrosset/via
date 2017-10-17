@@ -70,6 +70,9 @@ func Debug(b bool) {
 }
 
 func DownloadSrc(plan *Plan) (err error) {
+	if plan.SourceCid != "" {
+		return nil
+	}
 	if file.Exists(plan.SourcePath()) && !update {
 		return nil
 	}
@@ -90,28 +93,16 @@ func DownloadSrc(plan *Plan) (err error) {
 	return nil
 }
 
-// Stages the downloaded source in via's cache directory
-// the stage only happens once unless BuilInStage is used
+// Stages the downloaded source in via's cache directory. The stage only happens
+// once unless BuilInStage is used
 func Stage(plan *Plan) (err error) {
 	if plan.Url == "" || file.Exists(plan.GetStageDir()) {
 		// nothing to stage
 		return nil
 	}
 	fmt.Printf(lfmt, "stage", plan.NameVersion())
-	u, err := url.Parse(plan.Expand().Url)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	if u.Scheme == "git" {
-		fmt.Println(cache.Stages())
-		fmt.Println(plan.SourcePath())
-		cmd := exec.Command("git", "clone", plan.SourcePath(), plan.SourceFile())
-		cmd.Dir = cache.Stages()
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Run()
-		goto ret
+	if plan.SourceCid != "" {
+		return IpfsGet(Path(cache.Stages()), plan.SourceCid)
 	}
 	switch filepath.Ext(plan.SourceFile()) {
 	case ".zip":
@@ -123,10 +114,14 @@ func Stage(plan *Plan) (err error) {
 			return err
 		}
 	}
-ret:
-	fmt.Printf(lfmt, "patch", plan.NameVersion())
-	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
-		return err
+	if plan.SourceCid == "" {
+		cid, err := IpfsAdd(Path(cache.Stages()).JoinS(plan.stageDir()))
+		if err != nil {
+			return err
+		}
+		plan.SourceCid = cid
+		plan.Save()
+		return Stage(plan)
 	}
 	return
 }
@@ -192,10 +187,10 @@ func Package(bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
-	// err = config.CheckBranches()
-	// if err != nil {
-	//	return (err)
-	// }
+	err = config.CheckBranches()
+	if err != nil {
+		return (err)
+	}
 	pdir := join(cache.Packages(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(cache.Builds(), plan.NameVersion())

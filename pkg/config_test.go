@@ -36,7 +36,7 @@ func TestBranchs(t *testing.T) {
 			Plans: "../plans",
 			Repo:  "../publish",
 		}
-		expect = "linux-x86_64"
+		expect = "x86_64-via-linux-gnu"
 		got    = c.PlanBranch()
 	)
 	// Test Plans
