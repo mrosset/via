@@ -26,7 +26,7 @@ func lookPathPanic(path string) string {
 }
 
 type IpfsStat struct {
-	Path    Path
+	Path    string
 	Mode    os.FileMode
 	ModTime time.Time
 }
@@ -43,7 +43,7 @@ func MakeStat(path Path) error {
 			return nil
 		}
 		p = strings.Replace(p, path.String()+"/", "", 1)
-		files = append(files, IpfsStat{Path: Path(p), Mode: info.Mode(), ModTime: info.ModTime()})
+		files = append(files, IpfsStat{Path: p, Mode: info.Mode(), ModTime: info.ModTime()})
 		return nil
 	}
 	filepath.Walk(path.String(), fn)
@@ -63,8 +63,8 @@ func SetStat(path Path) error {
 		return err
 	}
 	for _, f := range files {
-		fpath := path.Join(f.Path)
-		if err := os.Chmod(fpath.String(), f.Mode); err != nil {
+		fpath := path.JoinS(f.Path)
+		if err := os.Chmod(string(fpath), f.Mode); err != nil {
 			return err
 		}
 		os.Chtimes(fpath.String(), time.Now(), f.ModTime)
