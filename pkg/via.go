@@ -104,6 +104,7 @@ func Stage(plan *Plan) (err error) {
 	if plan.SourceCid != "" {
 		return IpfsGet(Path(cache.Stages()), plan.SourceCid)
 	}
+	defer os.RemoveAll(plan.GetStageDir())
 	switch filepath.Ext(plan.SourceFile()) {
 	case ".zip":
 		unzip(cache.Stages(), plan.SourcePath())
@@ -163,6 +164,7 @@ func Build(plan *Plan) (err error) {
 }
 
 func doCommands(dir string, cmds []string) (err error) {
+	fmt.Println(dir)
 	for i, j := range cmds {
 		if debug {
 			elog.Println(i, j)
@@ -183,7 +185,7 @@ func doCommands(dir string, cmds []string) (err error) {
 	return nil
 }
 
-func Package(bdir string, plan *Plan) (err error) {
+func Package(dir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
@@ -192,12 +194,6 @@ func Package(bdir string, plan *Plan) (err error) {
 		return (err)
 	}
 	pdir := join(cache.Packages(), plan.NameVersion())
-	if bdir == "" {
-		bdir = join(cache.Builds(), plan.NameVersion())
-	}
-	if plan.BuildInStage {
-		bdir = join(cache.Stages(), plan.stageDir())
-	}
 	if file.Exists(pdir) {
 		err := os.RemoveAll(pdir)
 		if err != nil {
@@ -215,7 +211,8 @@ func Package(bdir string, plan *Plan) (err error) {
 		pack = append(parent.Package, plan.Package...)
 	}
 
-	if err := doCommands(bdir, pack); err != nil {
+	if err := doCommands(dir, pack); err != nil {
+		elog.Println(err)
 		return err
 	}
 	for _, j := range plan.SubPackages {
@@ -224,7 +221,7 @@ func Package(bdir string, plan *Plan) (err error) {
 		if err != nil {
 			return err
 		}
-		if err = Package(bdir, sub); err != nil {
+		if err = Package(dir, sub); err != nil {
 			return err
 		}
 	}
@@ -438,7 +435,7 @@ func BuildSteps(plan *Plan) (err error) {
 		return err
 	}
 	fmt.Printf(lfmt, blue("package"), plan.NameVersion())
-	if err := Package("", plan); err != nil {
+	if err := Package(plan.BuildDir(), plan); err != nil {
 		elog.Println(err)
 		return err
 	}
