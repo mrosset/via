@@ -222,6 +222,7 @@ func mkDir(path string, mode int64) (err error) {
 }
 
 // Write file from tar reader
+// TODO: make this atomic
 func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	if file.Exists(path) {
 		err := os.Remove(path)
@@ -233,18 +234,13 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	if err != nil {
 		return err
 	}
-
-	//fmt.Printf(lfmt, "file", join("+ ", path))
+	defer fd.Close()
+	// fmt.Printf(lfmt, "file", join("+ ", path))
 	//pb := console.NewProgressBarWriter(path, hdr.Size, fd)
 	if _, err = io.Copy(fd, tr); err != nil {
 		return err
 	}
-	//pb.Close()
-	fd.Close()
-	if err != nil {
-		return err
-	}
-	return
+	return os.Chtimes(path, hdr.AccessTime, hdr.ChangeTime)
 }
 
 func TarGzReader(p string) (*tar.Reader, error) {

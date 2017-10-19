@@ -164,7 +164,6 @@ func Build(plan *Plan) (err error) {
 }
 
 func doCommands(dir string, cmds []string) (err error) {
-	fmt.Println(dir)
 	for i, j := range cmds {
 		if debug {
 			elog.Println(i, j)

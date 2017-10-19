@@ -235,6 +235,30 @@ var (
 		Usage:  "cleans cache directory",
 		Action: clean,
 	}
+
+	ccd = &cli.Command{
+		Name:  "cd",
+		Usage: "prints out shell evaluate-able command to change directory. eg. eval $(via cd -s bash)",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "s",
+				Value: false,
+				Usage: "prints stage directory",
+			},
+			&cli.BoolFlag{
+				Name:  "b",
+				Value: false,
+				Usage: "prints build directory",
+			},
+		},
+		Action: cd,
+	}
+
+	cget = &cli.Command{
+		Name:   "get",
+		Usage:  "gets 'plans' sources from ipfs into current directory",
+		Action: get,
+	}
 )
 
 func main() {
@@ -263,11 +287,28 @@ func main() {
 		cprovides,
 		cfix,
 		cclean,
+		ccd,
+		cget,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func get(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("get requires a 'PLAN' argument. see: 'via help get'")
+	}
+
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	if err := via.IpfsGet("./", plan.SourceCid); err != nil {
+		return err
+	}
+	return os.Rename(plan.SourceCid, plan.NameVersion())
 }
 
 func clean(ctx *cli.Context) error {
@@ -618,11 +659,11 @@ func debug(ctx *cli.Context) error {
 }
 
 // Executes 'cmd' with 'args' useing os.Stdout and os.Stderr
-func execs(cmd string, args ...string) {
+func execs(cmd string, args ...string) error {
 	e := exec.Command(cmd, args...)
 	e.Stderr = os.Stderr
 	e.Stdout = os.Stdout
-	e.Run()
+	return e.Run()
 }
 
 func wversion(path string) {
@@ -658,28 +699,26 @@ func provides(ctx *cli.Context) error {
 	return nil
 }
 
+func cd(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("cd requires a 'PLAN' argument. see: 'via help cd'")
+	}
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	if ctx.Bool("s") {
+		fmt.Printf("cd %s", plan.GetStageDir())
+		return nil
+	}
+	if ctx.Bool("b") {
+		fmt.Printf("cd %s", plan.BuildDir())
+		return nil
+	}
+	return fmt.Errorf("cd requires either -s or -b flag")
+}
+
 /*
-func ipfs() error {
-	res, err := http.Get(config.Binary)
-	io.Copy(os.Stdout, res.Body)
-	return err
-}
-
-func cd() error {
-	if len(command.Args()) < 1 {
-		return errors.New("you need to specify a config path")
-	}
-	arg := command.Args()[0]
-	switch arg {
-	case "plans":
-		fmt.Printf("cd %s", config.Plans)
-	default:
-		err := fmt.Sprintf("config path %s not found", arg)
-		return errors.New(err)
-	}
-	return nil
-}
-
 func add() error {
 	if len(command.Args()) < 1 {
 		return errors.New("no plans specified")
