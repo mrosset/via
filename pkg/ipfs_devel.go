@@ -15,6 +15,34 @@ import (
 	"path/filepath"
 )
 
+func AddR(path Path) (string, error) {
+	fi, err := os.Stat(path.String())
+	if err != nil {
+		return "", err
+	}
+	sf, err := files.NewSerialFile("", path.String(), fi)
+	if err != nil {
+		return "", err
+	}
+	slf := files.NewSliceFile("", path.String(), []files.File{sf})
+	mpr := files.NewMultiFileReader(slf, true)
+	len, err := slf.Size()
+	if err != nil {
+		return "", err
+	}
+	req, err := NewMultiPartRequest(IPFS_API+"/add?recursive=true", len, mpr)
+	if err != nil {
+		return "", err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		panic(err)
+		return "", err
+	}
+	io.Copy(os.Stderr, res.Body)
+	return "", nil
+}
+
 func OAddR(path string) (string, error) {
 	r, err := fsrepo.Open(Path("$HOME/.ipfs").String())
 	if err != nil {

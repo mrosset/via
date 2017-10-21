@@ -240,7 +240,8 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	if _, err = io.Copy(fd, tr); err != nil {
 		return err
 	}
-	return os.Chtimes(path, hdr.AccessTime, hdr.ChangeTime)
+	return nil
+	//return os.Chtimes(path, hdr.AccessTime, hdr.ChangeTime)
 }
 
 func TarGzReader(p string) (*tar.Reader, error) {

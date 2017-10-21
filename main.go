@@ -322,7 +322,7 @@ func add(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	cid, err := via.AddR(via.Path(ctx.Args().First()))
+	cid, err := via.IpfsAdd(via.Path(ctx.Args().First()), false)
 	if err != nil {
 		return err
 	}

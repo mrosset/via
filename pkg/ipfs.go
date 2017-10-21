@@ -4,11 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/mikesun/go-ipfs-api"
-	files "github.com/mikesun/go-multipart-files"
+	"github.com/ipfs/go-ipfs-api"
 	"github.com/mrosset/util/json"
+	files "github.com/whyrusleeping/go-multipart-files"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -19,11 +18,6 @@ import (
 
 const (
 	IPFS_BIN = "ipfs"
-)
-
-var (
-	IPFS_API_FILE = Path("$HOME/.ipfs/api")
-	IPFS_API      = "http://localhost:5001/api/v0"
 )
 
 func lookPathPanic(path string) string {
@@ -40,56 +34,13 @@ type IpfsStat struct {
 	ModTime time.Time
 }
 
-func readApi() string {
-	api, err := ioutil.ReadFile(IPFS_API_FILE.String())
-	if err != nil {
-		elog.Fatalf("could not get api from %s", IPFS_API_FILE)
-	}
-	return string(api)
-}
-
-func NewLocalShell() *shell.Shell {
-	return shell.NewShell(IPFS_API)
-}
-
-type IpfsResponse struct {
-	Version string
-}
-
-func IpfsVersion() (string, error) {
-	vr := &IpfsResponse{}
-	if err := json.Get(vr, IPFS_API+"/version"); err != nil {
-		return "", err
-	}
-	return vr.Version, nil
-}
-
-func AddR(path Path) (string, error) {
-	fi, err := os.Stat(path.String())
+func Add(path Path) (string, error) {
+	s := shell.NewLocalShell()
+	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
 	}
-	sf, err := files.NewSerialFile("", path.String(), fi)
-	if err != nil {
-		return "", err
-	}
-	slf := files.NewSliceFile("", path.String(), []files.File{sf})
-	mpr := files.NewMultiFileReader(slf, true)
-	len, err := slf.Size()
-	if err != nil {
-		return "", err
-	}
-	req, err := NewMultiPartRequest(IPFS_API+"/add?recursive=true", len, mpr)
-	if err != nil {
-		return "", err
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		panic(err)
-		return "", err
-	}
-	io.Copy(os.Stderr, res.Body)
-	return "", nil
+	return s.Add(fd)
 }
 
 func NewMultiPartRequest(url string, len int64, r *files.MultiFileReader) (*http.Request, error) {
@@ -100,19 +51,6 @@ func NewMultiPartRequest(url string, len int64, r *files.MultiFileReader) (*http
 	req.Header.Set("Content-Type", "multipart/form-data; boundary="+r.Boundary())
 	req.Header.Set("Content-Disposition", "form-data: name=\"files\"")
 	return req, nil
-}
-func OAddR(path Path) (string, error) {
-	s := NewLocalShell()
-	return s.AddDir(path.String())
-}
-
-func Add(path Path) (string, error) {
-	s := NewLocalShell()
-	fd, err := os.Open(path.String())
-	if err != nil {
-		return "", err
-	}
-	return s.Add(fd)
 }
 
 // Walk 'path' and creates a stat.json file with each files permissions

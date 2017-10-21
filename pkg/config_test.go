@@ -30,7 +30,7 @@ func TestConfigExpand(t *testing.T) {
 	}
 }
 
-func TestBranchs(t *testing.T) {
+func OTestBranchs(t *testing.T) {
 	var (
 		c = &Config{
 			Plans: "../plans",
@@ -45,7 +45,7 @@ func TestBranchs(t *testing.T) {
 	}
 
 	// Test Repo
-	got = c.RepoBranch()
+	got = c.ORepoBranch()
 	if expect != got {
 		t.Errorf("expected repo branch '%s' got '%s'.", expect, got)
 	}

@@ -126,10 +126,7 @@ func ReadPath(p string) (plan *Plan, err error) {
 }
 
 func (p *Plan) PackageFile() string {
-	if p.Cid == "" {
-		return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
-	}
-	return p.Cid
+	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
 }
 
 func (p *Plan) SourceFile() string {
@@ -142,9 +139,9 @@ func (p *Plan) SourcePath() string {
 
 func (p Plan) BuildDir() string {
 	if p.BuildInStage {
-		return join(cache.Stages(), p.SourceCid)
+		return join(cache.Stages(), p.stageDir())
 	}
-	return join(cache.Builds(), p.SourceCid)
+	return join(cache.Builds(), p.NameVersion())
 }
 
 func (p Plan) GetStageDir() string {

@@ -101,30 +101,16 @@ func Stage(plan *Plan) (err error) {
 		return nil
 	}
 	fmt.Printf(lfmt, "stage", plan.NameVersion())
-	if plan.SourceCid != "" {
-		return IpfsGet(Path(cache.Stages()), plan.SourceCid)
-	}
-	defer os.RemoveAll(plan.GetStageDir())
 	switch filepath.Ext(plan.SourceFile()) {
 	case ".zip":
 		unzip(cache.Stages(), plan.SourcePath())
 	default:
 		s := Path(plan.SourcePath()).ToUnix()
-		err := GNUUntar(cache.Stages(), s)
-		if err != nil {
+		if err := GNUUntar(cache.Stages(), s); err != nil {
 			return err
 		}
 	}
-	if plan.SourceCid == "" {
-		cid, err := IpfsAdd(Path(cache.Stages()).JoinS(plan.stageDir()), false)
-		if err != nil {
-			return err
-		}
-		plan.SourceCid = cid
-		plan.Save()
-		return Stage(plan)
-	}
-	return
+	return nil
 }
 
 // Calls each shell command in the plans Build field.
@@ -228,7 +214,7 @@ func Package(dir string, plan *Plan) (err error) {
 	if err := CreatePackage(plan); err != nil {
 		return (err)
 	}
-	cid, err := IpfsAdd(Path(plan.PackagePath()), false)
+	cid, err := Add(Path(plan.PackagePath()))
 	if err != nil {
 		return err
 	}

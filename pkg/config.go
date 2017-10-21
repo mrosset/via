@@ -117,7 +117,7 @@ func (c Config) CheckBranches() error {
 }
 
 // Returns the checked out branch for repo directory
-func (c Config) RepoBranch() string {
+func (c Config) ORepoBranch() string {
 	b, err := Branch(c.Repo)
 	if err != nil {
 		elog.Fatalf("%s %s", c.Repo, err)
