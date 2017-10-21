@@ -18,6 +18,7 @@ func init() {
 }
 
 func TestLint(t *testing.T) {
+	t.Parallel()
 	if err := Lint(); err != nil {
 		t.Fatal(err)
 	}
@@ -54,42 +55,8 @@ func TestRepoCreate(t *testing.T) {
 }
 
 func TestReadelf(t *testing.T) {
+	t.Parallel()
 	err := Readelf(join(cache.Packages(), "ccache-3.1.7/bin/ccache"))
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-/*
-func TestPackage(t *testing.T) {
-	Clean(testPlan.Name)
-	if err := BuildSteps(testPlan); err != nil {
-		t.Fatal(err)
-	}
-	pfile := testPlan.PackagePath()
-	got, err := ReadPackManifest(pfile)
-	if err != nil {
-		t.Error(err)
-	}
-	if !reflect.DeepEqual(got.Files, expectFiles) {
-		fmt.Println("expect")
-		printSlice(expectFiles)
-		fmt.Println("got")
-		printSlice(got.Files)
-	}
-	if !reflect.DeepEqual(got.Depends, expectDepends) {
-		fmt.Println("expect")
-		printSlice(expectDepends)
-		fmt.Println("got")
-		printSlice(got.Depends)
-	}
-}
-
-*/
-
-func TestRepoSync(t *testing.T) {
-	return
-	err := PlanSync()
 	if err != nil {
 		t.Error(err)
 	}

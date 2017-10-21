@@ -28,18 +28,3 @@ func TestClone(t *testing.T) {
 		t.Logf("expect '%s' got '%s'", expect, got)
 	}
 }
-
-func TestSubBranch(t *testing.T) {
-	t.Parallel()
-	var (
-		expect = "linux-x86_64"
-		got    = ""
-	)
-	got, err := Branch("../publish")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if expect != got {
-		t.Logf("expect '%s' got '%s'", expect, got)
-	}
-}

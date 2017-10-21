@@ -2,11 +2,7 @@ package via
 
 import (
 	"fmt"
-	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
-	"os"
-	"os/exec"
-	"path"
 )
 
 type RepoFiles map[string][]string
@@ -30,37 +26,6 @@ func ReadRepoFiles() (RepoFiles, error) {
 		return nil, err
 	}
 	return files, nil
-}
-
-func PlanSync() error {
-	//elog.Println("PlanSync not implimented")
-	//return nil
-	dir := config.Plans
-	arg := "fetch"
-	if !file.Exists(dir) {
-		arg = "clone"
-		dir = path.Dir(dir)
-	}
-	git := exec.Command("git", arg, config.PlansRepo)
-	git.Dir = dir
-	git.Stdin = os.Stdin
-	git.Stdout = os.Stdout
-	git.Stderr = os.Stderr
-	elog.Println("syncing", config.PlansRepo)
-	err := git.Run()
-	if err != nil {
-		return err
-	}
-	git = exec.Command("git", "checkout", config.Branch)
-	git.Dir = dir
-	git.Stdin = os.Stdin
-	git.Stdout = os.Stdout
-	git.Stderr = os.Stderr
-	err = git.Run()
-	if err != nil {
-		return err
-	}
-	return RepoCreate()
 }
 
 func RepoCreate() error {

@@ -1,18 +1,12 @@
 package via
 
 import (
-	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-)
-
-const (
-	ERR_BRANCH_MISMATCH = "Branches do not Match"
-	RUNTIME_LINKER      = "%s/lib/ld-linux-x86-64.so.2"
 )
 
 var (
@@ -105,34 +99,6 @@ func (c *Config) Expand() *Config {
 	}
 	c.template = o
 	return o
-}
-
-// Checks plan branch match the Config branch
-func (c Config) CheckBranches() error {
-	pb := c.PlanBranch()
-	if pb != config.Branch {
-		return fmt.Errorf("%s: plan:%s", ERR_BRANCH_MISMATCH, pb)
-	}
-	return nil
-}
-
-// Returns the checked out branch for repo directory
-func (c Config) RepoBranch() string {
-	b, err := Branch(c.Repo)
-	if err != nil {
-		elog.Fatalf("%s %s", c.Repo, err)
-	}
-	return b
-}
-
-// Returns the checked out branch for plans directory
-func (c Config) PlanBranch() string {
-	p := filepath.Join(c.Plans)
-	b, err := Branch(p)
-	if err != nil {
-		elog.Fatal(err)
-	}
-	return b
 }
 
 type Flags []string

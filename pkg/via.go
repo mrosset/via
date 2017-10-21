@@ -130,9 +130,6 @@ func Build(plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	if err = config.CheckBranches(); err != nil {
-		return (err)
-	}
 	if file.Exists(plan.PackagePath()) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}
@@ -186,10 +183,6 @@ func Package(bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
-	err = config.CheckBranches()
-	if err != nil {
-		return (err)
-	}
 	pdir := join(cache.Packages(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(cache.Builds(), plan.NameVersion())
@@ -550,21 +543,6 @@ func conflicts(man *Plan) (errs []error) {
 		}
 	}
 	return errs
-}
-
-// Setup Dynamic linker
-func CheckLink() error {
-	real := fmt.Sprintf(RUNTIME_LINKER, filepath.Join(config.Root, config.Prefix))
-	ldir := filepath.Dir(config.Linker)
-
-	if !file.Exists(real) {
-		elog.Printf("%s real linker does not exist", real)
-	}
-
-	os.MkdirAll(ldir, 0755)
-
-	elog.Printf("linking\t %s\t %s", config.Linker, real)
-	return os.Symlink(real, config.Linker)
 }
 
 func GetConfig() *Config {
