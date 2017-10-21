@@ -4,45 +4,31 @@ package via
 
 import (
 	"context"
+	"github.com/ipfs/go-ipfs-api"
 	"github.com/ipfs/go-ipfs/blockservice"
 	"github.com/ipfs/go-ipfs/commands/files"
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/coreunix"
 	"github.com/ipfs/go-ipfs/merkledag"
-	"github.com/ipfs/go-ipfs/repo"
-	rconfig "github.com/ipfs/go-ipfs/repo/config"
-	ds2 "github.com/ipfs/go-ipfs/thirdparty/datastore2"
-	"github.com/mrosset/util/json"
+	"github.com/ipfs/go-ipfs/repo/fsrepo"
 	"os"
 	"path/filepath"
 )
 
-func AddR(path string) (string, error) {
-	conf := rconfig.Config{}
-	if err := json.Read(&conf, Path("$HOME/.ipfs/config").String()); err != nil {
+func OAddR(path string) (string, error) {
+	r, err := fsrepo.Open(Path("$HOME/.ipfs").String())
+	if err != nil {
+		panic(err)
 		return "", err
 	}
-	_ = &repo.Mock{
-		C: conf,
-		// C: rconfig.Config{
-		//	Identity: rconfig.Identity{
-		//		PeerID: "Qmfoo", // required by offline node
-		//	},
-		// },
-		D: ds2.ThreadSafeCloserMapDatastore(),
-	}
-
 	node, err := core.NewNode(context.TODO(), &core.BuildCfg{
-		NilRepo: true,
+		Repo: r,
 	})
-
-	exch := node.Exchange
-	bserv := blockservice.New(node.Blockstore, exch)
-	dserv := merkledag.NewDAGService(bserv)
-
 	if err != nil {
 		return "", err
 	}
+	bserv := blockservice.New(node.Blockstore, node.Exchange)
+	dserv := merkledag.NewDAGService(bserv)
 	return BaseAddR(node, path, dserv)
 }
 
@@ -59,12 +45,10 @@ func BaseAddR(n *core.IpfsNode, root string, ds merkledag.DAGService) (key strin
 		return "", err
 	}
 	defer f.Close()
-
 	fileAdder, err := coreunix.NewAdder(n.Context(), n.Pinning, n.Blockstore, ds)
 	if err != nil {
 		return "", err
 	}
-
 	err = fileAdder.AddFile(f)
 	if err != nil {
 		return "", err

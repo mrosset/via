@@ -132,9 +132,9 @@ func Build(plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	// if err = config.CheckBranches(); err != nil {
-	//	return (err)
-	// }
+	if err = config.CheckBranches(); err != nil {
+		return (err)
+	}
 	if file.Exists(plan.PackagePath()) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
@@ -259,6 +260,19 @@ var (
 		Usage:  "gets 'plans' sources from ipfs into current directory",
 		Action: get,
 	}
+
+	cadd = &cli.Command{
+		Name:   "add",
+		Usage:  "Adds 'dir' to ipfs and saves plan SourceCid",
+		Action: add,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "p",
+				Value: "",
+				Usage: "plan to add source directory to",
+			},
+		},
+	}
 )
 
 func main() {
@@ -289,11 +303,31 @@ func main() {
 		cclean,
 		ccd,
 		cget,
+		cadd,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func add(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("get requires a 'dir' argument. see: 'via help add'")
+	}
+	if ctx.String("p") == "" {
+		return fmt.Errorf("add requires -p 'plan' flag. see: 'via help add'")
+	}
+	plan, err := via.NewPlan(ctx.String("p"))
+	if err != nil {
+		return err
+	}
+	cid, err := via.AddR(via.Path(ctx.Args().First()))
+	if err != nil {
+		return err
+	}
+	plan.SourceCid = cid
+	return plan.Save()
 }
 
 func get(ctx *cli.Context) error {
@@ -304,6 +338,9 @@ func get(ctx *cli.Context) error {
 	plan, err := via.NewPlan(ctx.Args().First())
 	if err != nil {
 		return err
+	}
+	if plan.SourceCid == "" {
+		return gurl.Download("./", plan.Url)
 	}
 	if err := via.IpfsGet("./", plan.SourceCid); err != nil {
 		return err
