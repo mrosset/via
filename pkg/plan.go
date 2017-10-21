@@ -74,7 +74,7 @@ type Plan struct {
 	Group         string
 	StageDir      string
 	Inherit       string
-	Oid           string
+	Cid           string
 	BuildInStage  bool
 	IsRebuilt     bool
 	BuildTime     time.Duration
@@ -140,6 +140,9 @@ func ReadPath(p string) (plan *Plan, err error) {
 }
 
 func (p *Plan) PackageFile() string {
+	if p.Cid != "" {
+		return p.Cid
+	}
 	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
 }
 

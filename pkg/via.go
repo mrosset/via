@@ -223,9 +223,9 @@ func Package(bdir string, plan *Plan) (err error) {
 	if err != nil {
 		return (err)
 	}
-	plan.Oid, err = file.Sha256sum(plan.PackagePath())
+	plan.Cid, err = IpfsAdd(Path(plan.PackagePath()))
 	if err != nil {
-		return (err)
+		return err
 	}
 	return plan.Save()
 	/*
@@ -258,9 +258,9 @@ func SyncHashs() {
 	plans, _ := GetPlans()
 	for _, p := range plans {
 		if file.Exists(p.PackagePath()) {
-			p.Oid, _ = file.Sha256sum(p.PackagePath())
+			p.Cid, _ = HashOnly(Path(p.PackagePath()))
 			p.Save()
-			log.Println(p.Oid, p.Name)
+			log.Println(p.Cid, p.Name)
 		}
 	}
 }
@@ -310,12 +310,12 @@ func Install(name string) (err error) {
 			return
 		}
 	*/
-	sha, err := file.Sha256sum(plan.PackagePath())
+	cid, err := HashOnly(Path(plan.PackagePath()))
 	if err != nil {
 		return (err)
 	}
-	if sha != plan.Oid {
-		return fmt.Errorf("%s Plans OID does not match tarballs got %s", plan.NameVersion(), sha)
+	if cid != plan.Cid {
+		return fmt.Errorf("%s Plans CID does not match tarballs got %s", plan.NameVersion(), cid)
 	}
 	man, err := ReadPackManifest(pfile)
 	if err != nil {
