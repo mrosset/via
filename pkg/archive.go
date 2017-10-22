@@ -108,7 +108,7 @@ func archive(wr io.Writer, dir string) error {
 	tw := tar.NewWriter(wr)
 	defer tw.Close()
 	walkFn := func(path string, info os.FileInfo, err error) error {
-		spath := strings.Replace(path, dir, "", -1)
+		spath := strings.Replace(path, dir, "", 1)
 		if spath == "" {
 			return nil
 		}
@@ -244,7 +244,7 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	if err != nil {
 		return err
 	}
-	return
+	return os.Chtimes(path, hdr.AccessTime, hdr.ModTime)
 }
 
 func TarGzReader(p string) (*tar.Reader, error) {

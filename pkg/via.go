@@ -293,8 +293,12 @@ func Install(name string) (err error) {
 		return fmt.Errorf("%s is already installed", name)
 	}
 	pfile := plan.PackagePath()
+	fmt.Println(pfile)
+	defer func() {
+		panic(pfile)
+		os.Remove(pfile)
+	}()
 	if !file.Exists(pfile) {
-		//return errors.New(fmt.Sprintf("%s does not exist", pfile))
 		ddir := join(config.Repo, "repo")
 		os.MkdirAll(ddir, 0755)
 		err := gurl.Download(ddir, config.Binary+"/"+plan.PackageFile())
@@ -302,14 +306,7 @@ func Install(name string) (err error) {
 			elog.Println(pfile)
 			log.Fatal(err)
 		}
-		//fatal(gurl.Download(config.Repo, config.Binary+"/"+plan.PackageFile()+".sig"))
 	}
-	/*
-		err = CheckSig(pfile)
-		if err != nil {
-			return
-		}
-	*/
 	cid, err := HashOnly(Path(plan.PackagePath()))
 	if err != nil {
 		return (err)
