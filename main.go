@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
@@ -223,6 +224,55 @@ var (
 		Usage:  "find which plans provides 'file'",
 		Action: provides,
 	}
+
+	cfix = &cli.Command{
+		Name:   "fix",
+		Usage:  "DEV ONLY used to mass modify plans",
+		Action: fix,
+	}
+
+	cclean = &cli.Command{
+		Name:   "clean",
+		Usage:  "cleans cache directory",
+		Action: clean,
+	}
+
+	ccd = &cli.Command{
+		Name:  "cd",
+		Usage: "prints out shell evaluate-able command to change directory. eg. eval $(via cd -s bash)",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "s",
+				Value: false,
+				Usage: "prints stage directory",
+			},
+			&cli.BoolFlag{
+				Name:  "b",
+				Value: false,
+				Usage: "prints build directory",
+			},
+		},
+		Action: cd,
+	}
+
+	cget = &cli.Command{
+		Name:   "get",
+		Usage:  "gets 'plans' sources from ipfs into current directory",
+		Action: get,
+	}
+
+	// cadd = &cli.Command{
+	//	Name:   "add",
+	//	Usage:  "Adds 'dir' to ipfs and saves plan SourceCid",
+	//	Action: add,
+	//	Flags: []cli.Flag{
+	//		&cli.StringFlag{
+	//			Name:  "p",
+	//			Value: "",
+	//			Usage: "plan to add source directory to",
+	//		},
+	//	},
+	// }
 )
 
 func main() {
@@ -249,17 +299,74 @@ func main() {
 		cpack,
 		cdebug,
 		cprovides,
+		cfix,
+		cclean,
+		ccd,
+		cget,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return
+}
+
+// func add(ctx *cli.Context) error {
+//	if !ctx.Args().Present() {
+//		return fmt.Errorf("get requires a 'dir' argument. see: 'via help add'")
+//	}
+//	if ctx.String("p") == "" {
+//		return fmt.Errorf("add requires -p 'plan' flag. see: 'via help add'")
+//	}
+//	plan, err := via.NewPlan(ctx.String("p"))
+//	if err != nil {
+//		return err
+//	}
+//	cid, err := via.IpfsAdd(via.Path(ctx.Args().First()), false)
+//	if err != nil {
+//		return err
+//	}
+//	plan.SourceCid = cid
+//	return plan.Save()
+// }
+
+func get(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("get requires a 'PLAN' argument. see: 'via help get'")
+	}
+
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	return gurl.Download("./", plan.Expand().Url)
+}
+
+func clean(ctx *cli.Context) error {
+	if err := os.RemoveAll(via.Path(config.Cache.Builds()).String()); err != nil {
+		return err
+	}
+	if err := os.RemoveAll(via.Path(config.Cache.Stages()).String()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func fix(ctx *cli.Context) error {
+	plans, err := via.GetPlans()
+	if err != nil {
+		return err
+	}
+	for _, p := range plans {
+		p.AutoDepends = nil
+		p.Save()
+	}
+	return nil
 }
 
 func daemon(ctx *cli.Context) error {
 	return via.StartDaemon()
 }
+
 func patch(ctx *cli.Context) error {
 	fnWalk := func(path string, fi os.FileInfo, err error) error {
 		patch := exec.Command(
@@ -523,7 +630,7 @@ func options(ctx *cli.Context) error {
 	}
 	c := filepath.Join(plan.GetStageDir(), "configure")
 	fmt.Println(c)
-	cmd := exec.Command(c, "--help")
+	cmd := exec.Command("sh", c, "--help")
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -561,7 +668,7 @@ func pack(ctx *cli.Context) error {
 }
 
 func debug(ctx *cli.Context) error {
-	cmds := []string{"gcc", "python", "make"}
+	cmds := []string{"gcc", "python", "make", "bash", "ld"}
 	env := os.Environ()
 	sort.Strings(env)
 	for _, v := range env {
@@ -569,16 +676,24 @@ func debug(ctx *cli.Context) error {
 		console.Println(e[0], e[1])
 	}
 	console.Flush()
-	which(cmds...)
+	fmt.Println("PATHS:")
+	for _, p := range strings.Split(os.Getenv("PATH"), string(os.PathListSeparator)) {
+		console.Println(p)
+	}
+	for _, c := range cmds {
+		fmt.Printf("%s:\n", strings.ToUpper(c))
+		execs("which", "-a", c)
+		execs(c, "--version")
+	}
 	return nil
 }
 
 // Executes 'cmd' with 'args' useing os.Stdout and os.Stderr
-func execs(cmd string, args ...string) {
+func execs(cmd string, args ...string) error {
 	e := exec.Command(cmd, args...)
 	e.Stderr = os.Stderr
 	e.Stdout = os.Stdout
-	e.Run()
+	return e.Run()
 }
 
 func wversion(path string) {
@@ -614,28 +729,24 @@ func provides(ctx *cli.Context) error {
 	return nil
 }
 
-/*
-func ipfs() error {
-	res, err := http.Get(config.Binary)
-	io.Copy(os.Stdout, res.Body)
-	return err
-}
-
-func cd() error {
-	if len(command.Args()) < 1 {
-		return errors.New("you need to specify a config path")
+func cd(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("cd requires a 'PLAN' argument. see: 'via help cd'")
 	}
-	arg := command.Args()[0]
-	switch arg {
-	case "plans":
-		fmt.Printf("cd %s", config.Plans)
-	default:
-		err := fmt.Sprintf("config path %s not found", arg)
-		return errors.New(err)
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
 	}
-	return nil
+	if ctx.Bool("s") {
+		fmt.Printf("cd %s", plan.GetStageDir())
+		return nil
+	}
+	if ctx.Bool("b") {
+		fmt.Printf("cd %s", plan.BuildDir())
+		return nil
+	}
+	return fmt.Errorf("cd requires either -s or -b flag")
 }
-*/
 
 /*
 func add() error {
@@ -657,12 +768,12 @@ func add() error {
 			return err
 		}
 	}
-	return nil
-}
 */
 
 /*
 
+	return nil
+}
 
 func checkout() error {
 	if len(command.Args()) < 1 {
@@ -683,13 +794,6 @@ func branch() error {
 	git.Stderr = os.Stderr
 	return git.Run()
 
-}
-
-*/
-
-/*
-func clean() error {
-	return command.ArgsDo(via.Clean)
 }
 
 func sync() error {
