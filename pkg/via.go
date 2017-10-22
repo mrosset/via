@@ -293,11 +293,6 @@ func Install(name string) (err error) {
 		return fmt.Errorf("%s is already installed", name)
 	}
 	pfile := plan.PackagePath()
-	fmt.Println(pfile)
-	defer func() {
-		panic(pfile)
-		os.Remove(pfile)
-	}()
 	if !file.Exists(pfile) {
 		ddir := join(config.Repo, "repo")
 		os.MkdirAll(ddir, 0755)
