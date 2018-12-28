@@ -357,7 +357,7 @@ func fix(ctx *cli.Context) error {
 		return err
 	}
 	for _, p := range plans {
-		p.AutoDepends = nil
+		p.IsRebuilt = false
 		p.Save()
 	}
 	return nil

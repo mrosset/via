@@ -30,7 +30,7 @@ var (
 	PREFIX         = Path("/tmp/via")
 )
 
-func init() {
+func oinit() {
 	if !Symlinked() {
 		INSTALL_PREFIX.MkDirAll(0700)
 		err := INSTALL_PREFIX.Symlink(PREFIX)
