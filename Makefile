@@ -1,6 +1,6 @@
-SRC				= $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
-BIN				= $(GOPATH)/bin/via
-CMDS			= fmt test install
+SRC	  = $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
+BIN	  = $(GOPATH)/bin/via
+CMDS	  = fmt test install
 REPO      = strings/via:devel
 bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
@@ -33,14 +33,17 @@ dock: $(SRC) bash
 	docker build -t strings/via:devel docker
 
 clean:
-	-rm docker/via
-	-rm -fr root
+	@-rm docker/via
+	-rm -fr ./root
 	-rm $(BIN)
+	-rm -rf ./tmp/bash-4.4
 
 rebuild: clean default
 
 test:
 	go test -v ./pkg/...
+
+.NOTPARALLEL:
 
 bash: $(btarball) tmp/bash-4.4 tmp/bash-4.4/config.status tmp/bash-4.4/bash $(bash)
 
@@ -49,7 +52,7 @@ $(bash):
 	cp -p tmp/bash-4.4/bash $@
 
 tmp/bash-4.4/config.status:
-	cd tmp/bash-4.4; CFLAGS="-static"; ./configure -q
+	cd tmp/bash-4.4; CFLAGS="-static"; ./configure --enable-static-link -q
 
 tmp/bash-4.4/bash:
 	$(MAKE) -C tmp/bash-4.4

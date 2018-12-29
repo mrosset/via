@@ -132,11 +132,11 @@ func archive(wr io.Writer, dir string) error {
 		hdr.Name = spath
 		// TODO: check tar specs for actual length
 		// If path is greater then 100 bytes we need to handle as LongLink
-		if len(hdr.Name) >= 100 {
-			hdr.Typeflag = tar.TypeGNULongName
-			hdr.Size = int64(len(hdr.Name))
-		}
-		//fmt.Printf("%c %s\n", hdr.Typeflag, hdr.Name)
+		// if len(hdr.Name) >= 100 {
+		//	hdr.Typeflag = tar.TypeGNULongName
+		//	hdr.Size = int64(len(hdr.Name))
+		// }
+		// fmt.Printf("%c %s\n", hdr.Typeflag, hdr.Name)
 		err = tw.WriteHeader(hdr)
 		if err != nil {
 			elog.Println(err)
@@ -188,7 +188,7 @@ func archive(wr io.Writer, dir string) error {
 				return err
 			}
 		default:
-			err = fmt.Errorf("%s: unhandled tar header type")
+			err = fmt.Errorf("%d: unhandled tar header type", hdr.Typeflag)
 			elog.Println(err)
 			return err
 		}
