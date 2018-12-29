@@ -4,7 +4,6 @@ import (
 	"github.com/cheekybits/is"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/via/pkg"
-	"path"
 	"testing"
 )
 
@@ -61,8 +60,8 @@ func TestEachPlanFile(t *testing.T) {
 		if p.Url == "" {
 			continue
 		}
-		file := path.Base(p.Expand().Url)
-		console.Println(file, ParseName(file), ParseVersion(file))
+		// file := path.Base(p.Expand().Url)
+		//console.Println(file, ParseName(file), ParseVersion(file))
 	}
 	console.Flush()
 }
