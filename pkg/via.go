@@ -30,7 +30,7 @@ var (
 	PREFIX         = Path("/tmp/via")
 )
 
-func oinit() {
+func init() {
 	if !Symlinked() {
 		INSTALL_PREFIX.MkDirAll(0700)
 		err := INSTALL_PREFIX.Symlink(PREFIX)
@@ -83,7 +83,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	case "http", "https":
 		return gurl.Download(cache.Sources(), eurl)
 	default:
-		return fmt.Errorf("%s URL scheme is not supported")
+		return fmt.Errorf("%s: URL scheme is not supported", u.Scheme)
 	}
 	return nil
 }
