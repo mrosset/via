@@ -1,10 +1,7 @@
 package via
 
 import (
-	"context"
 	"github.com/ipfs/go-ipfs-api"
-	"github.com/ipfs/go-ipfs/core"
-	"github.com/ipfs/go-ipfs/core/coreunix"
 	"os"
 )
 
@@ -19,14 +16,11 @@ func IpfsAdd(path Path) (string, error) {
 }
 
 func HashOnly(path Path) (string, error) {
-	node, err := core.NewNode(context.TODO(), &core.BuildCfg{NilRepo: true})
-	if err != nil {
-		return "", err
-	}
+	s := shell.NewLocalShell()
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
 	}
 	defer fd.Close()
-	return coreunix.Add(node, fd)
+	return s.Add(fd, shell.OnlyHash(true))
 }
