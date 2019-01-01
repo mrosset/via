@@ -83,7 +83,7 @@ func DownloadSrc(plan *Plan) (err error) {
 	case "http", "https":
 		return gurl.Download(cache.Sources(), eurl)
 	default:
-		return fmt.Errorf("%s URL scheme is not supported")
+		return fmt.Errorf("%s: URL scheme is not supported", u.Scheme)
 	}
 	return nil
 }
