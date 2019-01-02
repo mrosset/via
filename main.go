@@ -444,7 +444,7 @@ func remove(ctx *cli.Context) error {
 func local(ctx *cli.Context) error {
 	// if r flag build package with RPC daemon
 	if ctx.Bool("r") {
-		return build(ctx)
+		return remote(ctx)
 	}
 	if !ctx.Args().Present() {
 		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
@@ -478,7 +478,7 @@ func local(ctx *cli.Context) error {
 	return nil
 }
 
-func build(ctx *cli.Context) error {
+func remote(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
 	}
