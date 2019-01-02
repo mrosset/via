@@ -62,6 +62,11 @@ var (
 				Value: false,
 				Usage: "force downloading of sources",
 			},
+			&cli.BoolFlag{
+				Name:  "r",
+				Value: false,
+				Usage: "builds plan using daemon",
+			},
 		},
 	}
 
@@ -437,6 +442,10 @@ func remove(ctx *cli.Context) error {
 }
 
 func local(ctx *cli.Context) error {
+	// if r flag build package with RPC daemon
+	if ctx.Bool("r") {
+		return build(ctx)
+	}
 	if !ctx.Args().Present() {
 		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
 	}
