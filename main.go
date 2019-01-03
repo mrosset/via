@@ -194,12 +194,6 @@ var (
 		Action: create,
 	}
 
-	cpatch = &cli.Command{
-		Name:   "patch",
-		Usage:  "patches dynamic linker",
-		Action: patch,
-	}
-
 	cdaemon = &cli.Command{
 		Name:   "daemon",
 		Usage:  "starts build daemon",
@@ -224,10 +218,10 @@ var (
 		Action: debug,
 	}
 
-	cprovides = &cli.Command{
-		Name:   "provides",
-		Usage:  "find which plans provides 'file'",
-		Action: provides,
+	cowns = &cli.Command{
+		Name:   "owns",
+		Usage:  "find which plans owns 'file'",
+		Action: owns,
 	}
 
 	cfix = &cli.Command{
@@ -298,12 +292,11 @@ func main() {
 		coptions,
 		cstrap,
 		ccreate,
-		cpatch,
 		cdaemon,
 		chash,
 		cpack,
 		cdebug,
-		cprovides,
+		cowns,
 		cfix,
 		cclean,
 		ccd,
@@ -372,25 +365,9 @@ func daemon(ctx *cli.Context) error {
 	return via.StartDaemon()
 }
 
-func patch(ctx *cli.Context) error {
-	fnWalk := func(path string, fi os.FileInfo, err error) error {
-		patch := exec.Command(
-			"patchelf",
-			"--set-rpath", filepath.Join(config.Root, config.Prefix, "lib"),
-			"--set-interpreter", filepath.Join(config.Root, config.Prefix, "lib/ld-linux-x86-64.so.2"),
-			path,
-		)
-		patch.Stdout = os.Stdout
-		patch.Run()
-		return nil
-	}
-	path := filepath.Join(config.Root, config.Prefix)
-	return filepath.Walk(path, fnWalk)
-}
-
 func strap(ctx *cli.Context) error {
 
-	dplan, err := via.NewPlan("devel")
+	dplan, err := via.NewPlan("emacs")
 
 	if err != nil {
 		return err
@@ -722,7 +699,7 @@ func which(cmds ...string) {
 	}
 }
 
-func provides(ctx *cli.Context) error {
+func owns(ctx *cli.Context) error {
 	rfiles, err := via.ReadRepoFiles()
 	if err != nil {
 		return err
