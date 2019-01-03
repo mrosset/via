@@ -6,7 +6,7 @@ import (
 )
 
 func IpfsAdd(path Path) (string, error) {
-	s := shell.NewShell("172.17.0.1:5001")
+	s := shell.NewLocalShell()
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
@@ -16,7 +16,7 @@ func IpfsAdd(path Path) (string, error) {
 }
 
 func HashOnly(path Path) (string, error) {
-	s := shell.NewShell("172.17.0.1:5001")
+	s := shell.NewLocalShell()
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
