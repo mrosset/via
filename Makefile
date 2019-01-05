@@ -12,6 +12,7 @@ default: $(BIN)
 run: default
 	$(BIN) show -t "{{.AutoDepends}}" git
 	$(BIN) show -d git
+	$(BIN) debug
 
 $(BIN): $(SRC)
 	go build -o $(BIN)

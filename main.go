@@ -210,6 +210,13 @@ var (
 		Name:   "pack",
 		Usage:  "package plan",
 		Action: pack,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "v",
+				Value: false,
+				Usage: "displays more information when packing",
+			},
+		},
 	}
 
 	cdebug = &cli.Command{
@@ -640,6 +647,7 @@ func hash(ctx *cli.Context) error {
 }
 
 func pack(ctx *cli.Context) error {
+	via.Verbose(ctx.Bool("v"))
 	for _, arg := range ctx.Args().Slice() {
 		plan, err := via.NewPlan(arg)
 		if err != nil {
@@ -654,7 +662,7 @@ func pack(ctx *cli.Context) error {
 }
 
 func debug(ctx *cli.Context) error {
-	cmds := []string{"gcc", "python", "make", "bash", "ld"}
+	cmds := []string{"gcc", "g++", "python", "make", "bash", "ld"}
 	env := os.Environ()
 	sort.Strings(env)
 	for _, v := range env {
