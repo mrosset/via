@@ -19,9 +19,13 @@ var (
 )
 
 func init() {
+	if os.Getenv("GOPATH") == "" {
+		elog.Fatal("GOPATH must be set")
+	}
 	// TODO rework this to error and suggest user use 'via init'
 	pdir := filepath.Dir(cfile)
 	if !file.Exists(pdir) {
+		elog.Println("cloning plans")
 		err := Clone(pdir, planUrl)
 		if err != nil {
 			elog.Fatal(err)
