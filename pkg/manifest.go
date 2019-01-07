@@ -72,6 +72,8 @@ func CreateManifest(dir string, plan *Plan) (err error) {
 	plan.Date = time.Now()
 	plan.Size = size
 	plan.Save()
+	// Remove the old Cid before writing the package tarball
+	plan.Cid = ""
 	return json.WriteGz(&plan, mfile)
 }
 

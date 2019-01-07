@@ -277,7 +277,7 @@ func Install(name string) (err error) {
 	if !file.Exists(pfile) {
 		ddir := join(config.Repo, "repo")
 		os.MkdirAll(ddir, 0755)
-		err := gurl.Download(ddir, config.Binary+"/"+plan.PackageFile())
+		err := gurl.NameDownload(ddir, config.Binary+"/"+plan.Cid, plan.PackageFile())
 		if err != nil {
 			elog.Println(pfile)
 			log.Fatal(err)
@@ -320,6 +320,7 @@ func Install(name string) (err error) {
 		elog.Println(err)
 		return err
 	}
+	man.Cid = plan.Cid
 	err = json.Write(man, join(db, "manifest.json"))
 	if err != nil {
 		return err
