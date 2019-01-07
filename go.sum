@@ -41,10 +41,6 @@ github.com/gxed/hashland v0.0.0-20180221191214-d9f6b97f8db2 h1:neM/RzmgBKxsJ3ioE
 github.com/gxed/hashland v0.0.0-20180221191214-d9f6b97f8db2/go.mod h1:YUhWml1NaWLTNBl4NPptkB8MadfaIhgq+a2TRc+Mw4Q=
 github.com/ipfs/go-ipfs-api v1.3.3-0.20181230163852-a81f9093bbd3 h1:IJ3q8D3L3OfYK3iT6B5VTOBTNDrQ5dDRRh+kknSc6V4=
 github.com/ipfs/go-ipfs-api v1.3.3-0.20181230163852-a81f9093bbd3/go.mod h1:YWGjU+7Bdls1CpvsKsV6EsQ/KMyQqSpBru2hme/5WQg=
-github.com/ipfs/go-ipfs-api v1.3.5 h1:NvOdNXkN1S9XiaRlpPV8SUOBKcRVlpUhoHgbDteMs60=
-github.com/ipfs/go-ipfs-api v1.3.5/go.mod h1:YWGjU+7Bdls1CpvsKsV6EsQ/KMyQqSpBru2hme/5WQg=
-github.com/ipfs/go-ipfs-cmdkit v1.1.3 h1:4sbEnLjYmh8gJOCUiqtKp0EIboSYTFrxftc7S+U3gK4=
-github.com/ipfs/go-ipfs-cmdkit v1.1.3/go.mod h1:9FtbMdUabcSqv/G4/8WCxSLxkZxn/aZEFrxxqnVcRbg=
 github.com/ipfs/go-ipfs-files v0.0.0-20181213224250-86b2cb84da86 h1:amTSjPR6Bx2sDyjKO2wZniPI9g/fpYDsRXqXCyXNhdk=
 github.com/ipfs/go-ipfs-files v0.0.0-20181213224250-86b2cb84da86/go.mod h1:6m71fxPZM2eOasRmgz6ryrSpTkriYsggu2Cnv2cu+jA=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
@@ -70,8 +66,6 @@ github.com/libp2p/go-libp2p-peer v2.4.0+incompatible h1:1THIuO/h7GuITklYS7RgGCyo
 github.com/libp2p/go-libp2p-peer v2.4.0+incompatible/go.mod h1:fS2eFKRO1IomwBAf+SuE8P1XOT/AAiqSgVPNIFA7Jc0=
 github.com/libp2p/go-libp2p-protocol v1.0.0 h1:6AnF76m2VjjiaDisOahQnWSnX2WWaISOXC7q9/YJIrM=
 github.com/libp2p/go-libp2p-protocol v1.0.0/go.mod h1:Af9n4PiruirSDjHycM1QuiMi/1VZNHYcK8cLgFJLZ4s=
-github.com/libp2p/go-libp2p-pubsub v0.10.2 h1:H8bIBByKCyVDurRBORxPXc3FoPLBoIq/a/nP61spSaU=
-github.com/libp2p/go-libp2p-pubsub v0.10.2/go.mod h1:E2KoEMwM5nWtdGV+wWueN7g/j++VL9tmCfjzk1fLpWc=
 github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 h1:lYpkrQH5ajf0OXOcUbGjvZxxijuBwbbmlSxLiuofa+g=
 github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1/go.mod h1:pD8RvIylQ358TN4wwqatJ8rNavkEINozVn9DtGI3dfQ=
 github.com/minio/sha256-simd v0.0.0-20190105025725-66352e71c5e1 h1:FrenN76aYHI+48Ac/1PlHlW064zUiXZwBztvXTy0zho=
@@ -80,8 +74,8 @@ github.com/mitchellh/go-homedir v1.0.0 h1:vKb8ShqSby24Yrqr/yDYkuFz8d0WUjys40rvnG
 github.com/mitchellh/go-homedir v1.0.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mr-tron/base58 v1.1.0 h1:Y51FGVJ91WBqCEabAi5OPUz38eAx8DakuAm5svLcsfQ=
 github.com/mr-tron/base58 v1.1.0/go.mod h1:xcD2VGqlgYjBdcBLw+TuYLr8afG+Hj8g2eTVqeSzSU8=
-github.com/mrosset/gurl v0.0.0-20190106003950-a58a06a1dfcd h1:gosQWRv2nVAbz3bF9K+otrt7ziCDR51iVcTbaa4v/34=
-github.com/mrosset/gurl v0.0.0-20190106003950-a58a06a1dfcd/go.mod h1:fEj1eN6DT+DunFWvDACSkc+ViH0UVwx6zk9josomR+Q=
+github.com/mrosset/gurl v0.0.0-20190107030345-a652a1423a55 h1:x4FskuH3pPvXiDSxpt2S0AKs8qqLLclDse5y2PXutpM=
+github.com/mrosset/gurl v0.0.0-20190107030345-a652a1423a55/go.mod h1:fEj1eN6DT+DunFWvDACSkc+ViH0UVwx6zk9josomR+Q=
 github.com/mrosset/util v0.0.0-20171017103019-cbd40a79bc60 h1:MlFT1ZaIXUEdfX/Oi+o5bTRFRkqq0FyxdI321MHz3L8=
 github.com/mrosset/util v0.0.0-20171017103019-cbd40a79bc60/go.mod h1:7yGYKM5rHeJePKGQ7Q1JFFNc5A+Y28LqrsnerU8gGA4=
 github.com/multiformats/go-multiaddr v1.4.0 h1:xt9fCCmSyTosXSvEhEqYnC75LiaDSdXycwOLJaDGPic=
