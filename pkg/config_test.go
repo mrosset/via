@@ -4,6 +4,12 @@ import (
 	"testing"
 )
 
+var testConfig = &Config{
+	Root:   "testdata/root",
+	Repo:   "testdata/repo",
+	Binary: "http://localhost:8080/ipfs",
+}
+
 func TestConfigExpand(t *testing.T) {
 	var (
 		c = &Config{

@@ -246,10 +246,6 @@ func SyncHashs() {
 	}
 }
 
-func BatchInstall(batch Batch) (err error) {
-	return nil
-}
-
 func Install(name string) (err error) {
 	plan, err := NewPlan(name)
 	if err != nil {
@@ -264,28 +260,9 @@ func Install(name string) (err error) {
 			return err
 		}
 	}
-	for _, d := range append(plan.AutoDepends, plan.ManualDepends...) {
-		if IsInstalled(d) {
-			continue
-		}
-		err := Install(d)
-		if err != nil {
-			return err
-		}
-	}
 	db := filepath.Join(config.DB.Installed(), plan.Name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
-	}
-	pfile := plan.PackagePath()
-	if !file.Exists(pfile) {
-		ddir := join(config.Repo, "repo")
-		os.MkdirAll(ddir, 0755)
-		err := gurl.NameDownload(ddir, config.Binary+"/"+plan.Cid, plan.PackageFile())
-		if err != nil {
-			elog.Println(pfile)
-			log.Fatal(err)
-		}
 	}
 	cid, err := HashOnly(Path(plan.PackagePath()))
 	if err != nil {
@@ -294,7 +271,7 @@ func Install(name string) (err error) {
 	if cid != plan.Cid {
 		return fmt.Errorf("%s Plans CID does not match tarballs got %s", plan.NameVersion(), cid)
 	}
-	man, err := ReadPackManifest(pfile)
+	man, err := ReadPackManifest(plan.PackageFilePath(config))
 	if err != nil {
 		return err
 	}
@@ -305,7 +282,7 @@ func Install(name string) (err error) {
 			elog.Println(e)
 		}
 	}
-	fd, err := os.Open(pfile)
+	fd, err := os.Open(plan.PackageFilePath(config))
 	if err != nil {
 		return
 	}

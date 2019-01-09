@@ -419,6 +419,14 @@ func batch(ctx *cli.Context) error {
 	batch := via.NewBatch(config)
 	batch.Walk(plan)
 	fmt.Printf("%s", batch)
+	errors := batch.Download()
+	if len(errors) > 0 {
+		log.Fatal(errors)
+	}
+	errors = batch.Install()
+	if len(errors) > 0 {
+		log.Fatal(errors)
+	}
 	return nil
 }
 

@@ -55,6 +55,7 @@ func TestBuildDir(t *testing.T) {
 		t.Errorf("expect '%s' -> got '%s'", expect, got)
 	}
 }
+
 func TestStageDir(t *testing.T) {
 	var (
 		expect = "/home/mrosset/.cache/via/stg/plan-1.0"
@@ -63,4 +64,12 @@ func TestStageDir(t *testing.T) {
 	if got != expect {
 		t.Errorf("expect '%s' -> got '%s'", expect, got)
 	}
+}
+
+func TestPlanPackageFilePath(t *testing.T) {
+	var (
+		is     = is.New(t)
+		expect = "testdata/repo/repo/plan-1.0-linux-x86_64.tar.gz"
+	)
+	is.Equal(testPlan.PackageFilePath(testConfig), expect)
 }

@@ -2,7 +2,10 @@ package via
 
 import (
 	"bytes"
+	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/file"
+	"os"
+	"sync"
 	"text/template"
 )
 
@@ -60,11 +63,43 @@ func (b *Batch) ToInstall() []string {
 func (b *Batch) ToDownload() []string {
 	s := []string{}
 	for i, p := range b.Plans {
-		if !file.Exists(p.PackageFile()) {
+		if !file.Exists(p.PackageFilePath(config)) {
 			s = append(s, i)
 		}
 	}
 	return s
+}
+
+func (b *Batch) Download() []error {
+	rdir := join(b.config.Repo, "repo")
+	if !file.Exists(rdir) {
+		os.MkdirAll(rdir, 0755)
+	}
+	errors := []error{}
+	for _, p := range b.ToDownload() {
+		plan := b.Plans[p]
+		err := gurl.NameDownload(rdir, b.config.Binary+"/"+plan.Cid, plan.PackageFile())
+		if err != nil {
+			errors = append(errors, err)
+		}
+
+	}
+	return errors
+}
+
+func (b *Batch) Install() (errors []error) {
+	wg := new(sync.WaitGroup)
+	for _, n := range b.ToInstall() {
+		wg.Add(1)
+		go func(name string) {
+			defer wg.Done()
+			if err := Install(name); err != nil {
+				errors = append(errors, err)
+			}
+		}(n)
+	}
+	wg.Wait()
+	return errors
 }
 
 // Provides stringer interface
