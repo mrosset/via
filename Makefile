@@ -10,9 +10,10 @@ export CGO_ENABLED=0
 default: $(BIN)
 
 run: default
-	$(BIN) show -t "{{.AutoDepends}}" git
-	$(BIN) show -d git
-	$(BIN) debug
+	$(BIN) install make
+	#$(BIN) show -t "{{.AutoDepends}}" git
+	#$(BIN) show -d git
+	#$(BIN) debug
 
 $(BIN): $(SRC)
 	go build -o $(BIN)
@@ -42,7 +43,8 @@ clean:
 rebuild: clean default
 
 test:
-	go test -v ./pkg/...
+	go test -run TestBatch* -v ./pkg/...
+	# go test -v ./pkg/...
 
 .NOTPARALLEL:
 
