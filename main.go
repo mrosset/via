@@ -74,7 +74,7 @@ var (
 	cinstall = &cli.Command{
 		Name:   "install",
 		Usage:  "installs package",
-		Action: install,
+		Action: batch,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "r",
@@ -403,6 +403,22 @@ func strap(ctx *cli.Context) error {
 		plan.IsRebuilt = true
 		plan.Save()
 	}
+	return nil
+}
+
+func batch(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
+	}
+
+	via.Root(ctx.String("r"))
+	plan, err := via.NewPlan(ctx.Args().First())
+	if err != nil {
+		return err
+	}
+	batch := via.NewBatch(config)
+	batch.Walk(plan)
+	fmt.Printf("%s", batch)
 	return nil
 }
 
