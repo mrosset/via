@@ -20,8 +20,7 @@ func baseDir(p string) string {
 	return base(filepath.Dir(p))
 }
 
-// Check if a string slice contains a
-// string
+// Returns true if a string slice contains a string
 func contains(sl []string, s string) bool {
 	for _, j := range sl {
 		if expand(j) == expand(s) {

@@ -246,6 +246,10 @@ func SyncHashs() {
 	}
 }
 
+func BatchInstall(batch Batch) (err error) {
+	return nil
+}
+
 func Install(name string) (err error) {
 	plan, err := NewPlan(name)
 	if err != nil {

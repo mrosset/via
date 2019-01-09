@@ -1,36 +1,33 @@
 package via
 
 import (
+	"github.com/cheekybits/is"
 	"testing"
 )
 
 var (
 	testPlan = &Plan{
-		Name:         "plan",
-		Version:      "1.0",
-		Url:          "http://mirrors.kernel.org/gnu/plan-{{.Version}}tar.gz",
-		BuildInStage: true,
-		Package:      []string{"cp a.out $PKGDIR/"},
-		Files:        []string{"a.out"},
-		Group:        "core",
+		Name:          "plan",
+		Version:       "1.0",
+		Url:           "http://mirrors.kernel.org/gnu/plan-{{.Version}}.tar.gz",
+		ManualDepends: []string{"libgomp"},
+		AutoDepends:   []string{"glibc"},
+		BuildInStage:  true,
+		Package:       []string{"cp a.out $PKGDIR/"},
+		Files:         []string{"a.out"},
+		Group:         "core",
 	}
 )
 
-func TestPlanExpand(t *testing.T) {
-	var (
-		p = &Plan{
-			Name:    "plan",
-			Version: "1.0",
-			Url:     "http://mirrors.kernel.org/gnu/{{.Name}}-{{.Version}}.tar.gz",
-		}
-		expect = "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
-		got    = ""
-	)
+func TestPlanDepends(t *testing.T) {
+	is := is.New(t)
+	is.Equal(testPlan.Depends(), []string{"glibc", "libgomp"})
+}
 
-	got = p.Expand().Url
-	if got != expect {
-		t.Errorf("expected %s got %s", expect, got)
-	}
+func TestPlanExpand(t *testing.T) {
+	is := is.New(t)
+	expect := "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
+	is.Equal(testPlan.Expand().Url, expect)
 }
 
 func TestFindPlan(t *testing.T) {

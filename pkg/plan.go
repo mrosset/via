@@ -12,9 +12,10 @@ import (
 	"time"
 )
 
+// Provides a slice of plans
 type Plans []*Plan
 
-// Returns a PlanSlice of all Plans in config.Plans
+// Returns a Plan slice of all Plans in config.Plans
 func GetPlans() (Plans, error) {
 	pf, err := PlanFiles()
 	if err != nil {
@@ -91,6 +92,10 @@ type Plan struct {
 	PostInstall   []string
 	Remove        []string
 	Files         []string
+}
+
+func (p *Plan) Depends() []string {
+	return append(p.AutoDepends, p.ManualDepends...)
 }
 
 func (p *Plan) NameVersion() string {
