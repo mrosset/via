@@ -2,8 +2,9 @@ package via
 
 import (
 	"bytes"
-	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/file"
+	"github.com/whyrusleeping/progmeter"
+	"io"
 	"os"
 	"sync"
 	"text/template"
@@ -13,6 +14,7 @@ import (
 type Batch struct {
 	Plans  map[string]*Plan
 	config *Config
+	pm     *progmeter.ProgMeter
 }
 
 // Creates a new Batch type
@@ -20,6 +22,7 @@ func NewBatch(config *Config) Batch {
 	return Batch{
 		Plans:  make(map[string]*Plan),
 		config: config,
+		pm:     progmeter.NewProgMeter(false),
 	}
 }
 
@@ -63,40 +66,59 @@ func (b *Batch) ToInstall() []string {
 func (b *Batch) ToDownload() []string {
 	s := []string{}
 	for i, p := range b.Plans {
-		if !file.Exists(p.PackageFilePath(config)) {
+		if !file.Exists(p.PackageFilePath(config)) && !IsInstalled(p.Name) {
 			s = append(s, i)
 		}
 	}
 	return s
 }
 
-func (b *Batch) Download() []error {
-	rdir := join(b.config.Repo, "repo")
+func (b Batch) Download(plan *Plan) error {
+	var (
+		rdir  = join(config.Repo, "repo")
+		pfile = plan.PackageFilePath(config)
+		url   = config.Binary + "/" + plan.Cid
+	)
 	if !file.Exists(rdir) {
 		os.MkdirAll(rdir, 0755)
 	}
-	errors := []error{}
-	for _, p := range b.ToDownload() {
-		plan := b.Plans[p]
-		err := gurl.NameDownload(rdir, b.config.Binary+"/"+plan.Cid, plan.PackageFile())
-		if err != nil {
-			errors = append(errors, err)
-		}
-
+	if file.Exists(pfile) {
+		return nil
 	}
-	return errors
+	res, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	fd, err := os.Create(pfile)
+	if err != nil {
+		return err
+	}
+	pw := NewProgressWriter(b.pm, plan.Name, res.ContentLength, fd)
+	defer fd.Close()
+	_, err = io.Copy(pw, res.Body)
+	pw.Close()
+	return err
 }
 
 func (b *Batch) Install() (errors []error) {
 	wg := new(sync.WaitGroup)
 	for _, n := range b.ToInstall() {
 		wg.Add(1)
-		go func(name string) {
+		go func(p *Plan) {
 			defer wg.Done()
-			if err := Install(name); err != nil {
+			b.pm.AddTodos(1)
+			b.pm.AddEntry(p.Name, p.Name, "              "+p.Cid)
+			if err := b.Download(p); err != nil {
+				b.pm.Error(p.Name, err.Error())
+				errors = append(errors, err)
+				return
+			}
+			b.pm.Working(p.Name, "install            ")
+			if err := Install(p.Name); err != nil {
 				errors = append(errors, err)
 			}
-		}(n)
+			defer b.pm.Finish(p.Name)
+		}(b.Plans[n])
 	}
 	wg.Wait()
 	return errors

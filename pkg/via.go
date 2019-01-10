@@ -252,7 +252,6 @@ func Install(name string) (err error) {
 		elog.Println(name, err)
 		return
 	}
-	fmt.Printf(lfmt, "installing", plan.Name)
 	if IsInstalled(name) {
 		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
 		err := Remove(name)
