@@ -6,6 +6,7 @@ import (
 	"github.com/whyrusleeping/progmeter"
 	"io"
 	"os"
+	"runtime"
 	"sync"
 	"text/template"
 )
@@ -102,25 +103,30 @@ func (b Batch) Download(plan *Plan) error {
 
 func (b *Batch) Install() (errors []error) {
 	wg := new(sync.WaitGroup)
+	ch := make(chan bool, runtime.NumCPU())
+	b.pm.AddTodos(len(b.ToInstall()))
 	for _, n := range b.ToInstall() {
 		wg.Add(1)
 		go func(p *Plan) {
+			ch <- true
 			defer wg.Done()
-			b.pm.AddTodos(1)
-			b.pm.AddEntry(p.Name, p.Name, "              "+p.Cid)
+
+			b.pm.AddEntry(p.Name, p.Name, "          "+p.Cid)
 			if err := b.Download(p); err != nil {
 				b.pm.Error(p.Name, err.Error())
 				errors = append(errors, err)
 				return
 			}
-			b.pm.Working(p.Name, "install            ")
+			b.pm.Working(p.Name, "install        ")
 			if err := Install(p.Name); err != nil {
 				errors = append(errors, err)
 			}
-			defer b.pm.Finish(p.Name)
+			<-ch
+			b.pm.Finish(p.Name)
 		}(b.Plans[n])
 	}
 	wg.Wait()
+	b.pm.MarkDone()
 	return errors
 }
 
