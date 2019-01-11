@@ -41,7 +41,7 @@ func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	pw.done += int64(len(b))
 	percent := int((pw.done * 100) / pw.total)
 	bps := float64(pw.done) / time.Now().Sub(pw.start).Seconds()
-	info := fmt.Sprintf("get %d%% %s/s", percent, human.ByteSize(bps))
+	info := fmt.Sprintf("%d%% %s/s", percent, human.ByteSize(bps))
 	pw.pm.Working(pw.key, info)
 	return pw.w.Write(b)
 }

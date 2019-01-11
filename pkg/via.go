@@ -301,11 +301,7 @@ func Install(name string) (err error) {
 		return err
 	}
 	man.Cid = plan.Cid
-	err = json.Write(man, join(db, "manifest.json"))
-	if err != nil {
-		return err
-	}
-	return PostInstall(plan)
+	return json.Write(man, join(db, "manifest.json"))
 }
 
 func PostInstall(plan *Plan) (err error) {
