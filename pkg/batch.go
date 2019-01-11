@@ -1,8 +1,11 @@
 package via
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"github.com/mrosset/util/file"
+	"github.com/mrosset/util/human"
 	"github.com/whyrusleeping/progmeter"
 	"io"
 	"os"
@@ -15,6 +18,7 @@ type Batch struct {
 	Plans  map[string]*Plan
 	config *Config
 	pm     *progmeter.ProgMeter
+	size   int64
 }
 
 // Creates a new Batch type
@@ -38,6 +42,7 @@ func (b *Batch) PruneInstalled() {
 // Adds 'Plane to the Batch
 func (b *Batch) Add(plan *Plan) {
 	b.Plans[plan.Name] = plan
+	b.size += plan.Size
 }
 
 func (b *Batch) Walk(plan *Plan) {
@@ -103,13 +108,12 @@ func (b Batch) Download(plan *Plan) error {
 func (b *Batch) Install() (errors []error) {
 	wg := new(sync.WaitGroup)
 	ch := make(chan bool, b.config.Threads)
-	b.pm.AddTodos(len(b.ToInstall()))
 	for _, n := range b.ToInstall() {
 		wg.Add(1)
 		go func(p *Plan) {
-			ch <- true
 			defer wg.Done()
-
+			b.pm.AddTodos(1)
+			ch <- true
 			b.pm.AddEntry(p.Name, p.Name, "          "+p.Cid)
 			if err := b.Download(p); err != nil {
 				b.pm.Error(p.Name, err.Error())
@@ -120,13 +124,28 @@ func (b *Batch) Install() (errors []error) {
 			if err := Install(p.Name); err != nil {
 				errors = append(errors, err)
 			}
-			<-ch
 			b.pm.Finish(p.Name)
+			<-ch
 		}(b.Plans[n])
 	}
 	wg.Wait()
 	b.pm.MarkDone()
 	return errors
+}
+
+func (b Batch) PromptInstall() []error {
+	fmt.Printf("%s", b)
+	fmt.Printf("Install? y/n : ")
+	scan := bufio.NewScanner(os.Stdin)
+	scan.Scan()
+	switch scan.Text() {
+	case "y":
+		return b.Install()
+	default:
+		return nil
+
+	}
+	return nil
 }
 
 // Provides stringer interface
@@ -135,8 +154,8 @@ func (b Batch) String() string {
 	st := struct {
 		Install  []string
 		Download []string
-		Size     int
-	}{b.ToInstall(), b.ToDownload(), 100}
+		Size     string
+	}{b.ToInstall(), b.ToDownload(), human.ByteSize(b.size).String()}
 
 	ot := `
 Installing:
@@ -146,6 +165,7 @@ Downloading:
 {{.Download}}
 
 Install Size: {{.Size}}
+
 `
 	tmpl, err := template.New("output").Parse(ot)
 
