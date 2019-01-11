@@ -72,7 +72,7 @@ type Config struct {
 	OS        string
 	Root      string
 	PlansRepo string
-	Linker    string
+	Threads   int
 	// Paths
 	Cache  Cache
 	DB     DB
