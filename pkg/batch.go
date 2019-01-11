@@ -6,7 +6,6 @@ import (
 	"github.com/whyrusleeping/progmeter"
 	"io"
 	"os"
-	"runtime"
 	"sync"
 	"text/template"
 )
@@ -103,7 +102,7 @@ func (b Batch) Download(plan *Plan) error {
 
 func (b *Batch) Install() (errors []error) {
 	wg := new(sync.WaitGroup)
-	ch := make(chan bool, runtime.NumCPU())
+	ch := make(chan bool, b.config.Threads)
 	b.pm.AddTodos(len(b.ToInstall()))
 	for _, n := range b.ToInstall() {
 		wg.Add(1)
