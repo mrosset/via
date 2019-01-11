@@ -81,6 +81,11 @@ var (
 				Value: config.Root,
 				Usage: "use `\"DIR\"` as root",
 			},
+			&cli.BoolFlag{
+				Name:  "y",
+				Value: false,
+				Usage: "Don't prompt to install",
+			},
 		},
 	}
 
@@ -407,6 +412,7 @@ func strap(ctx *cli.Context) error {
 }
 
 func batch(ctx *cli.Context) error {
+	var errors []error
 	if !ctx.Args().Present() {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
@@ -418,8 +424,14 @@ func batch(ctx *cli.Context) error {
 	}
 	batch := via.NewBatch(config)
 	batch.Walk(plan)
-	fmt.Printf("%s", batch)
-	errors := batch.Install()
+
+	switch ctx.Bool("y") {
+	case false:
+		errors = batch.PromptInstall()
+	case true:
+		errors = batch.Install()
+
+	}
 	if len(errors) > 0 {
 		log.Fatal(errors)
 	}
