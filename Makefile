@@ -10,7 +10,11 @@ export CGO_ENABLED=0
 default: $(BIN)
 
 run: default
-	$(BIN) install make
+	rm -rf ~/via/*; rm -rf ~/src/via/publish
+	$(BIN) install -y devel
+	echo
+	du -hs publish
+	du -hs ~/via
 	#$(BIN) show -t "{{.AutoDepends}}" git
 	#$(BIN) show -d git
 	#$(BIN) debug
