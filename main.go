@@ -374,12 +374,12 @@ func fix(ctx *cli.Context) error {
 }
 
 func daemon(ctx *cli.Context) error {
-	return via.StartDaemon()
+	return via.StartDaemon(config)
 }
 
 func strap(ctx *cli.Context) error {
 
-	dplan, err := via.NewPlan("emacs")
+	dplan, err := via.NewPlan("devel")
 
 	if err != nil {
 		return err
@@ -401,7 +401,7 @@ func strap(ctx *cli.Context) error {
 		}
 		via.Clean(plan.Name)
 
-		if err := via.BuildSteps(plan); err != nil {
+		if err := via.BuildSteps(config, plan); err != nil {
 			return err
 		}
 
@@ -446,7 +446,7 @@ func install(ctx *cli.Context) error {
 	via.Root(ctx.String("r"))
 
 	for _, arg := range ctx.Args().Slice() {
-		if err := via.Install(arg); err != nil {
+		if err := via.Install(config, arg); err != nil {
 			return err
 		}
 	}
@@ -454,7 +454,7 @@ func install(ctx *cli.Context) error {
 }
 
 func remove(ctx *cli.Context) error {
-	return via.Remove(ctx.Args().First())
+	return via.Remove(config, ctx.Args().First())
 }
 
 func local(ctx *cli.Context) error {
@@ -478,18 +478,19 @@ func local(ctx *cli.Context) error {
 		via.Clean(plan.Name)
 	}
 	if ctx.Bool("dd") {
-		err = via.BuildDeps(plan)
+		err = via.BuildDeps(config, plan)
 		if err != nil {
 			return err
 		}
 	} else {
-		err = via.BuildSteps(plan)
+		err = via.BuildSteps(config, plan)
 		if err != nil {
 			return err
 		}
 	}
 	if ctx.Bool("i") {
-		return via.Install(plan.Name)
+		fmt.Printf(lfmt, "install", plan.NameVersion())
+		return via.Install(config, plan.Name)
 	}
 	return nil
 }
@@ -582,7 +583,7 @@ func show(ctx *cli.Context) error {
 }
 
 func fconfig(ctx *cli.Context) error {
-	err := json.WritePretty(via.GetConfig(), os.Stdout)
+	err := json.WritePretty(config, os.Stdout)
 	if err != nil {
 		return err
 	}
