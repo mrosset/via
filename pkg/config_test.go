@@ -5,9 +5,11 @@ import (
 )
 
 var testConfig = &Config{
-	Root:   "testdata/root",
-	Repo:   "testdata/repo",
-	Binary: "http://localhost:8080/ipfs",
+	Root:    "/home/mrosset/src/via/pkg/testdata/root",
+	Repo:    "testdata/repo",
+	DB:      "/home/mrosset/src/via/pkg/testdata/root/db",
+	Binary:  "http://localhost:8080/ipfs/",
+	Threads: 8,
 }
 
 func TestConfigExpand(t *testing.T) {

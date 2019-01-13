@@ -118,7 +118,7 @@ func FindPlanPath(n string) (string, error) {
 		return "", err
 	}
 	if len(e) != 1 {
-		return "", fmt.Errorf("expected 1 plan found %d.", len(e))
+		return "", fmt.Errorf("%s: expected 1 plan found %d.", n, len(e))
 	}
 	return e[0], nil
 }

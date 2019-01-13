@@ -20,25 +20,26 @@ type Response struct {
 }
 
 type Builder struct {
+	config *Config
 }
 
 func (t *Builder) RpcBuild(req Request, resp *Response) error {
 	Clean(req.Plan.Name)
-	err := BuildSteps(&req.Plan)
+	err := BuildSteps(t.config, &req.Plan)
 	if err != nil {
 		return err
 	}
-	return Install(req.Plan.Name)
+	return Install(t.config, req.Plan.Name)
 }
 
-func StartDaemon() error {
-	rpc.Register(&Builder{})
+func StartDaemon(config *Config) error {
+	rpc.Register(&Builder{config: config})
 	l, err := net.Listen("unix", SOCKET_FILE)
 	if err != nil {
 		return err
 	}
-	if !IsInstalled("devel") {
-		Install("devel")
+	if !IsInstalled(config, "devel") {
+		Install(config, "devel")
 	}
 	defer os.Remove(SOCKET_FILE)
 	go rpc.Accept(l)

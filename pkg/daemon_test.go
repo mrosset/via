@@ -7,7 +7,7 @@ import (
 
 func TestBuild(t *testing.T) {
 	t.SkipNow()
-	go StartDaemon()
+	go StartDaemon(testConfig)
 	time.Sleep(time.Second * 1)
 	_, err := Connect()
 	if err != nil {

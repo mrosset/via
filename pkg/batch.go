@@ -11,6 +11,7 @@ import (
 	"os"
 	"sync"
 	"text/template"
+	"time"
 )
 
 // Batch Plan type
@@ -19,21 +20,25 @@ type Batch struct {
 	config *Config
 	pm     *progmeter.ProgMeter
 	size   int64
+	ch     chan bool
+	wg     *sync.WaitGroup
 }
 
 // Creates a new Batch type
-func NewBatch(config *Config) Batch {
+func NewBatch(conf *Config) Batch {
 	return Batch{
 		Plans:  make(map[string]*Plan),
-		config: config,
+		config: conf,
 		pm:     progmeter.NewProgMeter(false),
+		ch:     make(chan bool, config.Threads),
+		wg:     new(sync.WaitGroup),
 	}
 }
 
 // Prunes Installed Plans within the Batch
 func (b *Batch) PruneInstalled() {
 	for i, _ := range b.Plans {
-		if IsInstalled(i) {
+		if IsInstalled(b.config, i) {
 			delete(b.Plans, i)
 		}
 	}
@@ -60,7 +65,7 @@ func (b *Batch) Walk(plan *Plan) {
 func (b *Batch) ToInstall() []string {
 	s := []string{}
 	for i, _ := range b.Plans {
-		if !IsInstalled(i) {
+		if !IsInstalled(b.config, i) {
 			s = append(s, i)
 		}
 	}
@@ -71,7 +76,7 @@ func (b *Batch) ToInstall() []string {
 func (b *Batch) ToDownload() []string {
 	s := []string{}
 	for i, p := range b.Plans {
-		if !file.Exists(p.PackageFilePath(config)) && !IsInstalled(p.Name) {
+		if !file.Exists(p.PackageFilePath(b.config)) && !IsInstalled(b.config, p.Name) {
 			s = append(s, i)
 		}
 	}
@@ -80,9 +85,9 @@ func (b *Batch) ToDownload() []string {
 
 func (b Batch) Download(plan *Plan) error {
 	var (
-		rdir  = join(config.Repo, "repo")
-		pfile = plan.PackageFilePath(config)
-		url   = config.Binary + "/" + plan.Cid
+		rdir  = join(b.config.Repo, "repo")
+		pfile = plan.PackageFilePath(b.config)
+		url   = b.config.Binary + "/" + plan.Cid
 	)
 	if !file.Exists(rdir) {
 		os.MkdirAll(rdir, 0755)
@@ -105,15 +110,61 @@ func (b Batch) Download(plan *Plan) error {
 	return err
 }
 
+type PlanFunc func(*Plan)
+
+func (b *Batch) downloadInstall(plan *Plan) {
+	b.ch <- true
+	defer func() { <-b.ch }()
+	defer b.wg.Done()
+	if err := b.Download(plan); err != nil {
+		fmt.Println(err)
+		b.pm.Error(plan.Name, err.Error())
+		return
+	}
+	b.pm.Working(plan.Name, "install        ")
+	if err := Install(b.config, plan.Name); err != nil {
+		fmt.Println(err)
+		b.pm.Error(plan.Name, err.Error())
+		return
+	}
+	b.pm.Finish(plan.Name)
+}
+
+func (b Batch) ForEach(fn PlanFunc) (errors []error) {
+	for _, n := range b.ToInstall() {
+		p, err := NewPlan(n)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		b.wg.Add(1)
+		b.pm.AddTodos(1)
+		b.pm.AddEntry(p.Name, p.Name, "          "+p.Cid)
+		go fn(p)
+	}
+	b.wg.Wait()
+	time.Sleep(time.Second * 1)
+	return errors
+}
+
 func (b *Batch) Install() (errors []error) {
+	return b.ForEach(b.downloadInstall)
+}
+
+func (b *Batch) MarkDone() {
+	fmt.Println()
+	b.pm.MarkDone()
+}
+
+func (b *Batch) OInstall() (errors []error) {
 	wg := new(sync.WaitGroup)
 	ch := make(chan bool, b.config.Threads)
 	for _, n := range b.ToInstall() {
 		wg.Add(1)
 		go func(p *Plan) {
 			defer wg.Done()
-			b.pm.AddTodos(1)
 			ch <- true
+			b.pm.AddTodos(1)
 			b.pm.AddEntry(p.Name, p.Name, "          "+p.Cid)
 			if err := b.Download(p); err != nil {
 				b.pm.Error(p.Name, err.Error())
@@ -121,7 +172,7 @@ func (b *Batch) Install() (errors []error) {
 				return
 			}
 			b.pm.Working(p.Name, "install        ")
-			if err := Install(p.Name); err != nil {
+			if err := Install(b.config, p.Name); err != nil {
 				errors = append(errors, err)
 			}
 			b.pm.Finish(p.Name)

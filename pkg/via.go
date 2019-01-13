@@ -107,7 +107,7 @@ ret:
 }
 
 // Calls each shell command in the plans Build field.
-func Build(plan *Plan) (err error) {
+func Build(config *Config, plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
@@ -115,10 +115,10 @@ func Build(plan *Plan) (err error) {
 		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}
 	for _, p := range plan.BuildDepends {
-		if IsInstalled(p) {
+		if IsInstalled(config, p) {
 			continue
 		}
-		if err := Install(p); err != nil {
+		if err := Install(config, p); err != nil {
 			return err
 		}
 	}
@@ -246,15 +246,15 @@ func SyncHashs() {
 	}
 }
 
-func Install(name string) (err error) {
+func Install(config *Config, name string) (err error) {
 	plan, err := NewPlan(name)
 	if err != nil {
 		elog.Println(name, err)
 		return
 	}
-	if IsInstalled(name) {
+	if IsInstalled(config, name) {
 		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
-		err := Remove(name)
+		err := Remove(config, name)
 		if err != nil {
 			return err
 		}
@@ -291,6 +291,7 @@ func Install(name string) (err error) {
 		return
 	}
 	defer gz.Close()
+	os.MkdirAll(config.Root, 0755)
 	err = Untar(config.Root, gz)
 	if err != nil {
 		return err
@@ -308,8 +309,8 @@ func PostInstall(plan *Plan) (err error) {
 	return doCommands("/", append(plan.PostInstall, config.PostInstall...))
 }
 
-func Remove(name string) (err error) {
-	if !IsInstalled(name) {
+func Remove(config *Config, name string) (err error) {
+	if !IsInstalled(config, name) {
 		err = fmt.Errorf("%s is not installed.", name)
 		elog.Println(err)
 		return err
@@ -330,36 +331,36 @@ func Remove(name string) (err error) {
 	return os.RemoveAll(join(config.DB.Installed(), name))
 }
 
-func BuildDeps(plan *Plan) (err error) {
+func BuildDeps(config *Config, plan *Plan) (err error) {
 	deps := append(plan.AutoDepends, plan.ManualDepends...)
 	for _, d := range deps {
-		if IsInstalled(d) {
+		if IsInstalled(config, d) {
 			continue
 		}
 		p, _ := NewPlan(d)
 		if file.Exists(p.PackagePath()) {
-			err := Install(p.Name)
+			err := Install(config, p.Name)
 			if err != nil {
 				return err
 			}
 			continue
 		}
 		fmt.Println("building", d, "for", plan.NameVersion())
-		err := BuildDeps(p)
+		err := BuildDeps(config, p)
 		if err != nil {
 			elog.Println(err)
 			return err
 		}
 	}
-	err = BuildSteps(plan)
+	err = BuildSteps(config, plan)
 	if err != nil {
 		return err
 	}
-	return Install(plan.Name)
+	return Install(config, plan.Name)
 }
 
 // Run all of the functions required to build a package
-func BuildSteps(plan *Plan) (err error) {
+func BuildSteps(config *Config, plan *Plan) (err error) {
 	if file.Exists(plan.PackageFile()) {
 		return fmt.Errorf("package %s exists", plan.PackageFile())
 	}
@@ -372,7 +373,7 @@ func BuildSteps(plan *Plan) (err error) {
 		return err
 	}
 	fmt.Printf(lfmt, "build", plan.NameVersion())
-	if err := Build(plan); err != nil {
+	if err := Build(config, plan); err != nil {
 		elog.Println(err)
 		return err
 	}
@@ -415,7 +416,7 @@ func Create(url, group string) (err error) {
 	return plan.Save()
 }
 
-func IsInstalled(name string) bool {
+func IsInstalled(config *Config, name string) bool {
 	return file.Exists(join(config.DB.Installed(), name))
 }
 
