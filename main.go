@@ -435,6 +435,7 @@ func batch(ctx *cli.Context) error {
 	if len(errors) > 0 {
 		log.Fatal(errors)
 	}
+	batch.MarkDone()
 	return nil
 }
 
