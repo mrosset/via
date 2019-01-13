@@ -208,6 +208,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
+	plan.IsRebuilt = true
 	return plan.Save()
 	/*
 		err = CreatePackage(plan)
