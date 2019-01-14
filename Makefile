@@ -9,12 +9,7 @@ btarball  = tmp/bash-4.4.tar.gz
 export CGO_ENABLED=1
 export PREFIX=/opt/via
 
-default: $(BIN) plugins
-
-plugins/release.so: plugins/release.go
-	go build -buildmode=plugin -o $@ $<
-
-plugins: plugins/release.so
+default: $(BIN)
 
 devel: default
 	rm -rf /opt/via/*; rm -rf ~/src/via/publish
@@ -54,7 +49,7 @@ clean:
 rebuild: clean default
 
 test:
-	go test -run TestBatch* -v ./pkg/...
+	go test -run TestPlugin* -v ./pkg/...
 	# go test -v ./pkg/...
 
 .NOTPARALLEL:
