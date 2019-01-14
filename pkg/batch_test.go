@@ -31,6 +31,7 @@ func TestBatchInstall(t *testing.T) {
 		expect = join(testConfig.Repo, "repo", p.PackageFile())
 	)
 	defer os.RemoveAll(testConfig.Repo)
+	defer os.RemoveAll(testConfig.Root)
 	defer os.RemoveAll(testConfig.DB.Installed())
 	got.Walk(p)
 	errors := got.Install()

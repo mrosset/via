@@ -6,16 +6,17 @@ bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
 
 export CGO_ENABLED=0
+export PREFIX=/opt/via
 
 default: $(BIN)
 
 run: default
-	rm -rf ~/via/*; rm -rf ~/src/via/publish
+	rm -rf /opt/via/*; rm -rf ~/src/via/publish
 	$(BIN) install -y devel
 	echo
 	du -hs publish
-	du -hs ~/via
-	#$(BIN) show -t "{{.AutoDepends}}" git
+	du -hs $(PREFIX)/
+	$(BIN) show -t "{{.AutoDepends}}" git
 	#$(BIN) show -d git
 	#$(BIN) debug
 

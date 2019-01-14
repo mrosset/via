@@ -83,7 +83,7 @@ var (
 			},
 			&cli.BoolFlag{
 				Name:  "y",
-				Value: false,
+				Value: true,
 				Usage: "Don't prompt to install",
 			},
 		},
@@ -404,9 +404,6 @@ func strap(ctx *cli.Context) error {
 		if err := via.BuildSteps(config, plan); err != nil {
 			return err
 		}
-
-		plan.IsRebuilt = true
-		plan.Save()
 	}
 	return nil
 }
@@ -696,7 +693,7 @@ func pack(ctx *cli.Context) error {
 }
 
 func debug(ctx *cli.Context) error {
-	cmds := []string{"gcc", "g++", "python", "make", "bash", "ld"}
+	cmds := []string{"gcc", "g++", "python", "make", "bash", "ld", "ccache"}
 	env := os.Environ()
 	sort.Strings(env)
 	for _, v := range env {

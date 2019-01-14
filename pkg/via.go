@@ -422,6 +422,18 @@ func IsInstalled(config *Config, name string) bool {
 }
 
 func refactor(plan *Plan) {
+	if len(plan.SubPackages) > 0 {
+		for _, j := range plan.SubPackages {
+			s, _ := NewPlan(j)
+			if s.Version == plan.Version {
+				continue
+			}
+			s.Version = plan.Version
+			s.Save()
+			fmt.Println(s.Name)
+
+		}
+	}
 }
 
 func Lint() (err error) {

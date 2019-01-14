@@ -2,12 +2,14 @@
 FROM busybox
 ENV USER mrosset
 ENV HOME /home/$USER
-ENV PREFIX $HOME/via
+ENV PREFIX /opt/via
 ENV GOPATH /home/$USER/gocode
-ENV PATH $PREFIX/bin:$GOPATH/bin:/sbin:/bin:/usr/bin:/usr/sbin
+ENV PATH $PREFIX/bin:$HOME/via/bin:$GOPATH/bin:/sbin:/bin:/usr/bin:/usr/sbin
 COPY bin /bin
 COPY etc /etc
 COPY usr /usr
+RUN mkdir -p $PREFIX
+RUN chown $USER $PREFIX
 #RUN ln -s $PREFIX/lib /lib64
 RUN ln -s $PREFIX/include /usr/
 RUN mkdir -p /usr/bin
