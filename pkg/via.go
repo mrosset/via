@@ -275,7 +275,7 @@ func Install(config *Config, name string) (err error) {
 	if err != nil {
 		return err
 	}
-	errs := conflicts(man)
+	errs := conflicts(config, man)
 	if len(errs) > 0 {
 		//return errs[0]
 		for _, e := range errs {
@@ -499,7 +499,7 @@ func PlanFiles() ([]string, error) {
 	return filepath.Glob(join(config.Plans, "*", "*.json"))
 }
 
-func conflicts(man *Plan) (errs []error) {
+func conflicts(config *Config, man *Plan) (errs []error) {
 	for _, f := range man.Files {
 		fpath := join(config.Root, f)
 		if file.Exists(fpath) {
