@@ -285,6 +285,13 @@ var (
 		Name:   "plugin",
 		Usage:  "execute plugin",
 		Action: plugin,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "b",
+				Value: false,
+				Usage: "compile plugins",
+			},
+		},
 	}
 )
 
@@ -324,18 +331,22 @@ func main() {
 }
 
 func plugin(ctx *cli.Context) error {
+	config := via.GetConfig()
+	if ctx.Bool("b") {
+		if err := viaplugin.Build(config); err != nil {
+			log.Fatal(err)
+		}
+	}
 	if !ctx.Args().Present() {
 		return fmt.Errorf("plugin requires a 'plugin' argument. see: 'via help get'")
 	}
 	name := ctx.Args().First()
-	config := via.GetConfig()
 	mod := filepath.Join(config.Repo, "../plugins", name+".so")
-	fmt.Println(mod)
 	plug, err := goplugin.Open(mod)
 	if err != nil {
-		panic(err)
+		elog.Fatal(err)
 	}
-	sym, err := plug.Lookup("Release")
+	sym, err := plug.Lookup(strings.Title(name))
 	if err != nil {
 		elog.Fatal(err)
 	}
@@ -728,9 +739,6 @@ func execs(cmd string, args ...string) error {
 	e.Stderr = os.Stderr
 	e.Stdout = os.Stdout
 	return e.Run()
-}
-
-func wversion(path string) {
 }
 
 // Finds all locations of each 'cmd' in PATH and prints to stdout
