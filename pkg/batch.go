@@ -11,7 +11,6 @@ import (
 	"os"
 	"sync"
 	"text/template"
-	"time"
 )
 
 // Batch Plan type
@@ -143,7 +142,6 @@ func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 		go fn(p)
 	}
 	b.wg.Wait()
-	time.Sleep(time.Second * 1)
 	return errors
 }
 

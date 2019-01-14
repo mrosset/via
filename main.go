@@ -7,11 +7,13 @@ import (
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
+	viaplugin "github.com/mrosset/via/pkg/plugin"
 	"gopkg.in/urfave/cli.v2"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	goplugin "plugin"
 	"sort"
 	"strings"
 	"text/template"
@@ -141,6 +143,13 @@ var (
 		Name:   "lint",
 		Usage:  "lint and format plans",
 		Action: lint,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "v",
+				Value: false,
+				Usage: "verbose information",
+			},
+		},
 	}
 
 	// repo command
@@ -272,18 +281,11 @@ var (
 		Action: get,
 	}
 
-	// cadd = &cli.Command{
-	//	Name:   "add",
-	//	Usage:  "Adds 'dir' to ipfs and saves plan SourceCid",
-	//	Action: add,
-	//	Flags: []cli.Flag{
-	//		&cli.StringFlag{
-	//			Name:  "p",
-	//			Value: "",
-	//			Usage: "plan to add source directory to",
-	//		},
-	//	},
-	// }
+	cplugin = &cli.Command{
+		Name:   "plugin",
+		Usage:  "execute plugin",
+		Action: plugin,
+	}
 )
 
 func main() {
@@ -313,31 +315,37 @@ func main() {
 		cclean,
 		ccd,
 		cget,
+		cplugin,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		elog.Fatal(err)
 	}
 }
 
-// func add(ctx *cli.Context) error {
-//	if !ctx.Args().Present() {
-//		return fmt.Errorf("get requires a 'dir' argument. see: 'via help add'")
-//	}
-//	if ctx.String("p") == "" {
-//		return fmt.Errorf("add requires -p 'plan' flag. see: 'via help add'")
-//	}
-//	plan, err := via.NewPlan(ctx.String("p"))
-//	if err != nil {
-//		return err
-//	}
-//	cid, err := via.IpfsAdd(via.Path(ctx.Args().First()), false)
-//	if err != nil {
-//		return err
-//	}
-//	plan.SourceCid = cid
-//	return plan.Save()
-// }
+func plugin(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("plugin requires a 'plugin' argument. see: 'via help get'")
+	}
+	name := ctx.Args().First()
+	config := via.GetConfig()
+	mod := filepath.Join(config.Repo, "../plugins", name+".so")
+	fmt.Println(mod)
+	plug, err := goplugin.Open(mod)
+	if err != nil {
+		panic(err)
+	}
+	sym, err := plug.Lookup("Release")
+	if err != nil {
+		elog.Fatal(err)
+	}
+	test, ok := sym.(viaplugin.Plugin)
+	if !ok {
+		return fmt.Errorf("symbol is not a Plugin")
+	}
+	test.SetConfig(config)
+	return test.Execute()
+}
 
 func get(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
@@ -548,6 +556,7 @@ func list(ctx *cli.Context) error {
 }
 
 func lint(ctx *cli.Context) error {
+	via.Verbose(ctx.Bool("v"))
 	return via.Lint()
 }
 

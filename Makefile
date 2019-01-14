@@ -1,24 +1,30 @@
 SRC	  = $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
+PLG       = $(wildcard plugins/*.go)
 BIN	  = $(GOPATH)/bin/via
 CMDS	  = fmt test install
 REPO      = strings/via:devel
 bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 export PREFIX=/opt/via
 
-default: $(BIN)
+default: $(BIN) plugins
 
-run: default
+plugins/release.so: plugins/release.go
+	go build -buildmode=plugin -o $@ $<
+
+plugins: plugins/release.so
+
+devel: default
 	rm -rf /opt/via/*; rm -rf ~/src/via/publish
 	$(BIN) install -y devel
 	echo
 	du -hs publish
 	du -hs $(PREFIX)/
-	$(BIN) show -t "{{.AutoDepends}}" git
-	#$(BIN) show -d git
-	#$(BIN) debug
+
+run: default
+	$(BIN) plugin release
 
 $(BIN): $(SRC)
 	go build -o $(BIN)
