@@ -16,17 +16,19 @@ func TestBatchAdd(t *testing.T) {
 
 func TestBatchWalk(t *testing.T) {
 	var (
-		is   = is.New(t)
-		p, _ = NewPlan("emacs")
-		got  = NewBatch(testConfig)
+		p, _   = NewPlan("ccache")
+		got    = NewBatch(testConfig)
+		expect = 3
 	)
 	got.Walk(p)
-	is.Equal(len(got.Plans), 81)
+	if len(got.Plans) != 3 {
+		t.Errorf("expect %d depends got %d", expect, len(got.Plans))
+	}
 }
 
 func TestBatchInstall(t *testing.T) {
 	var (
-		p, _   = NewPlan("make")
+		p, _   = NewPlan("ccache")
 		got    = NewBatch(testConfig)
 		expect = join(testConfig.Repo, "repo", p.PackageFile())
 	)
