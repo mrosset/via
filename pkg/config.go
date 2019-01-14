@@ -73,6 +73,7 @@ type Config struct {
 	Root      string
 	PlansRepo string
 	Threads   int
+	IpfsApi   string
 	// Paths
 	Cache  Cache
 	DB     DB
