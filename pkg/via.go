@@ -453,7 +453,7 @@ func Lint() (err error) {
 			plan.Group = baseDir(j)
 		}
 		if verbose {
-			console.Println("lint", plan.Name, plan.Version)
+			console.Println("lint", plan.Name, plan.Version, plan.IsRebuilt)
 		}
 		sort.Strings(plan.SubPackages)
 		sort.Strings(plan.Flags)
