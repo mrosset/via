@@ -19,7 +19,7 @@ require (
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 // indirect
 	github.com/minio/sha256-simd v0.0.0-20190108234304-79eac576c45d // indirect
 	github.com/mr-tron/base58 v1.1.0 // indirect
-	github.com/mrosset/gurl v0.0.0-20190107030345-a652a1423a55
+	github.com/mrosset/gurl v0.0.0-20190115075543-4e89645fd339
 	github.com/mrosset/util v0.0.0-20171017103019-cbd40a79bc60
 	github.com/multiformats/go-multiaddr v1.4.0 // indirect
 	github.com/multiformats/go-multiaddr-dns v0.2.5 // indirect
