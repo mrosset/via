@@ -142,16 +142,13 @@ func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 		go fn(p)
 	}
 	b.wg.Wait()
+	b.pm.MarkDone()
+	fmt.Println()
 	return errors
 }
 
 func (b *Batch) Install() (errors []error) {
 	return b.ForEach(b.downloadInstall)
-}
-
-func (b *Batch) MarkDone() {
-	fmt.Println()
-	b.pm.MarkDone()
 }
 
 func (b *Batch) OInstall() (errors []error) {
