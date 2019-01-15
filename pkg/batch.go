@@ -49,15 +49,19 @@ func (b *Batch) Add(plan *Plan) {
 	b.size += plan.Size
 }
 
-func (b *Batch) Walk(plan *Plan) {
+func (b *Batch) Walk(plan *Plan) error {
 	b.Add(plan)
 	for _, d := range plan.Depends() {
-		p, _ := NewPlan(d)
+		p, err := NewPlan(d)
+		if err != nil {
+			return err
+		}
 		if _, ok := b.Plans[p.Name]; ok {
 			continue
 		}
 		b.Walk(p)
 	}
+	return nil
 }
 
 // Returns a string slice of 'Plans to install

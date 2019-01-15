@@ -439,7 +439,10 @@ func batch(ctx *cli.Context) error {
 		return err
 	}
 	batch := via.NewBatch(config)
-	batch.Walk(plan)
+
+	if err := batch.Walk(plan); err != nil {
+		return err
+	}
 
 	switch ctx.Bool("y") {
 	case false:
