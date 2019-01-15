@@ -151,6 +151,9 @@ func doCommands(dir string, cmds []string) (err error) {
 			cmd.Stdout = os.Stdout
 		}
 		cmd.Stderr = os.Stderr
+		if debug {
+			fmt.Println(cmd.Args)
+		}
 		err = cmd.Run()
 		if err != nil {
 			elog.Printf("%s: %s\n", j, err)
