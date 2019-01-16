@@ -6,7 +6,7 @@ REPO      = strings/via:devel
 bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
 
-export CGO_ENABLED=1
+export CGO_ENABLED=0
 export PREFIX=/opt/via
 
 default: $(BIN)
