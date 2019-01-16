@@ -23,6 +23,12 @@ func init() {
 		elog.Fatal("GOPATH must be set")
 	}
 	// TODO rework this to error and suggest user use 'via init'
+	if !file.Exists(viapath) {
+		elog.Println("cloning plans")
+		if err := Clone(viapath, viaUrl); err != nil {
+			elog.Fatal(err)
+		}
+	}
 	pdir := filepath.Dir(cfile)
 	if !file.Exists(pdir) {
 		elog.Println("cloning plans")
