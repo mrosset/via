@@ -11,8 +11,12 @@ const (
 	DOCKERAPI = "172.17.0.1:5001"
 )
 
+func isDocker() bool {
+	return file.Exists(DOCKERENV)
+}
+
 func whichApi() string {
-	if file.Exists(DOCKERENV) {
+	if isDocker() {
 		return DOCKERAPI
 	}
 	return config.IpfsApi
