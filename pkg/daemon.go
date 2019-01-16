@@ -1,10 +1,12 @@
 package via
 
 import (
+	"github.com/mrosset/util/file"
 	"net"
 	"net/rpc"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 )
 
@@ -34,12 +36,21 @@ func (t *Builder) RpcBuild(req Request, resp *Response) error {
 
 func StartDaemon(config *Config) error {
 	rpc.Register(&Builder{config: config})
+	if !file.Exists(filepath.Dir(SOCKET_FILE)) {
+		os.Mkdir(filepath.Dir(SOCKET_FILE), 0700)
+	}
 	l, err := net.Listen("unix", SOCKET_FILE)
 	if err != nil {
 		return err
 	}
 	if !IsInstalled(config, "devel") {
-		Install(config, "devel")
+		p, err := NewPlan("devel")
+		if err != nil {
+			return err
+		}
+		batch := NewBatch(config)
+		batch.Walk(p)
+		batch.Install()
 	}
 	defer os.Remove(SOCKET_FILE)
 	go rpc.Accept(l)
