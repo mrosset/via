@@ -5,6 +5,7 @@ import (
 	"github.com/mrosset/util/file"
 	"gopkg.in/src-d/go-git.v4"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -14,7 +15,9 @@ import (
 // e.g reference name ref/heads/master
 func Clone(dir, url string) error {
 	_, err := git.PlainClone(dir, false, &git.CloneOptions{
-		URL: url,
+		URL:               url,
+		Progress:          os.Stdout,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	return err
 }
