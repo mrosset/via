@@ -148,10 +148,6 @@ func (p *Plan) PackageFile() string {
 	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
 }
 
-func (p Plan) PackageFilePath(config *Config) string {
-	return join(config.Repo, "repo", p.PackageFile())
-}
-
 func (p *Plan) SourceFile() string {
 	return join(filepath.Base(p.Expand().Url))
 }
@@ -173,7 +169,7 @@ func (p Plan) GetStageDir() string {
 	return path
 }
 
-func (p Plan) PackagePath() string {
+func (p Plan) PackagePath(config *Config) string {
 	return join(config.Repo, "repo", p.PackageFile())
 }
 

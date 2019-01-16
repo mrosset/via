@@ -111,8 +111,8 @@ func Build(config *Config, plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	if file.Exists(plan.PackagePath()) {
-		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
+	if file.Exists(plan.PackagePath(config)) {
+		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath(config))
 	}
 	for _, p := range plan.BuildDepends {
 		if IsInstalled(config, p) {
@@ -207,7 +207,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	if err != nil {
 		return (err)
 	}
-	plan.Cid, err = IpfsAdd(Path(plan.PackagePath()))
+	plan.Cid, err = IpfsAdd(config, Path(plan.PackagePath(config)))
 	if err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func Package(bdir string, plan *Plan) (err error) {
 }
 
 func CreatePackage(plan *Plan) (err error) {
-	pfile := plan.PackagePath()
+	pfile := plan.PackagePath(config)
 	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
@@ -239,11 +239,11 @@ func CreatePackage(plan *Plan) (err error) {
 // Updates each plans Oid to the Oid of the tarball in publish git repo
 // this function should never be used in production. It's used for making sure
 // the plans Oid match the git repo's Oid
-func SyncHashs() {
+func SyncHashs(config *Config) {
 	plans, _ := GetPlans()
 	for _, p := range plans {
-		if file.Exists(p.PackagePath()) {
-			p.Cid, _ = HashOnly(Path(p.PackagePath()))
+		if file.Exists(p.PackagePath(config)) {
+			p.Cid, _ = HashOnly(config, Path(p.PackagePath(config)))
 			p.Save()
 			log.Println(p.Cid, p.Name)
 		}
@@ -267,15 +267,17 @@ func Install(config *Config, name string) (err error) {
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}
-	cid, err := HashOnly(Path(plan.PackagePath()))
+	cid, err := HashOnly(config, Path(plan.PackagePath(config)))
 	if err != nil {
+		elog.Println(err)
 		return (err)
 	}
 	if cid != plan.Cid {
 		return fmt.Errorf("%s Plans CID does not match tarballs got %s", plan.NameVersion(), cid)
 	}
-	man, err := ReadPackManifest(plan.PackageFilePath(config))
+	man, err := ReadPackManifest(plan.PackagePath(config))
 	if err != nil {
+		elog.Println(err)
 		return err
 	}
 	errs := conflicts(config, man)
@@ -285,8 +287,9 @@ func Install(config *Config, name string) (err error) {
 			elog.Println(e)
 		}
 	}
-	fd, err := os.Open(plan.PackageFilePath(config))
+	fd, err := os.Open(plan.PackagePath(config))
 	if err != nil {
+		elog.Println(err)
 		return
 	}
 	defer fd.Close()
@@ -298,6 +301,7 @@ func Install(config *Config, name string) (err error) {
 	os.MkdirAll(config.Root, 0755)
 	err = Untar(config.Root, gz)
 	if err != nil {
+		elog.Println(err)
 		return err
 	}
 	err = os.MkdirAll(db, 0755)
@@ -342,7 +346,7 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 			continue
 		}
 		p, _ := NewPlan(d)
-		if file.Exists(p.PackagePath()) {
+		if file.Exists(p.PackagePath(config)) {
 			err := Install(config, p.Name)
 			if err != nil {
 				return err
