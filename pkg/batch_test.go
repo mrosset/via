@@ -9,7 +9,7 @@ import (
 
 func TestBatchAdd(t *testing.T) {
 	is := is.New(t)
-	d := NewBatch(config)
+	d := NewBatch(testConfig)
 	d.Add(testPlan)
 	is.Equal(d.Plans["plan"], testPlan)
 }
@@ -18,10 +18,10 @@ func TestBatchWalk(t *testing.T) {
 	var (
 		p, _   = NewPlan("ccache")
 		got    = NewBatch(testConfig)
-		expect = 3
+		expect = 4
 	)
 	got.Walk(p)
-	if len(got.Plans) != 3 {
+	if len(got.Plans) != expect {
 		t.Errorf("expect %d depends got %d", expect, len(got.Plans))
 	}
 }
@@ -40,7 +40,6 @@ func TestBatchInstall(t *testing.T) {
 	if len(errors) != 0 {
 		t.Error(errors)
 	}
-	got.MarkDone()
 	if !file.Exists(expect) {
 		t.Errorf("expect: %s got: %v", expect, false)
 	}

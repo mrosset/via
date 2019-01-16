@@ -10,7 +10,7 @@ func TestAdd(t *testing.T) {
 		is     = is.New(t)
 		expect = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
 	)
-	cid, err := IpfsAdd("testdata/ipfs/readme")
+	cid, err := IpfsAdd(testConfig, "testdata/ipfs/readme")
 	is.Nil(err)
 	is.Equal(cid, expect)
 }
@@ -20,7 +20,7 @@ func TestHashOnly(t *testing.T) {
 		is     = is.New(t)
 		expect = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
 	)
-	cid, err := HashOnly("testdata/ipfs/readme")
+	cid, err := HashOnly(testConfig, "testdata/ipfs/readme")
 	is.Nil(err)
 	is.Equal(cid, expect)
 }

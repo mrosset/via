@@ -66,10 +66,10 @@ func TestStageDir(t *testing.T) {
 	}
 }
 
-func TestPlanPackageFilePath(t *testing.T) {
+func TestPlanPackageePath(t *testing.T) {
 	var (
 		is     = is.New(t)
 		expect = "testdata/repo/repo/plan-1.0-linux-x86_64.tar.gz"
 	)
-	is.Equal(testPlan.PackageFilePath(testConfig), expect)
+	is.Equal(testPlan.PackagePath(testConfig), expect)
 }

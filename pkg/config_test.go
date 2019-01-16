@@ -10,6 +10,7 @@ var testConfig = &Config{
 	DB:      "/home/mrosset/src/via/pkg/testdata/root/db",
 	Binary:  "http://localhost:8080/ipfs/",
 	Threads: 8,
+	IpfsApi: "localhost:5001",
 }
 
 func TestConfigExpand(t *testing.T) {

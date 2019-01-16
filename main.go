@@ -695,7 +695,7 @@ func create(ctx *cli.Context) error {
 }
 
 func hash(ctx *cli.Context) error {
-	via.SyncHashs()
+	via.SyncHashs(config)
 	return nil
 }
 

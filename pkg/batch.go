@@ -27,7 +27,8 @@ type Batch struct {
 func NewBatch(conf *Config) Batch {
 	threads := conf.Threads
 	if threads == 0 {
-		elog.Println("threads are too low 0. setting it to 4. please fix config.json")
+		fmt.Println(conf)
+		elog.Fatal("threads are too low 0. setting it to 4. please fix config.json")
 		threads = 4
 	}
 	return Batch{
@@ -84,7 +85,7 @@ func (b *Batch) ToInstall() []string {
 func (b *Batch) ToDownload() []string {
 	s := []string{}
 	for i, p := range b.Plans {
-		if !file.Exists(p.PackageFilePath(b.config)) && !IsInstalled(b.config, p.Name) {
+		if !file.Exists(p.PackagePath(b.config)) && !IsInstalled(b.config, p.Name) {
 			s = append(s, i)
 		}
 	}
@@ -94,7 +95,7 @@ func (b *Batch) ToDownload() []string {
 func (b Batch) Download(plan *Plan) error {
 	var (
 		rdir  = join(b.config.Repo, "repo")
-		pfile = plan.PackageFilePath(b.config)
+		pfile = plan.PackagePath(b.config)
 		url   = ""
 	)
 	if isDocker() {
@@ -133,14 +134,14 @@ func (b *Batch) downloadInstall(plan *Plan) {
 	defer func() { <-b.ch }()
 	defer b.wg.Done()
 	if err := b.Download(plan); err != nil {
-		fmt.Println(err)
 		b.pm.Error(plan.Name, err.Error())
+		elog.Fatal(err)
 		return
 	}
 	b.pm.Working(plan.Name, "install        ")
 	if err := Install(b.config, plan.Name); err != nil {
-		fmt.Println(err)
 		b.pm.Error(plan.Name, err.Error())
+		elog.Fatal(err)
 		return
 	}
 	b.pm.Finish(plan.Name)

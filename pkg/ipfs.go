@@ -15,15 +15,15 @@ func isDocker() bool {
 	return file.Exists(DOCKERENV)
 }
 
-func whichApi() string {
+func whichApi(config *Config) string {
 	if isDocker() {
 		return DOCKERAPI
 	}
 	return config.IpfsApi
 }
 
-func IpfsAdd(path Path) (string, error) {
-	s := shell.NewShell(whichApi())
+func IpfsAdd(config *Config, path Path) (string, error) {
+	s := shell.NewShell(whichApi(config))
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
@@ -32,8 +32,8 @@ func IpfsAdd(path Path) (string, error) {
 	return s.Add(fd)
 }
 
-func HashOnly(path Path) (string, error) {
-	s := shell.NewShell(whichApi())
+func HashOnly(config *Config, path Path) (string, error) {
+	s := shell.NewShell(whichApi(config))
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
