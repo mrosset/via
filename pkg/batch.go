@@ -25,11 +25,16 @@ type Batch struct {
 
 // Creates a new Batch type
 func NewBatch(conf *Config) Batch {
+	threads := conf.Threads
+	if threads == 0 {
+		elog.Println("threads are too low 0. setting it to 4. please fix config.json")
+		threads = 4
+	}
 	return Batch{
 		Plans:  make(map[string]*Plan),
 		config: conf,
 		pm:     progmeter.NewProgMeter(false),
-		ch:     make(chan bool, config.Threads),
+		ch:     make(chan bool, threads),
 		wg:     new(sync.WaitGroup),
 	}
 }
@@ -90,8 +95,14 @@ func (b Batch) Download(plan *Plan) error {
 	var (
 		rdir  = join(b.config.Repo, "repo")
 		pfile = plan.PackageFilePath(b.config)
-		url   = b.config.Binary + "/" + plan.Cid
+		url   = ""
 	)
+	if isDocker() {
+		url = "http://172.17.0.1:8080/ipfs/" + plan.Cid
+	} else {
+		url = b.config.Binary + "/" + plan.Cid
+	}
+
 	if !file.Exists(rdir) {
 		os.MkdirAll(rdir, 0755)
 	}
@@ -117,6 +128,8 @@ type PlanFunc func(*Plan)
 
 func (b *Batch) downloadInstall(plan *Plan) {
 	b.ch <- true
+	b.pm.AddTodos(1)
+	b.pm.AddEntry(plan.Name, plan.Name, "          "+plan.Cid)
 	defer func() { <-b.ch }()
 	defer b.wg.Done()
 	if err := b.Download(plan); err != nil {
@@ -141,8 +154,7 @@ func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 			continue
 		}
 		b.wg.Add(1)
-		b.pm.AddTodos(1)
-		b.pm.AddEntry(p.Name, p.Name, "          "+p.Cid)
+
 		go fn(p)
 	}
 	b.wg.Wait()
