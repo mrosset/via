@@ -58,7 +58,6 @@ func (f release) Execute() error {
 	if len(errors) > 0 {
 		log.Fatal(errors)
 	}
-	batch.MarkDone()
 
 	shell := shell.NewShell(f.config.IpfsApi)
 	hash, err := shell.AddDir(f.config.Repo)
