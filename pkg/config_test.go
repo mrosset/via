@@ -6,21 +6,31 @@ import (
 	"testing"
 )
 
-var testConfig = &Config{
-	Root:    "testdata/root",
-	Repo:    "testdata/repo",
-	DB:      "",
-	Binary:  "http://localhost:8080/ipfs/",
-	Threads: 8,
-	IpfsApi: "localhost:5001",
-}
-
-func init() {
-	wd, err := os.Getwd()
-	if err != nil {
-		panic(err)
+var (
+	wd, _      = os.Getwd()
+	testConfig = &Config{
+		Root:    "testdata/root",
+		Repo:    "testdata/repo",
+		Cache:   "testdata/cache",
+		DB:      "",
+		Binary:  "http://localhost:8080/ipfs/",
+		Threads: 8,
+		IpfsApi: "localhost:5001",
+		Env: map[string]string{
+			"PATH":    "/bin:/usr/bin",
+			"LDFLAGS": "",
+		},
 	}
+)
+
+// init
+func init() {
 	testConfig.DB = DB(filepath.Join(wd, "testdata/root/db"))
+	for i, e := range testConfig.Env {
+		os.Setenv(i, os.ExpandEnv(e))
+	}
+	cache = Cache(filepath.Join(wd, string(testConfig.Cache)))
+	cache.Init()
 }
 
 func TestConfigExpand(t *testing.T) {

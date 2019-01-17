@@ -26,10 +26,8 @@ func TestLint(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	var (
-		c      = Cache("testdata/cache")
-		expect = "1.0"
+		expect = "2.9"
 	)
-	c.Init()
 	os.Remove(testPlan.Path())
 	err := Create(testPlan.Expand().Url, "core")
 	if err != nil {
