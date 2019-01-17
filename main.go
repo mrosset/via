@@ -465,7 +465,12 @@ func install(ctx *cli.Context) error {
 	via.Root(ctx.String("r"))
 
 	for _, arg := range ctx.Args().Slice() {
-		if err := via.Install(config, arg); err != nil {
+		p, err := via.NewPlan(arg)
+		if err != nil {
+			return err
+		}
+		in := via.NewInstaller(config, p)
+		if err := in.Install(); err != nil {
 			return err
 		}
 	}
@@ -509,7 +514,7 @@ func local(ctx *cli.Context) error {
 	}
 	if ctx.Bool("i") {
 		fmt.Printf(lfmt, "install", plan.NameVersion())
-		return via.Install(config, plan.Name)
+		return via.NewInstaller(config, plan).Install()
 	}
 	return nil
 }
