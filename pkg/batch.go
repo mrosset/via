@@ -139,7 +139,8 @@ func (b *Batch) downloadInstall(plan *Plan) {
 		return
 	}
 	b.pm.Working(plan.Name, "install        ")
-	if err := Install(b.config, plan.Name); err != nil {
+	in := NewInstaller(b.config, plan)
+	if err := in.Install(); err != nil {
 		b.pm.Error(plan.Name, err.Error())
 		elog.Fatal(err)
 		return
@@ -166,34 +167,6 @@ func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 
 func (b *Batch) Install() (errors []error) {
 	return b.ForEach(b.downloadInstall)
-}
-
-func (b *Batch) OInstall() (errors []error) {
-	wg := new(sync.WaitGroup)
-	ch := make(chan bool, b.config.Threads)
-	for _, n := range b.ToInstall() {
-		wg.Add(1)
-		go func(p *Plan) {
-			defer wg.Done()
-			ch <- true
-			b.pm.AddTodos(1)
-			b.pm.AddEntry(p.Name, p.Name, "          "+p.Cid)
-			if err := b.Download(p); err != nil {
-				b.pm.Error(p.Name, err.Error())
-				errors = append(errors, err)
-				return
-			}
-			b.pm.Working(p.Name, "install        ")
-			if err := Install(b.config, p.Name); err != nil {
-				errors = append(errors, err)
-			}
-			b.pm.Finish(p.Name)
-			<-ch
-		}(b.Plans[n])
-	}
-	wg.Wait()
-	b.pm.MarkDone()
-	return errors
 }
 
 func (b Batch) PromptInstall() []error {

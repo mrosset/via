@@ -47,6 +47,5 @@ func (pw *ProgressWriter) Write(b []byte) (int, error) {
 }
 
 func (pw *ProgressWriter) Close() error {
-	// pw.pm.Working(pw.key, "close          ")
 	return nil
 }

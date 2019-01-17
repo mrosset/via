@@ -26,7 +26,7 @@ func TestBatchWalk(t *testing.T) {
 	}
 }
 
-func TestBatchInstall(t *testing.T) {
+func testBatchInstall(t *testing.T) {
 	var (
 		p, _   = NewPlan("ccache")
 		got    = NewBatch(testConfig)
