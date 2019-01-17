@@ -6,7 +6,6 @@ import (
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
-	"github.com/mrosset/util/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -71,7 +70,7 @@ func DownloadSrc(plan *Plan) (err error) {
 
 // Stages the downloaded source in via's cache directory
 // the stage only happens once unless BuilInStage is used
-func Stage(plan *Plan) (err error) {
+func Stage(config *Config, plan *Plan) (err error) {
 	if plan.Url == "" || file.Exists(plan.GetStageDir()) {
 		// nothing to stage
 		return nil
@@ -100,7 +99,7 @@ func Stage(plan *Plan) (err error) {
 	}
 ret:
 	fmt.Printf(lfmt, "patch", plan.NameVersion())
-	if err := doCommands(join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
+	if err := doCommands(config, join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
 		return err
 	}
 	return
@@ -136,14 +135,14 @@ func Build(config *Config, plan *Plan) (err error) {
 	}
 	os.Setenv("SRCDIR", plan.GetStageDir())
 	os.Setenv("Flags", expand(flags.String()))
-	err = doCommands(plan.BuildDir(), build)
+	err = doCommands(config, plan.BuildDir(), build)
 	if err != nil {
 		return fmt.Errorf("%s in %s", err.Error(), plan.BuildDir())
 	}
 	return nil
 }
 
-func doCommands(dir string, cmds []string) (err error) {
+func doCommands(config *Config, dir string, cmds []string) (err error) {
 	for i, j := range cmds {
 		if debug {
 			elog.Println(i, j)
@@ -167,7 +166,7 @@ func doCommands(dir string, cmds []string) (err error) {
 	return nil
 }
 
-func Package(bdir string, plan *Plan) (err error) {
+func Package(config *Config, bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
@@ -194,7 +193,7 @@ func Package(bdir string, plan *Plan) (err error) {
 		parent, _ := NewPlan(plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
 	}
-	err = doCommands(bdir, pack)
+	err = doCommands(config, bdir, pack)
 	if err != nil {
 		return err
 	}
@@ -203,11 +202,11 @@ func Package(bdir string, plan *Plan) (err error) {
 		if err != nil {
 			return err
 		}
-		if err = Package(bdir, sub); err != nil {
+		if err = Package(config, bdir, sub); err != nil {
 			return err
 		}
 	}
-	err = CreatePackage(plan)
+	err = CreatePackage(config, plan)
 	if err != nil {
 		return (err)
 	}
@@ -226,7 +225,7 @@ func Package(bdir string, plan *Plan) (err error) {
 	*/
 }
 
-func CreatePackage(plan *Plan) (err error) {
+func CreatePackage(config *Config, plan *Plan) (err error) {
 	pfile := plan.PackagePath(config)
 	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
@@ -254,8 +253,8 @@ func SyncHashs(config *Config) {
 	}
 }
 
-func PostInstall(plan *Plan) (err error) {
-	return doCommands("/", append(plan.PostInstall, config.PostInstall...))
+func PostInstall(config *Config, plan *Plan) (err error) {
+	return doCommands(config, "/", append(plan.PostInstall, config.PostInstall...))
 }
 
 func Remove(config *Config, name string) (err error) {
@@ -316,7 +315,7 @@ func BuildSteps(config *Config, plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
-	if err := Stage(plan); err != nil {
+	if err := Stage(config, plan); err != nil {
 		elog.Println(err)
 		return err
 	}
@@ -326,7 +325,7 @@ func BuildSteps(config *Config, plan *Plan) (err error) {
 		return err
 	}
 	fmt.Printf(lfmt, "package", plan.NameVersion())
-	if err := Package("", plan); err != nil {
+	if err := Package(config, "", plan); err != nil {
 		elog.Println(err)
 		return err
 	}

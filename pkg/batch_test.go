@@ -8,10 +8,14 @@ import (
 )
 
 func TestBatchAdd(t *testing.T) {
-	is := is.New(t)
-	d := NewBatch(testConfig)
+	var (
+		is     = is.New(t)
+		d      = NewBatch(testConfig)
+		expect = testPlan
+	)
 	d.Add(testPlan)
-	is.Equal(d.Plans["plan"], testPlan)
+	got := d.Plans[testPlan.Name]
+	is.Equal(got, expect)
 }
 
 func TestBatchWalk(t *testing.T) {

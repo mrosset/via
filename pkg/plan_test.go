@@ -1,33 +1,43 @@
 package via
 
 import (
-	"github.com/cheekybits/is"
+	"path/filepath"
+	"reflect"
 	"testing"
 )
 
 var (
 	testPlan = &Plan{
-		Name:          "plan",
-		Version:       "1.0",
-		Url:           "http://mirrors.kernel.org/gnu/plan-{{.Version}}.tar.gz",
+		Name:          "hello",
+		Version:       "2.9",
+		Url:           "http://mirrors.kernel.org/gnu/hello/hello-{{.Version}}.tar.gz",
 		ManualDepends: []string{"libgomp"},
-		AutoDepends:   []string{"glibc"},
-		BuildInStage:  true,
-		Package:       []string{"cp a.out $PKGDIR/"},
+		BuildInStage:  false,
+		Build:         []string{"touch a.out"},
+		Package:       []string{"install -m775 -D a.out $PKGDIR/$PREFIX/bin/a.out"},
 		Files:         []string{"a.out"},
 		Group:         "core",
 	}
 )
 
 func TestPlanDepends(t *testing.T) {
-	is := is.New(t)
-	is.Equal(testPlan.Depends(), []string{"glibc", "libgomp"})
+	var (
+		expect = []string{"libgomp"}
+		got    = testPlan.Depends()
+	)
+	if !reflect.DeepEqual(expect, got) {
+		t.Errorf("expect %v got %v", expect, got)
+	}
 }
 
 func TestPlanExpand(t *testing.T) {
-	is := is.New(t)
-	expect := "http://mirrors.kernel.org/gnu/plan-1.0.tar.gz"
-	is.Equal(testPlan.Expand().Url, expect)
+	var (
+		expect = "http://mirrors.kernel.org/gnu/hello/hello-2.9.tar.gz"
+		got    = testPlan.Expand().Url
+	)
+	if expect != got {
+		t.Errorf("expected %s got %s", expect, got)
+	}
 }
 
 func TestFindPlan(t *testing.T) {
@@ -48,7 +58,7 @@ func TestFindPlan(t *testing.T) {
 
 func TestBuildDir(t *testing.T) {
 	var (
-		expect = "/home/mrosset/.cache/via/stg/plan-1.0"
+		expect = filepath.Join(wd, "testdata/cache/bld/hello-2.9")
 		got    = testPlan.BuildDir()
 	)
 	if got != expect {
@@ -58,7 +68,7 @@ func TestBuildDir(t *testing.T) {
 
 func TestStageDir(t *testing.T) {
 	var (
-		expect = "/home/mrosset/.cache/via/stg/plan-1.0"
+		expect = filepath.Join(wd, "testdata/cache/stg/hello-2.9")
 		got    = testPlan.GetStageDir()
 	)
 	if got != expect {
@@ -66,10 +76,10 @@ func TestStageDir(t *testing.T) {
 	}
 }
 
-func TestPlanPackageePath(t *testing.T) {
+func TestPlanPackagePath(t *testing.T) {
 	var (
 		got    = testPlan.PackagePath(testConfig)
-		expect = "testdata/repo/plan-1.0-linux-x86_64.tar.gz"
+		expect = "testdata/repo/hello-2.9-linux-x86_64.tar.gz"
 	)
 	if got != expect {
 		t.Errorf("expect '%s' -> got %s", expect, got)

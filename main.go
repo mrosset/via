@@ -711,7 +711,7 @@ func pack(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		err = via.Package("", plan)
+		err = via.Package(config, "", plan)
 		if err != nil {
 			return err
 		}

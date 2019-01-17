@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestBuild(t *testing.T) {
+func TestDeamonBuild(t *testing.T) {
 	t.SkipNow()
 	go StartDaemon(testConfig)
 	time.Sleep(time.Second * 1)
