@@ -254,69 +254,6 @@ func SyncHashs(config *Config) {
 	}
 }
 
-func OInstall(config *Config, name string) (err error) {
-	plan, err := NewPlan(name)
-	if err != nil {
-		elog.Println(name, err)
-		return
-	}
-	if IsInstalled(config, name) {
-		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
-		err := Remove(config, name)
-		if err != nil {
-			return err
-		}
-	}
-	db := filepath.Join(config.DB.Installed(), plan.Name)
-	if file.Exists(db) {
-		return fmt.Errorf("%s is already installed", name)
-	}
-	cid, err := HashOnly(config, Path(plan.PackagePath(config)))
-	if err != nil {
-		elog.Println(err)
-		return (err)
-	}
-	if cid != plan.Cid {
-		return fmt.Errorf("%s Plans CID does not match tarballs got %s", plan.NameVersion(), cid)
-	}
-	man, err := ReadPackManifest(plan.PackagePath(config))
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	errs := conflicts(config, man)
-	if len(errs) > 0 {
-		//return errs[0]
-		for _, e := range errs {
-			elog.Println(e)
-		}
-	}
-	fd, err := os.Open(plan.PackagePath(config))
-	if err != nil {
-		elog.Println(err)
-		return
-	}
-	defer fd.Close()
-	gz, err := gzip.NewReader(fd)
-	if err != nil {
-		return
-	}
-	defer gz.Close()
-	os.MkdirAll(config.Root, 0755)
-	err = Untar(config.Root, gz)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	err = os.MkdirAll(db, 0755)
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
-	man.Cid = plan.Cid
-	return json.Write(man, join(db, "manifest.json"))
-}
-
 func PostInstall(plan *Plan) (err error) {
 	return doCommands("/", append(plan.PostInstall, config.PostInstall...))
 }
