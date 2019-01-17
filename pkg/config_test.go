@@ -1,16 +1,26 @@
 package via
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 )
 
 var testConfig = &Config{
-	Root:    "/home/mrosset/src/via/pkg/testdata/root",
+	Root:    "testdata/root",
 	Repo:    "testdata/repo",
-	DB:      "/home/mrosset/src/via/pkg/testdata/root/db",
+	DB:      "",
 	Binary:  "http://localhost:8080/ipfs/",
 	Threads: 8,
 	IpfsApi: "localhost:5001",
+}
+
+func init() {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	testConfig.DB = DB(filepath.Join(wd, "testdata/root/db"))
 }
 
 func TestConfigExpand(t *testing.T) {

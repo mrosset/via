@@ -170,7 +170,7 @@ func (p Plan) GetStageDir() string {
 }
 
 func (p Plan) PackagePath(config *Config) string {
-	return join(config.Repo, "repo", p.PackageFile())
+	return join(config.Repo, p.PackageFile())
 }
 
 func (p Plan) stageDir() string {

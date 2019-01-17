@@ -118,7 +118,11 @@ func Build(config *Config, plan *Plan) (err error) {
 		if IsInstalled(config, p) {
 			continue
 		}
-		if err := Install(config, p); err != nil {
+		dp, err := NewPlan(p)
+		if err != nil {
+			return err
+		}
+		if err := NewInstaller(config, dp).Install(); err != nil {
 			return err
 		}
 	}
@@ -250,7 +254,7 @@ func SyncHashs(config *Config) {
 	}
 }
 
-func Install(config *Config, name string) (err error) {
+func OInstall(config *Config, name string) (err error) {
 	plan, err := NewPlan(name)
 	if err != nil {
 		elog.Println(name, err)
@@ -347,8 +351,7 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 		}
 		p, _ := NewPlan(d)
 		if file.Exists(p.PackagePath(config)) {
-			err := Install(config, p.Name)
-			if err != nil {
+			if err := NewInstaller(config, p).Install(); err != nil {
 				return err
 			}
 			continue
@@ -364,7 +367,7 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	return Install(config, plan.Name)
+	return NewInstaller(config, plan).Install()
 }
 
 // Run all of the functions required to build a package
