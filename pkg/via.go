@@ -264,8 +264,9 @@ func Remove(config *Config, name string) (err error) {
 		return err
 	}
 
-	man, err := ReadManifest(name)
+	man, err := ReadManifest(config, name)
 	if err != nil {
+		elog.Println(err)
 		return err
 	}
 	for _, f := range man.Files {
@@ -376,8 +377,6 @@ func refactor(plan *Plan) {
 			}
 			s.Version = plan.Version
 			s.Save()
-			fmt.Println(s.Name)
-
 		}
 	}
 }

@@ -19,6 +19,7 @@ var (
 		Env: map[string]string{
 			"PATH":    "/bin:/usr/bin",
 			"LDFLAGS": "",
+			"PREFIX":  "/opt/via",
 		},
 	}
 )

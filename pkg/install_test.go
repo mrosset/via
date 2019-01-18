@@ -8,29 +8,34 @@ import (
 
 func TestBuild(t *testing.T) {
 	var (
-		expectSrc = "testdata/cache/src/hello-2.9.tar.gz"
+		files = []string{
+			"testdata/cache/src/hello-2.9.tar.gz",
+			"testdata/cache/bld/hello-2.9/a.out",
+			"testdata/cache/pkg/hello-2.9/opt/via/bin/a.out",
+		}
 	)
-	err := BuildSteps(testConfig, testPlan)
-	if err != nil {
+	if err := BuildSteps(testConfig, testPlan); err != nil {
 		t.Error(err)
 	}
-	if !file.Exists(expectSrc) {
-		t.Errorf("expected %s file to exist", expectSrc)
+	for _, expect := range files {
+		if !file.Exists(expect) {
+			t.Errorf("expected %s file got %v", expect, false)
+		}
 	}
 }
 
 func TestInstaller(t *testing.T) {
 	var (
-		p, err = NewPlan("ccache")
-		in     = NewInstaller(testConfig, p)
+		in    = NewInstaller(testConfig, testPlan)
+		files = []string{"testdata/root/opt/via/bin/a.out"}
 	)
 	defer os.RemoveAll("testdata/root")
-	defer os.RemoveAll("testdata/repo")
-	if err != nil {
+	if err := in.Install(); err != nil {
 		t.Error(err)
 	}
-	err = in.Install()
-	if err != nil {
-		t.Error(err)
+	for _, expect := range files {
+		if !file.Exists(expect) {
+			t.Errorf("expected %s file got %v", expect, false)
+		}
 	}
 }

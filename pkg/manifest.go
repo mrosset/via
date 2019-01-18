@@ -124,7 +124,7 @@ func needs(file string) []string {
 	return im
 }
 
-func ReadManifest(name string) (man *Plan, err error) {
+func ReadManifest(config *Config, name string) (man *Plan, err error) {
 	man = new(Plan)
 	err = json.Read(man, join(config.DB.Installed(), name, "manifest.json"))
 	if err != nil {
