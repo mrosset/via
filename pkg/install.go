@@ -64,7 +64,7 @@ func (i Installer) Install() error {
 	if cid != i.plan.Cid {
 		return fmt.Errorf("%s Plans CID does not match tarballs got %s", i.plan.NameVersion(), cid)
 	}
-	man, err := ReadPackManifest(i.plan.PackagePath(config))
+	man, err := ReadPackManifest(i.plan.PackagePath(i.config))
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -76,7 +76,7 @@ func (i Installer) Install() error {
 			elog.Println(e)
 		}
 	}
-	fd, err := os.Open(i.plan.PackagePath(config))
+	fd, err := os.Open(i.plan.PackagePath(i.config))
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -84,20 +84,24 @@ func (i Installer) Install() error {
 	defer fd.Close()
 	gz, err := gzip.NewReader(fd)
 	if err != nil {
+		elog.Println(err)
 		return err
 	}
 	defer gz.Close()
 	os.MkdirAll(i.config.Root, 0755)
-	err = Untar(i.config.Root, gz)
-	if err != nil {
+	if err = Untar(i.config.Root, gz); err != nil {
 		elog.Println(err)
 		return err
 	}
-	err = os.MkdirAll(db, 0755)
-	if err != nil {
+	if err = os.MkdirAll(db, 0755); err != nil {
 		elog.Println(db, err)
 		return err
 	}
 	man.Cid = i.plan.Cid
-	return json.Write(man, join(db, "manifest.json"))
+	err = json.Write(man, join(db, "manifest.json"))
+	if err != nil {
+		elog.Println(db, err)
+		return err
+	}
+	return nil
 }
