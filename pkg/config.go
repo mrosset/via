@@ -37,6 +37,9 @@ func init() {
 			elog.Fatal(err)
 		}
 	}
+}
+
+func init() {
 	err := json.Read(&config, cfile)
 	if err != nil {
 		elog.Fatal(err)
