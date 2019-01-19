@@ -47,7 +47,7 @@ func Debug(b bool) {
 	debug = b
 }
 
-func DownloadSrc(plan *Plan) (err error) {
+func DownloadSrc(config *Config, plan *Plan) (err error) {
 	if file.Exists(plan.SourcePath()) && !update {
 		return nil
 	}
@@ -62,6 +62,12 @@ func DownloadSrc(plan *Plan) (err error) {
 		wget(cache.Sources(), eurl)
 	case "http", "https":
 		return gurl.Download(cache.Sources(), eurl)
+	case "git":
+		spath := filepath.Join(cache.Sources(), plan.Name)
+		if err := Clone(spath, "https"+eurl[3:]); err != nil {
+			elog.Println(err)
+			return err
+		}
 	default:
 		return fmt.Errorf("%s: URL scheme is not supported", u.Scheme)
 	}
@@ -81,15 +87,14 @@ func Stage(config *Config, plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
+	//FIXME: move this down to switch statement so avoid goto
 	if u.Scheme == "git" {
-		fmt.Println(cache.Stages())
 		fmt.Println(plan.SourcePath())
-		cmd := exec.Command("git", "clone", plan.SourcePath(), plan.SourceFile())
-		cmd.Dir = cache.Stages()
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Run()
-		goto ret
+		fmt.Println(plan.GetStageDir())
+		if err := Clone(plan.GetStageDir(), plan.SourcePath()); err != nil {
+			return err
+		}
+		goto patch
 	}
 	switch filepath.Ext(plan.SourceFile()) {
 	case ".zip":
@@ -97,7 +102,7 @@ func Stage(config *Config, plan *Plan) (err error) {
 	default:
 		GNUUntar(cache.Stages(), plan.SourcePath())
 	}
-ret:
+patch:
 	fmt.Printf(lfmt, "patch", plan.NameVersion())
 	if err := doCommands(config, join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
 		return err
@@ -312,7 +317,7 @@ func BuildSteps(config *Config, plan *Plan) (err error) {
 	if file.Exists(plan.PackageFile()) {
 		return fmt.Errorf("package %s exists", plan.PackageFile())
 	}
-	if err := DownloadSrc(plan); err != nil {
+	if err := DownloadSrc(config, plan); err != nil {
 		elog.Println(err)
 		return err
 	}
