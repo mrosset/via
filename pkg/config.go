@@ -11,7 +11,7 @@ import (
 
 var (
 	cache   Cache
-	viapath = filepath.Join(os.Getenv("HOME"), "src/via")
+	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
 	cfile   = filepath.Join(viapath, "plans/config.json")
 	viaUrl  = "https://github.com/mrosset/via"
 	planUrl = "https://github.com/mrosset/plans"

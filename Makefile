@@ -6,7 +6,7 @@ REPO      = strings/via:devel
 bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 export PREFIX=/opt/via
 
 default: $(BIN)
@@ -49,8 +49,8 @@ clean:
 rebuild: clean default
 
 test:
-	#go test -run TestPlugin* -v ./pkg/...
-	go test -v ./pkg/...
+	go test -run TestContain* -v ./pkg/...
+	# go test -v ./pkg/...
 
 .NOTPARALLEL:
 
@@ -60,14 +60,19 @@ $(bash):
 	mkdir -p docker/bin
 	cp -p tmp/bash-4.4/bash $@
 
+arch = arm-linux-gnueabi
+arch = x86_64-via-linux-gnu
+arch = powerpc64le-linux-gnu
+
 tmp/bash-4.4/config.status:
-	cd tmp/bash-4.4; CFLAGS="-static"; ./configure --enable-static-link -q
+	cd tmp/bash-4.4; CFLAGS="-static"; ./configure --enable-static-link --host=$(arch) -q
+	file $(bash)
 
 tmp/bash-4.4/bash:
 	$(MAKE) -C tmp/bash-4.4
 
 bash-clean:
-	-rm $(bash) tmp/bash-4.4/{bash,config.status}
+	-rm $(bash) tmp/bash-4.4/bash tmp/bash-4.4/config.status
 
 
 $(btarball):
