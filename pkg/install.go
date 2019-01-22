@@ -25,7 +25,7 @@ func NewInstaller(config *Config, plan *Plan) *Installer {
 func Download(config *Config, plan *Plan) error {
 	var (
 		url   = config.Binary + "/" + plan.Cid
-		pfile = plan.PackagePath(config)
+		pfile = plan.PackagePath()
 	)
 	if file.Exists(pfile) {
 		return nil
@@ -56,7 +56,7 @@ func (i Installer) Install() error {
 	if err := Download(i.config, i.plan); err != nil {
 		return err
 	}
-	cid, err := HashOnly(i.config, Path(i.plan.PackagePath(i.config)))
+	cid, err := HashOnly(i.config, Path(i.plan.PackagePath()))
 	if err != nil {
 		elog.Println(err)
 		return (err)
@@ -64,7 +64,7 @@ func (i Installer) Install() error {
 	if cid != i.plan.Cid {
 		return fmt.Errorf("%s Plans CID does not match tarballs got %s", i.plan.NameVersion(), cid)
 	}
-	man, err := ReadPackManifest(i.plan.PackagePath(i.config))
+	man, err := ReadPackManifest(i.plan.PackagePath())
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -76,7 +76,7 @@ func (i Installer) Install() error {
 			elog.Println(e)
 		}
 	}
-	fd, err := os.Open(i.plan.PackagePath(i.config))
+	fd, err := os.Open(i.plan.PackagePath())
 	if err != nil {
 		elog.Println(err)
 		return err

@@ -33,7 +33,7 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = NewPlan(testPlan.Name)
+	_, err = NewPlan(config, testPlan.Name)
 	if err != nil {
 		t.Error(err)
 	}

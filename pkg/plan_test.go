@@ -17,6 +17,7 @@ var (
 		Package:       []string{"install -m775 -D a.out $PKGDIR/$PREFIX/bin/a.out"},
 		Files:         []string{"a.out"},
 		Group:         "core",
+		config:        testConfig,
 	}
 )
 
@@ -47,7 +48,7 @@ func TestFindPlan(t *testing.T) {
 			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
 		}
 	)
-	got, err := NewPlan("sed")
+	got, err := NewPlan(config, "sed")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +79,7 @@ func TestStageDir(t *testing.T) {
 
 func TestPlanPackagePath(t *testing.T) {
 	var (
-		got    = testPlan.PackagePath(testConfig)
+		got    = testPlan.PackagePath()
 		expect = "testdata/repo/hello-2.9-linux-x86_64.tar.gz"
 	)
 	if got != expect {

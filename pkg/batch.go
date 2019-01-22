@@ -58,7 +58,7 @@ func (b *Batch) Add(plan *Plan) {
 func (b *Batch) Walk(plan *Plan) error {
 	b.Add(plan)
 	for _, d := range plan.Depends() {
-		p, err := NewPlan(d)
+		p, err := NewPlan(b.config, d)
 		if err != nil {
 			return err
 		}
@@ -85,7 +85,7 @@ func (b *Batch) ToInstall() []string {
 func (b *Batch) ToDownload() []string {
 	s := []string{}
 	for i, p := range b.Plans {
-		if !file.Exists(p.PackagePath(b.config)) && !IsInstalled(b.config, p.Name) {
+		if !file.Exists(p.PackagePath()) && !IsInstalled(b.config, p.Name) {
 			s = append(s, i)
 		}
 	}
@@ -95,7 +95,7 @@ func (b *Batch) ToDownload() []string {
 func (b Batch) Download(plan *Plan) error {
 	var (
 		rdir  = join(b.config.Repo, "repo")
-		pfile = plan.PackagePath(b.config)
+		pfile = plan.PackagePath()
 		url   = ""
 	)
 	if isDocker() {
@@ -150,7 +150,7 @@ func (b *Batch) downloadInstall(plan *Plan) {
 
 func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 	for _, n := range b.ToInstall() {
-		p, err := NewPlan(n)
+		p, err := NewPlan(b.config, n)
 		if err != nil {
 			errors = append(errors, err)
 			continue

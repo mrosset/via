@@ -45,7 +45,7 @@ func StartDaemon(config *Config) error {
 		return err
 	}
 	if !IsInstalled(config, "devel") {
-		p, err := NewPlan("devel")
+		p, err := NewPlan(config, "devel")
 		if err != nil {
 			return err
 		}
