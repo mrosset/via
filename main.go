@@ -41,7 +41,7 @@ var (
 			},
 			&cli.BoolFlag{
 				Name:  "v",
-				Value: false,
+				Value: true,
 				Usage: "displays more information when building",
 			},
 			&cli.BoolFlag{
