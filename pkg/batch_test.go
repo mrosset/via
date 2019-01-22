@@ -20,9 +20,9 @@ func TestBatchAdd(t *testing.T) {
 
 func TestBatchWalk(t *testing.T) {
 	var (
-		p, _   = NewPlan("ccache")
+		p, _   = NewPlan(config, "ccache")
 		got    = NewBatch(testConfig)
-		expect = 4
+		expect = 1
 	)
 	got.Walk(p)
 	if len(got.Plans) != expect {
@@ -32,7 +32,7 @@ func TestBatchWalk(t *testing.T) {
 
 func testBatchInstall(t *testing.T) {
 	var (
-		p, _   = NewPlan("ccache")
+		p, _   = NewPlan(config, "ccache")
 		got    = NewBatch(testConfig)
 		expect = join(testConfig.Repo, "repo", p.PackageFile())
 	)

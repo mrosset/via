@@ -23,7 +23,7 @@ func GetPlans() (Plans, error) {
 	}
 	plans := Plans{}
 	for _, f := range pf {
-		p, _ := ReadPath(f)
+		p, _ := ReadPath(config, f)
 		plans = append(plans, p)
 	}
 	return plans, nil
@@ -92,6 +92,7 @@ type Plan struct {
 	PostInstall   []string
 	Remove        []string
 	Files         []string
+	config        *Config
 }
 
 func (p *Plan) Depends() []string {
@@ -111,36 +112,38 @@ func (p *Plan) Save() (err error) {
 	return json.Write(p, p.Path())
 }
 
-func FindPlanPath(n string) (string, error) {
-	glob := join(config.Plans, "*", n+".json")
+func FindPlanPath(config *Config, name string) (string, error) {
+	glob := join(config.Plans, "*", name+".json")
 	e, err := filepath.Glob(glob)
 	if err != nil {
 		return "", err
 	}
 	if len(e) != 1 {
-		return "", fmt.Errorf("%s: expected 1 plan found %d.", n, len(e))
+		return "", fmt.Errorf("%s: expected 1 plan found %d.", name, len(e))
 	}
 	return e[0], nil
 }
 
-func NewPlan(n string) (plan *Plan, err error) {
-	path, err := FindPlanPath(n)
+func NewPlan(config *Config, name string) (plan *Plan, err error) {
+	path, err := FindPlanPath(config, name)
 	if err != nil {
 		return nil, err
 	}
-	plan, err = ReadPath(path)
+	plan, err = ReadPath(config, path)
 	if err != nil {
 		return nil, err
 	}
+	plan.config = config
 	return plan, nil
 }
 
-func ReadPath(p string) (plan *Plan, err error) {
+func ReadPath(config *Config, path string) (plan *Plan, err error) {
 	plan = new(Plan)
-	err = json.Read(plan, p)
+	err = json.Read(plan, path)
 	if err != nil {
 		return nil, err
 	}
+	plan.config = config
 	return plan, nil
 }
 
@@ -169,8 +172,8 @@ func (p Plan) GetStageDir() string {
 	return path
 }
 
-func (p Plan) PackagePath(config *Config) string {
-	return join(config.Repo, p.PackageFile())
+func (p Plan) PackagePath() string {
+	return join(p.config.Repo, p.PackageFile())
 }
 
 func (p Plan) stageDir() string {

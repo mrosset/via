@@ -19,7 +19,7 @@ devel: default
 	du -hs $(PREFIX)/
 
 run: default
-	$(BIN) plugin release
+	$(BIN) help
 
 $(BIN): $(SRC)
 	go build -o $(BIN)

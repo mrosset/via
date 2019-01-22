@@ -363,7 +363,7 @@ func get(ctx *cli.Context) error {
 		return fmt.Errorf("get requires a 'PLAN' argument. see: 'via help get'")
 	}
 
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -398,14 +398,14 @@ func daemon(ctx *cli.Context) error {
 
 func strap(ctx *cli.Context) error {
 
-	dplan, err := via.NewPlan("devel")
+	dplan, err := via.NewPlan(config, "devel")
 
 	if err != nil {
 		return err
 	}
 
 	for _, p := range dplan.ManualDepends {
-		plan, err := via.NewPlan(p)
+		plan, err := via.NewPlan(config, p)
 		if err != nil {
 			return err
 		}
@@ -434,7 +434,7 @@ func batch(ctx *cli.Context) error {
 	}
 
 	via.Root(ctx.String("r"))
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -465,7 +465,7 @@ func install(ctx *cli.Context) error {
 	via.Root(ctx.String("r"))
 
 	for _, arg := range ctx.Args().Slice() {
-		p, err := via.NewPlan(arg)
+		p, err := via.NewPlan(config, arg)
 		if err != nil {
 			return err
 		}
@@ -489,7 +489,7 @@ func local(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
 	}
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -528,7 +528,7 @@ func remote(ctx *cli.Context) error {
 		return err
 	}
 	res := via.Response{}
-	p, _ := via.NewPlan(ctx.Args().First())
+	p, _ := via.NewPlan(config, ctx.Args().First())
 	req := via.Request{*p}
 	return c.Call("Builder.RpcBuild", req, &res)
 }
@@ -541,7 +541,7 @@ func edit(ctx *cli.Context) error {
 		err    error
 	)
 	if arg0 != "config" {
-		p, err = via.FindPlanPath(arg0)
+		p, err = via.FindPlanPath(config, arg0)
 		if err != nil {
 			return err
 		}
@@ -563,7 +563,7 @@ func list(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("list requires a 'PLAN' argument. see: 'via help list'")
 	}
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -582,7 +582,7 @@ func show(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help show'")
 	}
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		elog.Fatal(err)
 	}
@@ -623,7 +623,7 @@ func plog(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help log'")
 	}
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -675,7 +675,7 @@ func options(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("options requires a 'PLAN' argument. see: 'via help options'")
 	}
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
@@ -707,7 +707,7 @@ func hash(ctx *cli.Context) error {
 func pack(ctx *cli.Context) error {
 	via.Verbose(ctx.Bool("v"))
 	for _, arg := range ctx.Args().Slice() {
-		plan, err := via.NewPlan(arg)
+		plan, err := via.NewPlan(config, arg)
 		if err != nil {
 			return err
 		}
@@ -782,7 +782,7 @@ func cd(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("cd requires a 'PLAN' argument. see: 'via help cd'")
 	}
-	plan, err := via.NewPlan(ctx.Args().First())
+	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}

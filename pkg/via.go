@@ -115,14 +115,14 @@ func Build(config *Config, plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	if file.Exists(plan.PackagePath(config)) {
-		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath(config))
+	if file.Exists(plan.PackagePath()) {
+		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
 	}
 	for _, p := range plan.BuildDepends {
 		if IsInstalled(config, p) {
 			continue
 		}
-		dp, err := NewPlan(p)
+		dp, err := NewPlan(config, p)
 		if err != nil {
 			return err
 		}
@@ -134,7 +134,7 @@ func Build(config *Config, plan *Plan) (err error) {
 	os.MkdirAll(plan.BuildDir(), 0755)
 	// Parent plan Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(plan.Inherit)
+		parent, _ := NewPlan(config, plan.Inherit)
 		build = append(parent.Build, plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}
@@ -195,7 +195,7 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 	}
 	os.Setenv("PKGDIR", pdir)
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(plan.Inherit)
+		parent, _ := NewPlan(config, plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
 	}
 	err = doCommands(config, bdir, pack)
@@ -203,7 +203,7 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 		return err
 	}
 	for _, j := range plan.SubPackages {
-		sub, err := NewPlan(j)
+		sub, err := NewPlan(config, j)
 		if err != nil {
 			return err
 		}
@@ -215,7 +215,7 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 	if err != nil {
 		return (err)
 	}
-	plan.Cid, err = IpfsAdd(config, Path(plan.PackagePath(config)))
+	plan.Cid, err = IpfsAdd(config, Path(plan.PackagePath()))
 	if err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 }
 
 func CreatePackage(config *Config, plan *Plan) (err error) {
-	pfile := plan.PackagePath(config)
+	pfile := plan.PackagePath()
 	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
@@ -250,8 +250,8 @@ func CreatePackage(config *Config, plan *Plan) (err error) {
 func SyncHashs(config *Config) {
 	plans, _ := GetPlans()
 	for _, p := range plans {
-		if file.Exists(p.PackagePath(config)) {
-			p.Cid, _ = HashOnly(config, Path(p.PackagePath(config)))
+		if file.Exists(p.PackagePath()) {
+			p.Cid, _ = HashOnly(config, Path(p.PackagePath()))
 			p.Save()
 			log.Println(p.Cid, p.Name)
 		}
@@ -291,8 +291,8 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 		if IsInstalled(config, d) {
 			continue
 		}
-		p, _ := NewPlan(d)
-		if file.Exists(p.PackagePath(config)) {
+		p, _ := NewPlan(config, d)
+		if file.Exists(p.PackagePath()) {
 			if err := NewInstaller(config, p).Install(); err != nil {
 				return err
 			}
@@ -326,6 +326,7 @@ func BuildSteps(config *Config, plan *Plan) (err error) {
 		return err
 	}
 	fmt.Printf(lfmt, "build", plan.NameVersion())
+	fmt.Println(config)
 	if err := Build(config, plan); err != nil {
 		elog.Println(err)
 		return err
@@ -376,7 +377,7 @@ func IsInstalled(config *Config, name string) bool {
 func refactor(plan *Plan) {
 	if len(plan.SubPackages) > 0 {
 		for _, j := range plan.SubPackages {
-			s, _ := NewPlan(j)
+			s, _ := NewPlan(config, j)
 			if s.Version == plan.Version {
 				continue
 			}
@@ -392,7 +393,7 @@ func Lint() (err error) {
 		return err
 	}
 	for _, j := range e {
-		plan, err := ReadPath(j)
+		plan, err := ReadPath(config, j)
 		if err != nil {
 			err = fmt.Errorf("%s %s", j, err)
 			elog.Println(err)
@@ -428,7 +429,7 @@ func fatal(err error) {
 	}
 }
 func Clean(name string) error {
-	plan, err := NewPlan(name)
+	plan, err := NewPlan(config, name)
 	if err != nil {
 		return err
 	}

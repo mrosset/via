@@ -40,7 +40,7 @@ func RepoCreate() error {
 		return err
 	}
 	for _, j := range e {
-		p, err := ReadPath(j)
+		p, err := ReadPath(config, j)
 		if err != nil {
 			return err
 		}
