@@ -1,4 +1,4 @@
-SRC	  = $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
+SRC	  = $(wildcard *.go Makefile con/*.go pkg/*.go via/*.go docker/Dockerfile)
 PLG       = $(wildcard plugins/*.go)
 BIN	  = $(GOPATH)/bin/via
 CMDS	  = fmt test install
@@ -6,7 +6,7 @@ REPO      = strings/via:devel
 bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
 
-export CGO_ENABLED=1
+export CGO_ENABLED=0
 export PREFIX=/opt/via
 
 default: $(BIN)
@@ -48,6 +48,10 @@ clean:
 
 rebuild: clean default
 
+test_con: $(SRC)
+	go build -o con/con ./con
+	rm -r con/rootfs/container-id
+	cd con; ./con
 test:
 	go test -run TestContain* -v ./pkg/...
 	# go test -v ./pkg/...
