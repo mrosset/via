@@ -148,18 +148,20 @@ func Build(config *Config, plan *Plan) (err error) {
 }
 
 func doCommands(config *Config, dir string, cmds []string) (err error) {
-	for i, j := range cmds {
-		if debug {
-			elog.Println(i, j)
+	for _, j := range cmds {
+		cmd := &exec.Cmd{
+			Path:   "/bin/bash",
+			Args:   []string{"bash", "-c", j},
+			Stdin:  os.Stdin,
+			Stderr: os.Stderr,
+			Dir:    dir,
+			Env:    config.Getenv(),
 		}
-		cmd := exec.Command("bash", "-c", j)
-		cmd.Dir = dir
-		cmd.Stdin = os.Stdin
 		if verbose {
 			cmd.Stdout = os.Stdout
 		}
-		cmd.Stderr = os.Stderr
 		if debug {
+			fmt.Println(config.Getenv())
 			fmt.Println(cmd.Args)
 		}
 		err = cmd.Run()
@@ -326,7 +328,6 @@ func BuildSteps(config *Config, plan *Plan) (err error) {
 		return err
 	}
 	fmt.Printf(lfmt, "build", plan.NameVersion())
-	fmt.Println(config)
 	if err := Build(config, plan); err != nil {
 		elog.Println(err)
 		return err

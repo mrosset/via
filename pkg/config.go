@@ -1,6 +1,7 @@
 package via
 
 import (
+	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"os"
@@ -100,6 +101,20 @@ type Config struct {
 
 	// Internal Fields
 	template *Config
+}
+
+func (c Config) Getenv() []string {
+	var (
+		keep = []string{"HOME", "TERM", "PKGDIR", "SRCDIR", "Flags"}
+		env  = []string{}
+	)
+	for _, e := range keep {
+		env = append(env, fmt.Sprintf("%s=%s", e, os.Getenv(e)))
+	}
+	for i, v := range c.Env {
+		env = append(env, fmt.Sprintf("%s=%s", i, os.ExpandEnv(v)))
+	}
+	return env
 }
 
 func (c *Config) Expand() *Config {
