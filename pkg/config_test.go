@@ -1,8 +1,10 @@
 package via
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -32,6 +34,25 @@ func init() {
 	}
 	cache = Cache(filepath.Join(wd, string(testConfig.Cache)))
 	cache.Init()
+}
+
+func TestConfigGetenv(t *testing.T) {
+	var (
+		expect = []string{
+			fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
+			fmt.Sprintf("TERM=%s", os.Getenv("TERM")),
+			"PKGDIR=",
+			"SRCDIR=",
+			"Flags=",
+			"PATH=/bin:/usr/bin",
+			"LDFLAGS=",
+			"PREFIX=/opt/via",
+		}
+		got = testConfig.Getenv()
+	)
+	if !reflect.DeepEqual(expect, got) {
+		t.Errorf("expect %s got %s", expect, got)
+	}
 }
 
 func TestConfigExpand(t *testing.T) {

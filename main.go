@@ -721,7 +721,7 @@ func pack(ctx *cli.Context) error {
 
 func debug(ctx *cli.Context) error {
 	cmds := []string{"gcc", "g++", "python", "make", "bash", "ld", "ccache"}
-	env := os.Environ()
+	env := config.Getenv()
 	sort.Strings(env)
 	for _, v := range env {
 		e := strings.SplitN(v, "=", 2)
