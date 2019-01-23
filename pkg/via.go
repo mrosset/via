@@ -274,7 +274,7 @@ func Install(config *Config, name string) (err error) {
 			return err
 		}
 	}
-	for _, d := range append(plan.AutoDepends, plan.ManualDepends...) {
+	for _, d := range plan.Depends() {
 		if IsInstalled(config, d) {
 			continue
 		}
@@ -368,8 +368,7 @@ func Remove(config *Config, name string) (err error) {
 }
 
 func BuildDeps(config *Config, plan *Plan) (err error) {
-	deps := append(plan.AutoDepends, plan.ManualDepends...)
-	for _, d := range deps {
+	for _, d := range plan.Depends() {
 		if IsInstalled(config, d) {
 			continue
 		}
