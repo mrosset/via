@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/mrosset/util/file"
 	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
+	"os"
 )
 
 func init() {
@@ -36,9 +38,6 @@ var installCommand = &cli.Command{
 			elog.Println(err)
 			return
 		}
-		if ctx.NArg() > 0 {
-			return
-		}
 		for _, p := range plans {
 			fmt.Printf("%s ", p.Name)
 		}
@@ -52,7 +51,11 @@ var installCommand = &cli.Command{
 		}
 
 		via.Root(ctx.String("r"))
-
+		if !file.Exists(ctx.String("r")) {
+			if err := os.MkdirAll(ctx.String("r"), 0755); err != nil {
+				return err
+			}
+		}
 		for _, arg := range ctx.Args().Slice() {
 			p, err := via.NewPlan(config, arg)
 			if err != nil {
