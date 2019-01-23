@@ -1,26 +1,35 @@
 package via
 
 import (
-	"github.com/cheekybits/is"
 	"testing"
 )
 
+// testdata/ipfs directory is generated using.
+// ipfs get -o testdata/ipfs QmS4ustL54uo8FzR9455qaxZwuMiUhyvMcX9Ba8nUH4uVv
+
 func TestAdd(t *testing.T) {
 	var (
-		is     = is.New(t)
 		expect = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
 	)
-	cid, err := IpfsAdd(testConfig, "testdata/ipfs/readme")
-	is.Nil(err)
-	is.Equal(cid, expect)
+	got, err := IpfsAdd(testConfig, "testdata/ipfs/readme")
+	if err != nil {
+		t.Error(err)
+	}
+	if got != expect {
+		t.Errorf("expect %s got %s", expect, got)
+	}
+
 }
 
 func TestHashOnly(t *testing.T) {
 	var (
-		is     = is.New(t)
 		expect = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
 	)
-	cid, err := HashOnly(testConfig, "testdata/ipfs/readme")
-	is.Nil(err)
-	is.Equal(cid, expect)
+	got, err := HashOnly(testConfig, "testdata/ipfs/readme")
+	if err != nil {
+		t.Error(err)
+	}
+	if got != expect {
+		t.Errorf("expect %s got %s", expect, got)
+	}
 }
