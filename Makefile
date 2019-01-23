@@ -1,4 +1,4 @@
-SRC	  = $(wildcard *.go Makefile pkg/*.go via/*.go docker/Dockerfile)
+SRC	  = $(wildcard *.go Makefile pkg/plugin/*.go pkg/*.go via/*.go docker/Dockerfile)
 PLG       = $(wildcard plugins/*.go)
 BIN	  = $(GOPATH)/bin/via
 CMDS	  = fmt test install
@@ -6,7 +6,7 @@ REPO      = strings/via:devel
 bash      = docker/bin/bash
 btarball  = tmp/bash-4.4.tar.gz
 
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 export PREFIX=/opt/via
 
 default: $(BIN)
@@ -37,7 +37,7 @@ attach: start
 	docker container attach via
 
 dock: $(SRC) bash
-	CGO_ENABLED=0 go build -o docker/usr/bin/via
+	go build -v -ldflags "-linkmode external -extldflags -static" -o docker/usr/bin/via
 	docker build -t strings/via:devel docker
 
 clean:
