@@ -94,7 +94,6 @@ func (b *Batch) ToDownload() []string {
 
 func (b Batch) Download(plan *Plan) error {
 	var (
-		rdir  = join(b.config.Repo, "repo")
 		pfile = plan.PackagePath()
 		url   = ""
 	)
@@ -104,8 +103,8 @@ func (b Batch) Download(plan *Plan) error {
 		url = b.config.Binary + "/" + plan.Cid
 	}
 
-	if !file.Exists(rdir) {
-		os.MkdirAll(rdir, 0755)
+	if !file.Exists(b.config.Repo) {
+		os.MkdirAll(b.config.Repo, 0755)
 	}
 	if file.Exists(pfile) {
 		return nil
@@ -129,7 +128,6 @@ type PlanFunc func(*Plan)
 
 func (b *Batch) downloadInstall(plan *Plan) {
 	b.ch <- true
-	b.pm.AddTodos(1)
 	b.pm.AddEntry(plan.Name, plan.Name, "          "+plan.Cid)
 	defer func() { <-b.ch }()
 	defer b.wg.Done()
@@ -156,7 +154,7 @@ func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 			continue
 		}
 		b.wg.Add(1)
-
+		b.pm.AddTodos(1)
 		go fn(p)
 	}
 	b.wg.Wait()
