@@ -6,6 +6,7 @@ import (
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
+	"github.com/mrosset/util/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -126,7 +127,7 @@ func Build(config *Config, plan *Plan) (err error) {
 		if err != nil {
 			return err
 		}
-		if err := NewInstaller(config, dp).Install(); err != nil {
+		if err := Install(config, dp.Name); err != nil {
 			return err
 		}
 	}
@@ -259,6 +260,85 @@ func SyncHashs(config *Config) {
 		}
 	}
 }
+func Install(config *Config, name string) (err error) {
+	plan, err := NewPlan(config, name)
+	if err != nil {
+		elog.Println(name, err)
+		return
+	}
+	fmt.Printf(lfmt, "installing", plan.Name)
+	if IsInstalled(config, name) {
+		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
+		err := Remove(config, name)
+		if err != nil {
+			return err
+		}
+	}
+	for _, d := range append(plan.AutoDepends, plan.ManualDepends...) {
+		if IsInstalled(config, d) {
+			continue
+		}
+		err := Install(config, d)
+		if err != nil {
+			return err
+		}
+	}
+	db := filepath.Join(config.DB.Installed(), plan.Name)
+	if file.Exists(db) {
+		return fmt.Errorf("%s is already installed", name)
+	}
+	pfile := plan.PackagePath()
+	if !file.Exists(pfile) {
+		err := gurl.NameDownload(config.Repo, config.Binary+"/"+plan.Cid, plan.PackageFile())
+		if err != nil {
+			elog.Println(pfile)
+			log.Fatal(err)
+		}
+	}
+	cid, err := HashOnly(config, Path(plan.PackagePath()))
+	if err != nil {
+		return (err)
+	}
+	if cid != plan.Cid {
+		return fmt.Errorf("%s Plans CID does not match tarballs got %s", plan.NameVersion(), cid)
+	}
+	man, err := ReadPackManifest(pfile)
+	if err != nil {
+		return err
+	}
+	errs := conflicts(config, man)
+	if len(errs) > 0 {
+		//return errs[0]
+		for _, e := range errs {
+			elog.Println(e)
+		}
+	}
+	fd, err := os.Open(pfile)
+	if err != nil {
+		return
+	}
+	defer fd.Close()
+	gz, err := gzip.NewReader(fd)
+	if err != nil {
+		return
+	}
+	defer gz.Close()
+	err = Untar(config.Root, gz)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(db, 0755)
+	if err != nil {
+		elog.Println(err)
+		return err
+	}
+	man.Cid = plan.Cid
+	err = json.Write(man, join(db, "manifest.json"))
+	if err != nil {
+		return err
+	}
+	return PostInstall(config, plan)
+}
 
 func PostInstall(config *Config, plan *Plan) (err error) {
 	return doCommands(config, "/", append(plan.PostInstall, config.PostInstall...))
@@ -295,7 +375,7 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 		}
 		p, _ := NewPlan(config, d)
 		if file.Exists(p.PackagePath()) {
-			if err := NewInstaller(config, p).Install(); err != nil {
+			if err := Install(config, plan.Name); err != nil {
 				return err
 			}
 			continue
@@ -311,7 +391,7 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 	if err != nil {
 		return err
 	}
-	return NewInstaller(config, plan).Install()
+	return Install(config, plan.Name)
 }
 
 // Run all of the functions required to build a package

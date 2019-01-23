@@ -76,7 +76,7 @@ var (
 	cinstall = &cli.Command{
 		Name:   "install",
 		Usage:  "installs package",
-		Action: batch,
+		Action: install,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "r",
@@ -87,6 +87,11 @@ var (
 				Name:  "y",
 				Value: true,
 				Usage: "Don't prompt to install",
+			},
+			&cli.BoolFlag{
+				Name:  "b",
+				Value: false,
+				Usage: "use experimental batch installer",
 			},
 		},
 	}
@@ -458,6 +463,9 @@ func batch(ctx *cli.Context) error {
 }
 
 func install(ctx *cli.Context) error {
+	if ctx.Bool("b") {
+		return batch(ctx)
+	}
 	if !ctx.Args().Present() {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
@@ -469,10 +477,7 @@ func install(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		in := via.NewInstaller(config, p)
-		if err := in.Install(); err != nil {
-			return err
-		}
+		return via.Install(config, p.Name)
 	}
 	return nil
 }
