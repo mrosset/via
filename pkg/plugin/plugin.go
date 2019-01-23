@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"fmt"
 	"github.com/mrosset/via/pkg"
 	"os"
 	"os/exec"
@@ -25,7 +26,7 @@ func build(out string, in string) error {
 }
 
 func Build(config *via.Config) error {
-	dir := filepath.Join(config.Repo, "../plugins")
+	dir := filepath.Join(config.Repo, "../../plugins")
 	glob := filepath.Join(dir, "*.go")
 	files, err := filepath.Glob(glob)
 	if err != nil {
@@ -33,6 +34,7 @@ func Build(config *via.Config) error {
 	}
 	for _, in := range files {
 		out := in[:len(in)-3] + ".so"
+		fmt.Printf("plugin: %s -> %s\n", in, out)
 		if err := build(out, in); err != nil {
 			return err
 		}

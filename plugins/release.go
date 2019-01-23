@@ -46,7 +46,7 @@ func (f release) Execute() error {
 			return err
 		}
 	}
-	plan, err := via.NewPlan("devel")
+	plan, err := via.NewPlan(f.config, "devel")
 	if err != nil {
 		return err
 	}

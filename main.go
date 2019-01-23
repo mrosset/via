@@ -60,6 +60,11 @@ var (
 				Usage: "install package after building",
 			},
 			&cli.BoolFlag{
+				Name:  "f",
+				Value: false,
+				Usage: "force rebuilding",
+			},
+			&cli.BoolFlag{
 				Name:  "u",
 				Value: false,
 				Usage: "force downloading of sources",
@@ -341,12 +346,13 @@ func plugin(ctx *cli.Context) error {
 		if err := viaplugin.Build(config); err != nil {
 			log.Fatal(err)
 		}
+		return nil
 	}
 	if !ctx.Args().Present() {
 		return fmt.Errorf("plugin requires a 'plugin' argument. see: 'via help get'")
 	}
 	name := ctx.Args().First()
-	mod := filepath.Join(config.Repo, "../plugins", name+".so")
+	mod := filepath.Join(config.Repo, "../../plugins", name+".so")
 	plug, err := goplugin.Open(mod)
 	if err != nil {
 		elog.Fatal(err)
@@ -499,7 +505,9 @@ func local(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
+	if plan.IsRebuilt && !ctx.Bool("f") {
+		return fmt.Errorf("Plans is built already")
+	}
 	via.Verbose(ctx.Bool("v"))
 	via.Debug(ctx.Bool("d"))
 	via.Update(ctx.Bool("u"))
