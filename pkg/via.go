@@ -358,8 +358,7 @@ func Remove(config *Config, name string) (err error) {
 	}
 	for _, f := range man.Files {
 		fpath := join(config.Root, f)
-		err = os.Remove(fpath)
-		if err != nil {
+		if err := os.Remove(fpath); err != nil {
 			elog.Println(f, err)
 		}
 	}
