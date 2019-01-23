@@ -30,6 +30,19 @@ var installCommand = &cli.Command{
 			Usage: "use experimental batch installer",
 		},
 	},
+	ShellComplete: func(ctx *cli.Context) {
+		plans, err := via.GetPlans()
+		if err != nil {
+			elog.Println(err)
+			return
+		}
+		if ctx.NArg() > 0 {
+			return
+		}
+		for _, p := range plans {
+			fmt.Printf("%s ", p.Name)
+		}
+	},
 	Action: func(ctx *cli.Context) error {
 		if ctx.Bool("b") {
 			return batch(ctx)

@@ -33,6 +33,7 @@ var (
 				Usage: "enable experimental and development commands",
 			},
 		},
+		EnableShellCompletion: true,
 	}
 
 	// build command
