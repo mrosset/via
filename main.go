@@ -439,16 +439,17 @@ func batch(ctx *cli.Context) error {
 	}
 
 	via.Root(ctx.String("r"))
-	plan, err := via.NewPlan(config, ctx.Args().First())
-	if err != nil {
-		return err
-	}
 	batch := via.NewBatch(config)
 
-	if err := batch.Walk(plan); err != nil {
-		return err
+	for _, a := range ctx.Args().Slice() {
+		p, err := via.NewPlan(config, a)
+		if err != nil {
+			return err
+		}
+		if err := batch.Walk(p); err != nil {
+			return err
+		}
 	}
-
 	switch ctx.Bool("y") {
 	case false:
 		errors = batch.PromptInstall()
