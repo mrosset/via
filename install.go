@@ -61,7 +61,9 @@ var installCommand = &cli.Command{
 			if err != nil {
 				return err
 			}
-			return via.Install(config, p.Name)
+			if err := via.Install(config, p.Name); err != nil {
+				return err
+			}
 		}
 		return nil
 	},
