@@ -1,11 +1,11 @@
 package via
 
 import (
-	"compress/gzip"
 	"fmt"
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
+	"github.com/ulikunitz/xz"
 	"os"
 	"path/filepath"
 )
@@ -82,14 +82,13 @@ func (i Installer) Install() error {
 		return err
 	}
 	defer fd.Close()
-	gz, err := gzip.NewReader(fd)
+	xz, err := xz.NewReader(fd)
 	if err != nil {
 		elog.Println(err)
 		return err
 	}
-	defer gz.Close()
 	os.MkdirAll(i.config.Root, 0755)
-	if err = Untar(i.config.Root, gz); err != nil {
+	if err = Untar(i.config.Root, xz); err != nil {
 		elog.Println(err)
 		return err
 	}

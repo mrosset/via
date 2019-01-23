@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
+	"github.com/ulikunitz/xz"
 	"io"
 	"os"
 	"os/exec"
@@ -260,9 +261,25 @@ func TarGzReader(p string) (*tar.Reader, error) {
 	}
 	return tar.NewReader(gz), nil
 }
+
+func TarXzReader(p string) (*tar.Reader, error) {
+	fd, err := os.Open(p)
+	if err != nil {
+		elog.Println(err)
+		return nil, err
+	}
+	xz, err := xz.NewReader(fd)
+	if err != nil {
+		elog.Println(err)
+		return nil, err
+	}
+	return tar.NewReader(xz), nil
+
+}
+
 func ReadPackManifest(p string) (*Plan, error) {
 	man := new(Plan)
-	tr, err := TarGzReader(p)
+	tr, err := TarXzReader(p)
 	if err != nil {
 		elog.Println(err)
 		return nil, err

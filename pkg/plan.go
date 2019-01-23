@@ -148,7 +148,7 @@ func ReadPath(config *Config, path string) (plan *Plan, err error) {
 }
 
 func (p *Plan) PackageFile() string {
-	return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), config.OS, config.Arch)
+	return fmt.Sprintf("%s-%s-%s.tar.xz", p.NameVersion(), config.OS, config.Arch)
 }
 
 func (p *Plan) SourceFile() string {

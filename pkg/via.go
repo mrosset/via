@@ -1,12 +1,12 @@
 package via
 
 import (
-	"compress/gzip"
 	"fmt"
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
+	"github.com/ulikunitz/xz"
 	"log"
 	"net/http"
 	"net/url"
@@ -245,9 +245,12 @@ func CreatePackage(config *Config, plan *Plan) (err error) {
 		return err
 	}
 	defer fd.Close()
-	gz := gzip.NewWriter(fd)
-	defer gz.Close()
-	return Tarball(gz, plan)
+	xz, err := xz.NewWriter(fd)
+	if err != nil {
+		return err
+	}
+	defer xz.Close()
+	return Tarball(xz, plan)
 }
 
 // Updates each plans Oid to the Oid of the tarball in publish git repo
@@ -321,12 +324,11 @@ func Install(config *Config, name string) (err error) {
 		return
 	}
 	defer fd.Close()
-	gz, err := gzip.NewReader(fd)
+	xz, err := xz.NewReader(fd)
 	if err != nil {
 		return
 	}
-	defer gz.Close()
-	err = Untar(config.Root, gz)
+	err = Untar(config.Root, xz)
 	if err != nil {
 		return err
 	}

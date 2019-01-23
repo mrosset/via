@@ -80,7 +80,7 @@ func TestStageDir(t *testing.T) {
 func TestPlanPackagePath(t *testing.T) {
 	var (
 		got    = testPlan.PackagePath()
-		expect = "testdata/repo/hello-2.9-linux-x86_64.tar.gz"
+		expect = "testdata/repo/hello-2.9-linux-x86_64.tar.xz"
 	)
 	if got != expect {
 		t.Errorf("expect '%s' -> got %s", expect, got)

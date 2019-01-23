@@ -18,6 +18,6 @@ RUN ln -s $PREFIX/bin/bash /usr/bin/bash
 WORKDIR /home/$USER
 USER $USER
 EXPOSE 1122
-CMD ["/usr/bin/via","daemon"]
-#CMD ["/bin/bash","--login"]
+#CMD ["/usr/bin/via","daemon"]
+CMD ["/bin/bash","--login"]
 COPY usr/bin/via /usr/bin/
