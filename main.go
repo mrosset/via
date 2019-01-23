@@ -26,6 +26,13 @@ var (
 	app    = &cli.App{
 		Name:  "via",
 		Usage: "a systems package manager",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "dev",
+				Value: false,
+				Usage: "enable experimental and development commands",
+			},
+		},
 	}
 
 	// build command
@@ -73,30 +80,6 @@ var (
 				Name:  "r",
 				Value: false,
 				Usage: "builds plan using daemon",
-			},
-		},
-	}
-
-	// install command
-	cinstall = &cli.Command{
-		Name:   "install",
-		Usage:  "installs package",
-		Action: install,
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "r",
-				Value: config.Root,
-				Usage: "use `\"DIR\"` as root",
-			},
-			&cli.BoolFlag{
-				Name:  "y",
-				Value: true,
-				Usage: "Don't prompt to install",
-			},
-			&cli.BoolFlag{
-				Name:  "b",
-				Value: false,
-				Usage: "use experimental batch installer",
 			},
 		},
 	}
@@ -306,8 +289,7 @@ var (
 )
 
 func main() {
-	app.Commands = []*cli.Command{
-		cinstall,
+	app.Commands = append(app.Commands, []*cli.Command{
 		cremove,
 		cbuild,
 		clist,
@@ -333,7 +315,7 @@ func main() {
 		ccd,
 		cget,
 		cplugin,
-	}
+	}...)
 	err := app.Run(os.Args)
 	if err != nil {
 		elog.Fatal(err)
@@ -465,26 +447,6 @@ func batch(ctx *cli.Context) error {
 	}
 	if len(errors) > 0 {
 		log.Fatal(errors)
-	}
-	return nil
-}
-
-func install(ctx *cli.Context) error {
-	if ctx.Bool("b") {
-		return batch(ctx)
-	}
-	if !ctx.Args().Present() {
-		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
-	}
-
-	via.Root(ctx.String("r"))
-
-	for _, arg := range ctx.Args().Slice() {
-		p, err := via.NewPlan(config, arg)
-		if err != nil {
-			return err
-		}
-		return via.Install(config, p.Name)
 	}
 	return nil
 }
