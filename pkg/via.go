@@ -131,6 +131,8 @@ func Build(config *Config, plan *Plan) (err error) {
 			return err
 		}
 	}
+	// FIXME: flags should not be merged should have a ConfigFLags
+	// and PlanFlags environment variable
 	flags := append(config.Flags, plan.Flags...)
 	os.MkdirAll(plan.BuildDir(), 0755)
 	// Parent plan Build is run first this plans is added at the end.
@@ -139,6 +141,7 @@ func Build(config *Config, plan *Plan) (err error) {
 		build = append(parent.Build, plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}
+	// FIXME: this should be set within exec.Cmd
 	os.Setenv("SRCDIR", plan.GetStageDir())
 	os.Setenv("Flags", expand(flags.String()))
 	err = doCommands(config, plan.BuildDir(), build)
