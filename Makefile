@@ -1,6 +1,7 @@
 SRC	  = $(wildcard *.go Makefile pkg/plugin/*.go pkg/*.go via/*.go docker/Dockerfile)
 PLG       = $(wildcard plugins/*.go)
 BIN	  = $(GOPATH)/bin/via
+APK       = android/via/via.apk
 CMDS	  = fmt test install
 REPO      = strings/via:devel
 bash      = docker/bin/bash
@@ -10,6 +11,14 @@ export CGO_ENABLED=1
 export PREFIX=/opt/via
 
 default: $(BIN)
+
+.PHONY: android
+
+$(APK):
+	make -C android/via
+
+android: $(APK)
+	make -C android/via run
 
 devel: default
 	rm -rf /opt/via/*; rm -rf ~/src/via/publish

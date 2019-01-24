@@ -19,7 +19,7 @@ var (
 	config  = new(Config)
 )
 
-func init() {
+func ooinit() {
 	if os.Getenv("GOPATH") == "" {
 		elog.Fatal("GOPATH must be set")
 	}
@@ -40,7 +40,7 @@ func init() {
 	}
 }
 
-func init() {
+func oinit() {
 	err := json.Read(&config, cfile)
 	if err != nil {
 		elog.Fatal(err)
