@@ -14,11 +14,8 @@ default: $(BIN)
 
 .PHONY: android
 
-$(APK):
+android:
 	make -C android/via
-
-android: $(APK)
-	make -C android/via run
 
 devel: default
 	rm -rf /opt/via/*; rm -rf ~/src/via/publish
