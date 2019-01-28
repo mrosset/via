@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	PACKAGE = "org.golang.todo.via"
 	SRCPATH = "/data/data/org.golang.todo.libviaexample/files/src/via"
 	GITURL  = "https://github.com/mrosset/plans"
 )
