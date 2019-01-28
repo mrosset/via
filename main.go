@@ -270,9 +270,10 @@ var (
 	}
 
 	cget = &cli.Command{
-		Name:   "get",
-		Usage:  "gets 'plans' sources from ipfs into current directory",
-		Action: get,
+		Name:          "get",
+		Usage:         "downloads 'plans' sources from upstream into current directory",
+		Action:        get,
+		ShellComplete: planArgCompletion,
 	}
 
 	cplugin = &cli.Command{

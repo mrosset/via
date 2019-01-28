@@ -12,6 +12,17 @@ func init() {
 	app.Commands = append(app.Commands, installCommand)
 }
 
+func planArgCompletion(ctx *cli.Context) {
+	plans, err := via.GetPlans()
+	if err != nil {
+		elog.Println(err)
+		return
+	}
+	for _, p := range plans {
+		fmt.Printf("%s ", p.Name)
+	}
+}
+
 var installCommand = &cli.Command{
 	Name:  "install",
 	Usage: "install a package",
@@ -32,16 +43,7 @@ var installCommand = &cli.Command{
 			Usage: "use experimental batch installer",
 		},
 	},
-	ShellComplete: func(ctx *cli.Context) {
-		plans, err := via.GetPlans()
-		if err != nil {
-			elog.Println(err)
-			return
-		}
-		for _, p := range plans {
-			fmt.Printf("%s ", p.Name)
-		}
-	},
+	ShellComplete: planArgCompletion,
 	Action: func(ctx *cli.Context) error {
 		if ctx.Bool("b") {
 			return batch(ctx)
