@@ -38,9 +38,10 @@ var (
 
 	// build command
 	cbuild = &cli.Command{
-		Name:   "build",
-		Usage:  "builds a plan locally",
-		Action: local,
+		Name:          "build",
+		Usage:         "builds a plan locally",
+		Action:        local,
+		ShellComplete: planArgCompletion,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "c",
@@ -101,9 +102,10 @@ var (
 
 	// show command
 	cshow = &cli.Command{
-		Name:   "show",
-		Usage:  "prints plan to stdout",
-		Action: show,
+		Name:          "show",
+		Usage:         "prints plan to stdout",
+		Action:        show,
+		ShellComplete: planArgCompletion,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "t",
@@ -178,9 +180,10 @@ var (
 	}
 
 	coptions = &cli.Command{
-		Name:   "options",
-		Usage:  "prints the GNU configure options for a package",
-		Action: options,
+		Name:          "options",
+		Usage:         "prints the GNU configure options for a package",
+		Action:        options,
+		ShellComplete: planArgCompletion,
 	}
 
 	cstrap = &cli.Command{
@@ -288,6 +291,28 @@ var (
 			},
 		},
 	}
+	cbump = &cli.Command{
+		Name:  "bump",
+		Usage: "update version for 'PLAN'",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "ver",
+				Usage: "new version",
+			},
+		},
+		ShellComplete: planArgCompletion,
+		Action: func(ctx *cli.Context) error {
+			if ctx.String("ver") == "" {
+				return fmt.Errorf("you must specify new version with -ver")
+			}
+			plan, err := via.NewPlan(config, ctx.Args().First())
+			if err != nil {
+				return err
+			}
+			plan.Version = ctx.String("ver")
+			return plan.Save()
+		},
+	}
 )
 
 func main() {
@@ -317,6 +342,7 @@ func main() {
 		ccd,
 		cget,
 		cplugin,
+		cbump,
 	}...)
 	err := app.Run(os.Args)
 	if err != nil {
@@ -470,7 +496,11 @@ func local(ctx *cli.Context) error {
 		return err
 	}
 	if plan.IsRebuilt && !ctx.Bool("f") {
-		return fmt.Errorf("Plans is built already")
+		return fmt.Errorf("Plan is built already")
+	}
+	if plan.IsRebuilt && ctx.Bool("f") {
+		plan.IsRebuilt = false
+		plan.Save()
 	}
 	via.Verbose(ctx.Bool("v"))
 	via.Debug(ctx.Bool("d"))
@@ -698,7 +728,7 @@ func pack(ctx *cli.Context) error {
 }
 
 func debug(ctx *cli.Context) error {
-	cmds := []string{"gcc", "g++", "python", "make", "bash", "ld", "ccache"}
+	cmds := []string{"gcc", "g++", "python", "make", "bash", "ld", "ccache", "strip"}
 	env := config.Getenv()
 	sort.Strings(env)
 	for _, v := range env {
