@@ -2,9 +2,10 @@ package via
 
 import (
 	"fmt"
-	"github.com/mrosset/util/human"
+	// "github.com/mrosset/util/human"
 	"github.com/whyrusleeping/progmeter"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -31,9 +32,16 @@ func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	}
 	pw.done += int64(len(b))
 	percent := int((pw.done * 100) / pw.total)
-	bps := float64(pw.done) / time.Now().Sub(pw.start).Seconds()
-	info := fmt.Sprintf("%03d%%%s/s", percent, human.ByteSize(bps))
+	width := 15
+	progress := (width * percent) / 100
+	bar := strings.Repeat("#", int(progress))
+	// bps := float64(pw.done) / time.Now().Sub(pw.start).Seconds()
+	// speed := fmt.Sprintf("%03d%% %s/s", percent, human.ByteSize(bps))
+	info := fmt.Sprintf("%-*s", width, bar)
+	// out := speed + info[len(speed):]
+	// info := fmt.Sprintf("%s/s", human.ByteSize(bps))
 	pw.pm.Working(pw.key, info)
+	// time.Sleep(10000000)
 	return pw.w.Write(b)
 }
 

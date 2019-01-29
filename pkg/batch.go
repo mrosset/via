@@ -128,7 +128,7 @@ type PlanFunc func(*Plan)
 
 func (b *Batch) downloadInstall(plan *Plan) {
 	b.ch <- true
-	b.pm.AddEntry(plan.Name, "         "+plan.NameVersion(), "")
+	b.pm.AddEntry(plan.Name, "         "+plan.Name, "")
 	defer func() { <-b.ch }()
 	defer b.wg.Done()
 	if err := b.Download(plan); err != nil {
@@ -136,7 +136,7 @@ func (b *Batch) downloadInstall(plan *Plan) {
 		elog.Fatal(err)
 		return
 	}
-	b.pm.Working(plan.Name, "install       ")
+	b.pm.Working(plan.Name, "install        ")
 	in := NewInstaller(b.config, plan)
 	if err := in.Install(); err != nil {
 		b.pm.Error(plan.Name, err.Error())
