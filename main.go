@@ -156,9 +156,10 @@ var (
 	}
 
 	clog = &cli.Command{
-		Name:   "log",
-		Usage:  "output's config.log for build",
-		Action: plog,
+		Name:          "log",
+		Usage:         "output's config.log for build",
+		ShellComplete: planArgCompletion,
+		Action:        plog,
 	}
 
 	celf = &cli.Command{
