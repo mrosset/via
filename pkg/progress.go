@@ -25,15 +25,6 @@ func NewProgressWriter(pm *progmeter.ProgMeter, key string, t int64, w io.Writer
 		w:     w}
 }
 
-func (pw *ProgressWriter) SetInfo(info string) {
-	for _, i := range pw.pm.Items {
-		if i.Key == pw.key {
-			i.Info = info
-			i.Name = "FFFFF"
-		}
-	}
-}
-
 func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	if pw.done == 0 {
 		pw.start = time.Now()
@@ -41,7 +32,7 @@ func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	pw.done += int64(len(b))
 	percent := int((pw.done * 100) / pw.total)
 	bps := float64(pw.done) / time.Now().Sub(pw.start).Seconds()
-	info := fmt.Sprintf("%d%% %s/s", percent, human.ByteSize(bps))
+	info := fmt.Sprintf("%03d%%%s/s", percent, human.ByteSize(bps))
 	pw.pm.Working(pw.key, info)
 	return pw.w.Write(b)
 }
