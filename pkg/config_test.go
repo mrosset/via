@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -50,6 +51,8 @@ func TestConfigGetenv(t *testing.T) {
 		}
 		got = testConfig.Getenv()
 	)
+	sort.Strings(got)
+	sort.Strings(expect)
 	if !reflect.DeepEqual(expect, got) {
 		t.Errorf("expect %s got %s", expect, got)
 	}
