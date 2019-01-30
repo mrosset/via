@@ -45,29 +45,32 @@ var installCommand = &cli.Command{
 		},
 	},
 	ShellComplete: planArgCompletion,
-	Action: func(ctx *cli.Context) error {
-		if ctx.Bool("b") {
-			return batch(ctx)
-		}
-		if !ctx.Args().Present() {
-			return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
-		}
+	Action:        batch,
+}
 
-		via.Root(ctx.String("r"))
-		if !file.Exists(ctx.String("r")) {
-			if err := os.MkdirAll(ctx.String("r"), 0755); err != nil {
-				return err
-			}
+// FIXME: this function is deprecated and should be replaced with batch
+func install(ctx *cli.Context) error {
+	if ctx.Bool("b") {
+		return batch(ctx)
+	}
+	if !ctx.Args().Present() {
+		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
+	}
+
+	via.Root(ctx.String("r"))
+	if !file.Exists(ctx.String("r")) {
+		if err := os.MkdirAll(ctx.String("r"), 0755); err != nil {
+			return err
 		}
-		for _, arg := range ctx.Args().Slice() {
-			p, err := via.NewPlan(config, arg)
-			if err != nil {
-				return err
-			}
-			if err := via.Install(config, p.Name); err != nil {
-				return err
-			}
+	}
+	for _, arg := range ctx.Args().Slice() {
+		p, err := via.NewPlan(config, arg)
+		if err != nil {
+			return err
 		}
-		return nil
-	},
+		if err := via.Install(config, p.Name); err != nil {
+			return err
+		}
+	}
+	return nil
 }
