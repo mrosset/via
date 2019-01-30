@@ -33,6 +33,7 @@ var (
 	cbuild = &cli.Command{
 		Name:          "build",
 		Usage:         "builds a plan locally",
+		Aliases:       []string{"b"},
 		Action:        local,
 		ShellComplete: planArgCompletion,
 		Flags: []cli.Flag{
@@ -248,8 +249,11 @@ func main() {
 		cget,
 		cbump,
 	}...)
-	err := app.Run(os.Args)
-	if err != nil {
+
+	sort.Sort(cli.FlagsByName(app.Flags))
+	sort.Sort(cli.CommandsByName(app.Commands))
+
+	if err := app.Run(os.Args); err != nil {
 		elog.Fatal(err)
 	}
 }

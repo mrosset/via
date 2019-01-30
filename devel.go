@@ -9,8 +9,9 @@ func init() {
 }
 
 var develCommand = &cli.Command{
-	Name:  "devel",
-	Usage: "experimental and development commands",
+	Name:    "devel",
+	Usage:   "experimental and development commands",
+	Aliases: []string{"dev"},
 	Subcommands: []*cli.Command{
 		&cli.Command{
 			Name:   "repo",
@@ -82,6 +83,10 @@ var develCommand = &cli.Command{
 			Name:   "fix",
 			Usage:  "DEV ONLY used to mass modify plans",
 			Action: fix,
+		},
+		&cli.Command{
+			Name:  "reset",
+			Usage: "resets entire branch's plans",
 		},
 	},
 }

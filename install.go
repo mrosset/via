@@ -24,8 +24,9 @@ func planArgCompletion(ctx *cli.Context) {
 }
 
 var installCommand = &cli.Command{
-	Name:  "install",
-	Usage: "install a package",
+	Name:    "install",
+	Usage:   "install a package",
+	Aliases: []string{"i"},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:  "r",
