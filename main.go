@@ -24,15 +24,8 @@ var (
 	lfmt   = "%-20.20s %v\n"
 	config = via.GetConfig()
 	app    = &cli.App{
-		Name:  "via",
-		Usage: "a systems package manager",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "dev",
-				Value: false,
-				Usage: "enable experimental and development commands",
-			},
-		},
+		Name:                  "via",
+		Usage:                 "a systems package manager",
 		EnableShellCompletion: true,
 	}
 
@@ -93,13 +86,6 @@ var (
 		Action: remove,
 	}
 
-	// edit command
-	cedit = &cli.Command{
-		Name:   "edit",
-		Usage:  "calls EDITOR to edit plan",
-		Action: edit,
-	}
-
 	// show command
 	cshow = &cli.Command{
 		Name:          "show",
@@ -148,13 +134,6 @@ var (
 		},
 	}
 
-	// repo command
-	crepo = &cli.Command{
-		Name:   "repo",
-		Usage:  "recreates file db",
-		Action: repo,
-	}
-
 	clog = &cli.Command{
 		Name:          "log",
 		Usage:         "output's config.log for build",
@@ -166,12 +145,6 @@ var (
 		Name:   "elf",
 		Usage:  "prints elf information to stdout",
 		Action: elf,
-	}
-
-	cdiff = &cli.Command{
-		Name:   "diff",
-		Usage:  "diff's plan working directory against git HEAD",
-		Action: diff,
 	}
 
 	csearch = &cli.Command{
@@ -187,35 +160,10 @@ var (
 		ShellComplete: planArgCompletion,
 	}
 
-	cstrap = &cli.Command{
-		Name:   "strap",
-		Usage:  "rebuilds each package in the devel group",
-		Action: strap,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "m",
-				Value: false,
-				Usage: "marks package in development group for rebuild",
-			},
-		},
-	}
-
 	ccreate = &cli.Command{
 		Name:   "create",
 		Usage:  "creates a plan from tarball URL",
 		Action: create,
-	}
-
-	cdaemon = &cli.Command{
-		Name:   "daemon",
-		Usage:  "starts build daemon",
-		Action: daemon,
-	}
-
-	chash = &cli.Command{
-		Name:   "hash",
-		Usage:  "DEV ONLY sync the plans Oid with binary banch",
-		Action: hash,
 	}
 
 	cpack = &cli.Command{
@@ -243,34 +191,10 @@ var (
 		Action: owns,
 	}
 
-	cfix = &cli.Command{
-		Name:   "fix",
-		Usage:  "DEV ONLY used to mass modify plans",
-		Action: fix,
-	}
-
 	cclean = &cli.Command{
 		Name:   "clean",
 		Usage:  "cleans cache directory",
 		Action: clean,
-	}
-
-	ccd = &cli.Command{
-		Name:  "cd",
-		Usage: "prints out shell evaluate-able command to change directory. eg. eval $(via cd -s bash)",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "s",
-				Value: false,
-				Usage: "prints stage directory",
-			},
-			&cli.BoolFlag{
-				Name:  "b",
-				Value: false,
-				Usage: "prints build directory",
-			},
-		},
-		Action: cd,
 	}
 
 	cget = &cli.Command{
@@ -280,18 +204,6 @@ var (
 		ShellComplete: planArgCompletion,
 	}
 
-	cplugin = &cli.Command{
-		Name:   "plugin",
-		Usage:  "execute plugin",
-		Action: plugin,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "b",
-				Value: false,
-				Usage: "compile plugins",
-			},
-		},
-	}
 	cbump = &cli.Command{
 		Name:  "bump",
 		Usage: "update version for 'PLAN'",
@@ -323,26 +235,17 @@ func main() {
 		clist,
 		cconfig,
 		cshow,
-		crepo,
 		clint,
-		cedit,
 		clog,
 		celf,
-		cdiff,
 		csearch,
 		coptions,
-		cstrap,
 		ccreate,
-		cdaemon,
-		chash,
 		cpack,
 		cdebug,
 		cowns,
-		cfix,
 		cclean,
-		ccd,
 		cget,
-		cplugin,
 		cbump,
 	}...)
 	err := app.Run(os.Args)
