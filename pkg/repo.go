@@ -28,7 +28,7 @@ func ReadRepoFiles() (RepoFiles, error) {
 	return files, nil
 }
 
-func RepoCreate() error {
+func RepoCreate(config *Config) error {
 	var (
 		repo  = []string{}
 		files = map[string][]string{}

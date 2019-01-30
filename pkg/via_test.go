@@ -47,7 +47,7 @@ func TestCreate(t *testing.T) {
 
 func TestRepoCreate(t *testing.T) {
 	t.Parallel()
-	err := RepoCreate()
+	err := RepoCreate(config)
 	if err != nil {
 		t.Error(err)
 	}

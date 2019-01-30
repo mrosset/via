@@ -116,9 +116,10 @@ var (
 
 	// list command
 	clist = &cli.Command{
-		Name:   "list",
-		Usage:  "list files for `PLAN`",
-		Action: list,
+		Name:          "list",
+		Usage:         "list files for `PLAN`",
+		Action:        list,
+		ShellComplete: planArgCompletion,
 	}
 
 	// lint command
@@ -532,7 +533,7 @@ func fconfig(ctx *cli.Context) error {
 }
 
 func repo(ctx *cli.Context) error {
-	return via.RepoCreate()
+	return via.RepoCreate(config)
 }
 
 func plog(ctx *cli.Context) error {

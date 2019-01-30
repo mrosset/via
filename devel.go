@@ -1,7 +1,9 @@
 package main
 
 import (
+	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
+	"time"
 )
 
 func init() {
@@ -85,8 +87,43 @@ var develCommand = &cli.Command{
 			Action: fix,
 		},
 		&cli.Command{
-			Name:  "reset",
-			Usage: "resets entire branch's plans",
+			Name:   "reset",
+			Usage:  "resets entire branch's plans",
+			Action: resetBranch,
+			Description: `Resets an entire Branch's dynamic plan meta data. This Essential puts the branch in a state as if no plans were built. Its also resets any repo data.
+
+This is useful for creating a new branch that either has another config or to bootstrap a Branch for another operating system or CPU architecture.`,
 		},
 	},
+}
+
+func resetBranch(ctx *cli.Context) error {
+	var (
+		files []string
+		err   error
+	)
+	if files, err = via.PlanFiles(); err != nil {
+		return err
+	}
+	for _, path := range files {
+		plan, err := via.ReadPath(config, path)
+		if err != nil {
+			return err
+		}
+		plan.Cid = ""
+		plan.IsRebuilt = false
+		plan.Date = time.Now()
+		plan.BuildTime = 0
+		plan.Files = nil
+		plan.Size = 0
+		plan.AutoDepends = nil
+		if err = plan.Save(); err != nil {
+			return err
+		}
+	}
+	if err = via.RepoCreate(config); err != nil {
+		return err
+	}
+
+	return nil
 }
