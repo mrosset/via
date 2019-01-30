@@ -28,8 +28,8 @@ var (
 	deps    = false
 )
 
-func Root(s string) {
-	config.Root = s
+func Root(path string) {
+	config.Root = path
 }
 
 func Verbose(b bool) {
@@ -269,6 +269,9 @@ func Install(config *Config, name string) (err error) {
 		elog.Println(name, err)
 		return
 	}
+	if plan.Cid == "" {
+		return fmt.Errorf("%s: can not install. plan does not have Cid. needs building?", plan.Name)
+	}
 	fmt.Printf(lfmt, "installing", plan.Name)
 	if IsInstalled(config, name) {
 		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", plan.NameVersion())
@@ -292,6 +295,9 @@ func Install(config *Config, name string) (err error) {
 	}
 	pfile := plan.PackagePath()
 	if !file.Exists(pfile) {
+		if isDocker() {
+			config.Binary = "http://172.17.0.1/ipfs/"
+		}
 		err := gurl.NameDownload(config.Repo, config.Binary+"/"+plan.Cid, plan.PackageFile())
 		if err != nil {
 			elog.Println(pfile)

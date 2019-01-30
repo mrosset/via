@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/mrosset/progmeter"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/human"
-	"github.com/whyrusleeping/progmeter"
 	"io"
 	"os"
 	"sync"
@@ -21,6 +21,7 @@ type Batch struct {
 	size   int64
 	ch     chan bool
 	wg     *sync.WaitGroup
+	keys   []string
 }
 
 // Creates a new Batch type
@@ -127,23 +128,19 @@ func (b Batch) Download(plan *Plan) error {
 type PlanFunc func(*Plan)
 
 func (b *Batch) downloadInstall(plan *Plan) {
-	b.ch <- true
-	b.pm.AddEntry(plan.Name, "         "+plan.Name, "")
-	defer func() { <-b.ch }()
-	defer b.wg.Done()
 	if err := b.Download(plan); err != nil {
 		b.pm.Error(plan.Name, err.Error())
 		elog.Fatal(err)
 		return
 	}
-	b.pm.Working(plan.Name, "install        ")
+	b.pm.Working(plan.Name, "install", fmt.Sprintf("%-*s", 19, ""))
 	in := NewInstaller(b.config, plan)
 	if err := in.Install(); err != nil {
 		b.pm.Error(plan.Name, err.Error())
 		elog.Fatal(err)
 		return
 	}
-	b.pm.Finish(plan.Name)
+
 }
 
 func (b Batch) ForEach(fn PlanFunc) (errors []error) {
@@ -155,7 +152,14 @@ func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 		}
 		b.wg.Add(1)
 		b.pm.AddTodos(1)
-		go fn(p)
+		go func(plan *Plan) {
+			b.pm.AddEntry(plan.Name, plan.Name, fmt.Sprintf("%+*s", 20, ""))
+			b.ch <- true
+			fn(p)
+			<-b.ch
+			b.pm.Finish(plan.Name)
+			b.wg.Done()
+		}(p)
 	}
 	b.wg.Wait()
 	b.pm.MarkDone()

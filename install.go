@@ -39,9 +39,9 @@ var installCommand = &cli.Command{
 			Usage: "Don't prompt to install",
 		},
 		&cli.BoolFlag{
-			Name:  "b",
+			Name:  "s",
 			Value: false,
-			Usage: "use experimental batch installer",
+			Usage: "use single threaded installer",
 		},
 	},
 	ShellComplete: planArgCompletion,

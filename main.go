@@ -359,6 +359,9 @@ func strap(ctx *cli.Context) error {
 
 func batch(ctx *cli.Context) error {
 	var errors []error
+	if ctx.Bool("s") {
+		return install(ctx)
+	}
 	if !ctx.Args().Present() {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
