@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestPluginBuild(t *testing.T) {
+func testPluginBuild(t *testing.T) {
 	config := via.GetConfig()
 	err := Build(config)
 	if err != nil {
