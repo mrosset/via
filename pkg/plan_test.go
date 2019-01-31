@@ -79,8 +79,14 @@ func TestStageDir(t *testing.T) {
 
 func TestPlanPackagePath(t *testing.T) {
 	var (
-		got    = testPlan.PackagePath()
-		expect = "testdata/repo/hello-2.9-linux-x86_64.tar.gz"
+		plan = &Plan{
+			Name:    "hello",
+			Version: "2.9",
+			Cid:     "QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4",
+			config:  testConfig,
+		}
+		got    = plan.PackagePath()
+		expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4-hello-2.9-linux-x86_64.tar.gz"
 	)
 	if got != expect {
 		t.Errorf("expect '%s' -> got %s", expect, got)

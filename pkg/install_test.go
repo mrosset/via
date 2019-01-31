@@ -26,11 +26,10 @@ func TestBuild(t *testing.T) {
 
 func TestInstaller(t *testing.T) {
 	var (
-		in    = NewInstaller(testConfig, testPlan)
 		files = []string{"testdata/root/opt/via/bin/a.out"}
 	)
 	defer os.RemoveAll("testdata/root")
-	if err := in.Install(); err != nil {
+	if err := NewInstaller(testConfig, testPlan).Install(); err != nil {
 		t.Error(err)
 	}
 	for _, expect := range files {

@@ -88,7 +88,7 @@ func install(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		if err := via.Install(config, p.Name); err != nil {
+		if err := via.NewInstaller(config, p).Install(); err != nil {
 			return err
 		}
 	}

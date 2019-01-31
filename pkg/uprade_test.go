@@ -15,14 +15,3 @@ func TestUpgraderNil(t *testing.T) {
 	}()
 	NewUpgrader(nil)
 }
-
-func TestUpgrader(t *testing.T) {
-	u := NewUpgrader(config)
-	if u.Upgrade() != nil {
-		t.Error("Upgrader is not nil")
-	}
-	u.Check()
-	if err := u.Upgrade(); err != nil {
-		t.Error(err)
-	}
-}

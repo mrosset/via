@@ -31,7 +31,7 @@ func (t *Builder) RpcBuild(req Request, resp *Response) error {
 	if err != nil {
 		return err
 	}
-	return Install(t.config, req.Plan.Name)
+	return NewInstaller(t.config, &req.Plan).Install()
 }
 
 func StartDaemon(config *Config) error {
