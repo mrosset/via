@@ -215,6 +215,7 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 	}
 	err = CreatePackage(config, plan)
 	if err != nil {
+		elog.Println(err)
 		return (err)
 	}
 	plan.Cid, err = IpfsAdd(config, Path(plan.PackagePath()))

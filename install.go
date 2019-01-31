@@ -62,7 +62,11 @@ var (
 				if len(p) > 0 {
 					fmt.Println("upgrading", p)
 				}
-				return up.Upgrade()
+				errs := up.Upgrade()
+				if len(errs) > 0 {
+					return errs[0]
+				}
+				return nil
 			},
 		},
 	}

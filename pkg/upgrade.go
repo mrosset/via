@@ -47,11 +47,7 @@ func (u Upgrader) Upgrades() []string {
 	return u.upgrades.Slice()
 }
 
-func (u Upgrader) Upgrade() error {
-	for _, p := range u.upgrades {
-		if err := NewInstaller(u.config, p).Install(); err != nil {
-			return err
-		}
-	}
-	return nil
+func (u Upgrader) Upgrade() []error {
+	batch := NewBatch(u.config)
+	return batch.ForEach(batch.DownloadInstall, u.upgrades)
 }

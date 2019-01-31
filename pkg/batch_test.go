@@ -25,8 +25,8 @@ func TestBatchWalk(t *testing.T) {
 		expect = 1
 	)
 	got.Walk(p)
-	if len(got.Plans) != expect {
-		t.Errorf("expect %d depends got %d", expect, len(got.Plans))
+	if len(got.Plans()) != expect {
+		t.Errorf("expect %d depends got %d", expect, len(got.Plans()))
 	}
 }
 
