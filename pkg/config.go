@@ -138,10 +138,18 @@ func (f Flags) String() string {
 
 type DB string
 
-func (d DB) Installed() string {
+func (d DB) Installed(config *Config) string {
 	return join(config.Root, string(d), "installed")
 }
 
-func (d DB) Plans() string {
+func (d DB) Plans(config *Config) string {
 	return join(config.Root, string(d), "plans")
+}
+
+func (d DB) InstalledFiles(config *Config) ([]string, error) {
+	files, err := filepath.Glob(filepath.Join(d.Installed(config), "*", "*.json"))
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }

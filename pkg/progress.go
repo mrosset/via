@@ -39,6 +39,7 @@ func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	bar := fmt.Sprintf("%-*s", width, strings.Repeat("#", int(progress)))
 	speed := fmt.Sprintf("%s/s %3.3s%%", human.ByteSize(bps), strconv.Itoa(percent))
 	pw.pm.Working(pw.key, bar, speed)
+	// time.Sleep(2.4e7)
 	return pw.w.Write(b)
 }
 

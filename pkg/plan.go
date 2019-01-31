@@ -1,14 +1,12 @@
 package via
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/human"
 	"github.com/mrosset/util/json"
 	"path/filepath"
 	"sort"
-	"text/template"
 	"time"
 )
 
@@ -46,19 +44,25 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-func OExpand(i interface{}, s string) string {
-	buf := new(bytes.Buffer)
-	tmpl, err := template.New("").Parse(s)
-	if err != nil {
-		panic(err)
+// Returns a slice of plan names
+func (ps Plans) Slice() []string {
+	s := []string{}
+	for _, p := range ps {
+		s = append(s, p.Name)
 	}
-	err = tmpl.Execute(buf, i)
-	if err != nil {
-		panic(err)
-	}
-	return buf.String()
+	return s
 }
 
+func (ps Plans) Contains(plan *Plan) bool {
+	for _, p := range ps {
+		if p.Name == plan.Name {
+			return true
+		}
+	}
+	return false
+}
+
+// Returns a expanded Plan template.
 func (p *Plan) Expand() *Plan {
 	o := new(Plan)
 	err := json.Parse(o, p)

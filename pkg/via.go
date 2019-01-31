@@ -289,7 +289,7 @@ func Install(config *Config, name string) (err error) {
 			return err
 		}
 	}
-	db := filepath.Join(config.DB.Installed(), plan.Name)
+	db := filepath.Join(config.DB.Installed(config), plan.Name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}
@@ -368,11 +368,11 @@ func Remove(config *Config, name string) (err error) {
 	for _, f := range man.Files {
 		fpath := join(config.Root, f)
 		if err := os.Remove(fpath); err != nil {
-			elog.Println(f, err)
+			elog.Println(err)
 		}
 	}
 
-	return os.RemoveAll(join(config.DB.Installed(), name))
+	return os.RemoveAll(join(config.DB.Installed(config), name))
 }
 
 func BuildDeps(config *Config, plan *Plan) (err error) {
@@ -424,7 +424,7 @@ func BuildSteps(config *Config, plan *Plan) (err error) {
 		elog.Println(err)
 		return err
 	}
-	return nil
+	return RepoCreate(config)
 }
 
 var (
@@ -459,7 +459,7 @@ func Create(url, group string) (err error) {
 }
 
 func IsInstalled(config *Config, name string) bool {
-	return file.Exists(join(config.DB.Installed(), name))
+	return file.Exists(join(config.DB.Installed(config), name))
 }
 
 func refactor(plan *Plan) {

@@ -59,7 +59,7 @@ var (
 			},
 			&cli.BoolFlag{
 				Name:  "i",
-				Value: true,
+				Value: false,
 				Usage: "install package after building",
 			},
 			&cli.BoolFlag{

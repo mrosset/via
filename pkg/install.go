@@ -43,13 +43,12 @@ func (i Installer) Install() error {
 		name = i.plan.Name
 	)
 	if IsInstalled(i.config, name) {
-		fmt.Printf("FIXME: (short flags) package %s installed upgrading anyways.\n", i.plan.NameVersion())
 		err := Remove(i.config, name)
 		if err != nil {
 			return err
 		}
 	}
-	db := filepath.Join(i.config.DB.Installed(), name)
+	db := filepath.Join(i.config.DB.Installed(i.config), name)
 	if file.Exists(db) {
 		return fmt.Errorf("%s is already installed", name)
 	}

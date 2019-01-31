@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	app.Commands = append(app.Commands, installCommand)
+	app.Commands = append(app.Commands, installCommands...)
 }
 
 func planArgCompletion(ctx *cli.Context) {
@@ -23,30 +23,50 @@ func planArgCompletion(ctx *cli.Context) {
 	}
 }
 
-var installCommand = &cli.Command{
-	Name:    "install",
-	Usage:   "install a package",
-	Aliases: []string{"i"},
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:  "r",
-			Value: config.Root,
-			Usage: "use `\"DIR\"` as root",
+var (
+	installCommands = []*cli.Command{
+		&cli.Command{
+			Name:    "install",
+			Usage:   "install a package",
+			Aliases: []string{"i"},
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "r",
+					Value: config.Root,
+					Usage: "use `\"DIR\"` as root",
+				},
+				&cli.BoolFlag{
+					Name:  "y",
+					Value: true,
+					Usage: "Don't prompt to install",
+				},
+				&cli.BoolFlag{
+					Name:  "s",
+					Value: false,
+					Usage: "use single threaded installer",
+				},
+			},
+			ShellComplete: planArgCompletion,
+			Action:        batch,
 		},
-		&cli.BoolFlag{
-			Name:  "y",
-			Value: true,
-			Usage: "Don't prompt to install",
+		&cli.Command{
+			Name:    "upgrade",
+			Aliases: []string{"u"},
+			Usage:   "upgrade currently installed packages with newer build or versions",
+			Action: func(ctx *cli.Context) error {
+				up := via.NewUpgrader(config)
+				p, err := up.Check()
+				if err != nil {
+					return err
+				}
+				if len(p) > 0 {
+					fmt.Println("upgrading", p)
+				}
+				return up.Upgrade()
+			},
 		},
-		&cli.BoolFlag{
-			Name:  "s",
-			Value: false,
-			Usage: "use single threaded installer",
-		},
-	},
-	ShellComplete: planArgCompletion,
-	Action:        batch,
-}
+	}
+)
 
 // FIXME: this function is deprecated and should be replaced with batch
 func install(ctx *cli.Context) error {

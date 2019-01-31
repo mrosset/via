@@ -38,7 +38,7 @@ func testBatchInstall(t *testing.T) {
 	)
 	defer os.RemoveAll(testConfig.Repo)
 	defer os.RemoveAll(testConfig.Root)
-	defer os.RemoveAll(testConfig.DB.Installed())
+	defer os.RemoveAll(testConfig.DB.Installed(testConfig))
 	got.Walk(p)
 	errors := got.Install()
 	if len(errors) != 0 {
