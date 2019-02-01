@@ -1,22 +1,19 @@
 package upstream
 
 import (
-	"github.com/cheekybits/is"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/via/pkg"
 	"testing"
 )
 
-func TestUpstream(t *testing.T) {
-	var (
-		is = is.New(t)
-	)
-	is.NoErr(Upstream())
+func TestUpstreamError(t *testing.T) {
+	if err := Upstream(); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestParseName(t *testing.T) {
 	var (
-		is    = is.New(t)
 		names = map[string]string{
 			"bash":               "bash-4.4.12.tar.gz",
 			"Bash":               "Bash-4.4.12.tar.gz",
@@ -26,15 +23,16 @@ func TestParseName(t *testing.T) {
 		}
 	)
 
-	for expect, v := range names {
-		got := ParseName(v)
-		is.Equal(expect, got)
+	for expect, n := range names {
+		got := ParseName(n)
+		if expect != got {
+			t.Errorf("expect '%s' got '%s'", expect, got)
+		}
 	}
 }
 
 func TestParseVersion(t *testing.T) {
 	var (
-		is   = is.New(t)
 		vers = map[string]string{
 			"4.4.12":        "bash-4.4.12.tar.gz",
 			"4.4":           "Bash-4.4.tar.gz",
@@ -45,20 +43,21 @@ func TestParseVersion(t *testing.T) {
 	)
 
 	for expect, v := range vers {
-		is.Equal(expect, ParseVersion(v))
+		got := ParseVersion(v)
+		if expect != got {
+			t.Errorf("expect '%s' got '%s'", expect, got)
+		}
 	}
-
 }
 
 func OTestEachPlanFile(t *testing.T) {
-	var (
-		is = is.New(t)
-	)
 	plans, err := via.GetPlans()
-	is.NoErr(err)
+	if err != nil {
+		t.Error(err)
+	}
 	for _, p := range plans {
-		if p.Url == "" {
-			continue
+		if p.Cid == "" {
+
 		}
 		// file := path.Base(p.Expand().Url)
 		//console.Println(file, ParseName(file), ParseVersion(file))
