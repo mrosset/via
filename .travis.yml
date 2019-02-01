@@ -3,9 +3,16 @@ language: go
 go:
   - 1.11.x
 
-go_import_path: github.com/mrosset/via
+env:
+  - GO111MODULE=on
 
-install:
+git:
+  depth: 1
+
+install: true
+
+notifications:
+  email: false
 
 script:
   - go test -v ./pkg/...
