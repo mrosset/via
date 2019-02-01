@@ -81,6 +81,8 @@ github.com/mrosset/gurl v0.0.0-20190107030345-a652a1423a55 h1:x4FskuH3pPvXiDSxpt
 github.com/mrosset/gurl v0.0.0-20190107030345-a652a1423a55/go.mod h1:fEj1eN6DT+DunFWvDACSkc+ViH0UVwx6zk9josomR+Q=
 github.com/mrosset/gurl v0.0.0-20190115075543-4e89645fd339 h1:S00fr58OxGE+mtICvKCktaO0tRRuuoxPcpcpyGiICyw=
 github.com/mrosset/gurl v0.0.0-20190115075543-4e89645fd339/go.mod h1:fEj1eN6DT+DunFWvDACSkc+ViH0UVwx6zk9josomR+Q=
+github.com/mrosset/progmeter v0.0.0-20190130144731-b13e88c0c313 h1:MpP11qJkWdGgADuiVdrirVfBxoMaEjzr24dnPcoFczY=
+github.com/mrosset/progmeter v0.0.0-20190130144731-b13e88c0c313/go.mod h1:DeQDHU7KBGT5x8p3TYNERLWKCuklUGOjd1EBeA1ZPP8=
 github.com/mrosset/util v0.0.0-20171017103019-cbd40a79bc60 h1:MlFT1ZaIXUEdfX/Oi+o5bTRFRkqq0FyxdI321MHz3L8=
 github.com/mrosset/util v0.0.0-20171017103019-cbd40a79bc60/go.mod h1:7yGYKM5rHeJePKGQ7Q1JFFNc5A+Y28LqrsnerU8gGA4=
 github.com/multiformats/go-multiaddr v1.4.0 h1:xt9fCCmSyTosXSvEhEqYnC75LiaDSdXycwOLJaDGPic=
