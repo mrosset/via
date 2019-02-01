@@ -24,16 +24,17 @@ func TestBatchAdd(t *testing.T) {
 func TestBatchWalk(t *testing.T) {
 	var (
 		p, _   = NewPlan(config, "ccache")
-		got    = NewBatch(testConfig)
+		batch  = NewBatch(testConfig)
 		expect = 1
 	)
-	got.Walk(p)
-	if len(got.Plans()) != expect {
-		t.Errorf("expect %d depends got %d", expect, len(got.Plans()))
+	batch.Walk(p)
+	got := len(batch.Plans())
+	if got != expect {
+		t.Errorf("expect %d depends got %d", expect, got)
 	}
 }
 
-func testBatchInstall(t *testing.T) {
+func fixmeTestBatchInstall(t *testing.T) {
 	var (
 		p, _   = NewPlan(config, "ccache")
 		got    = NewBatch(testConfig)
