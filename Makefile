@@ -49,8 +49,8 @@ clean:
 rebuild: clean default
 
 test:
+	go test -v ./...
 	#go test -run TestPlugin* -v ./pkg/...
-	go test -v ./pkg/...
 
 .NOTPARALLEL:
 
