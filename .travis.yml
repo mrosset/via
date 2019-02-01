@@ -10,5 +10,6 @@ before_install:
   - go get -v github.com/mrosset/via
 
 script:
+  - go get -v github.com/mrosset/via
   - make
   - make test
