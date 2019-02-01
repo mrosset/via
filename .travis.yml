@@ -11,8 +11,9 @@ git:
 
 install: true
 
-notifications:
-  email: false
+cache:
+  directories:
+    - $GOPATH/pkg/mod
 
 script:
   - go test -v ./...
