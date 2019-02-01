@@ -1,6 +1,6 @@
 #+TITLE: Via
 
-[[https://travis-ci.org/mrosset/via.svg?branch=master]] [[https://godoc.org/github.com/mrosset/via/pkg?status.svg]]
+[[https://travis-ci.org/opencontainers/runc][https://travis-ci.org/mrosset/via.svg?branch=master]] [[https://godoc.org/github.com/mrosset/via][https://godoc.org/github.com/mrosset/via/pkg?status.svg]]
 
 * Description
 Via is a systems package manager written in go language. It's primary
