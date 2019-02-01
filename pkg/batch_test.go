@@ -12,7 +12,10 @@ func TestBatchAdd(t *testing.T) {
 		expect = "hello-2.9"
 	)
 	d.Add(testPlan)
-	got := d.Plans[testPlan.Name].NameVersion()
+	if len(d.Plans()) != 1 {
+		t.Errorf("expected 'one' plan got '%d'", len(d.Plans()))
+	}
+	got := d.Plans()[0].NameVersion()
 	if expect != got {
 		t.Errorf("expect '%s' got '%s'", expect, got)
 	}
