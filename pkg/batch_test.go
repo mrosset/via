@@ -1,7 +1,6 @@
 package via
 
 import (
-	"github.com/cheekybits/is"
 	"github.com/mrosset/util/file"
 	"os"
 	"testing"
@@ -9,13 +8,14 @@ import (
 
 func TestBatchAdd(t *testing.T) {
 	var (
-		is     = is.New(t)
 		d      = NewBatch(testConfig)
-		expect = testPlan
+		expect = "hello-2.9"
 	)
 	d.Add(testPlan)
-	got := d.Plans[testPlan.Name]
-	is.Equal(got, expect)
+	got := d.Plans[testPlan.Name].NameVersion()
+	if expect != got {
+		t.Errorf("expect '%s' got '%s'", expect, got)
+	}
 }
 
 func TestBatchWalk(t *testing.T) {
