@@ -6,10 +6,9 @@ go:
 go_import_path: github.com/mrosset/via
 
 before_install:
-  - env | grep TRAVIS
-  - go get -v github.com/mrosset/via
-  - go get -v github.com/mrosset/via/pkg
-  - go get -v github.com/mrosset/via/upstream
+  - go get github.com/mrosset/via
+  - go get github.com/mrosset/via/pkg
+  - go get github.com/mrosset/via/pkg/upstream
 
 script:
   - go test -v ./pkg/
