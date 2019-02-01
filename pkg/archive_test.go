@@ -10,6 +10,7 @@ import (
 	"testing"
 )
 
+// FIXME: create a test to verify we can extract long file names.
 func TestLongNames(t *testing.T) {
 	var (
 		longName = fmt.Sprintf("L%sng", strings.Repeat("o", 98))
@@ -23,18 +24,14 @@ func TestLongNames(t *testing.T) {
 	if !file.Exists(archPath) {
 		os.Mkdir(archPath, 0700)
 	}
-	if !file.Exists(longPath) {
-		fd, err := os.Create(longPath)
-		if err != nil {
-			t.Fatal(err)
-		}
-		err = file.Copy(fd, "testdata/hash")
-		if err != nil {
-			t.Fatal(err)
-		}
-		fd.Close()
+
+	fd, err := os.Create(longPath)
+	if err != nil {
+		t.Fatal(err)
 	}
-	fd, err := os.Create(gzipPath)
+	fd.Close()
+
+	fd, err = os.Create(gzipPath)
 	if err != nil {
 		t.Fatal(err)
 	}
