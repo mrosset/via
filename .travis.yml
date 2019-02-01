@@ -11,5 +11,6 @@ before_install:
 
 script:
   - go get -v github.com/mrosset/via
-  - make
-  - make test
+  - go get -v github.com/mrosset/pkg
+  - go get -v github.com/mrosset/upstream
+  - go test -v ./pkg/
