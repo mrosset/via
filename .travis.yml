@@ -11,4 +11,4 @@ before_install:
   - go get github.com/mrosset/via/pkg/upstream
 
 script:
-  - go test -v ./pkg/
+  - go test -v ./pkg/...
