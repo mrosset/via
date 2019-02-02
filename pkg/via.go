@@ -115,9 +115,6 @@ func Build(config *Config, plan *Plan) (err error) {
 	var (
 		build = plan.Build
 	)
-	if file.Exists(plan.PackagePath()) {
-		fmt.Printf("FIXME: (short flags)  package %s exists building anyways.\n", plan.PackagePath())
-	}
 	for _, p := range plan.BuildDepends {
 		if IsInstalled(config, p) {
 			continue
