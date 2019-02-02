@@ -353,6 +353,9 @@ func strap(ctx *cli.Context) error {
 		if err := via.BuildSteps(config, plan); err != nil {
 			return err
 		}
+		if err := via.NewInstaller(config, plan).Install(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -640,7 +643,7 @@ func pack(ctx *cli.Context) error {
 }
 
 func debug(ctx *cli.Context) error {
-	cmds := []string{"gcc", "g++", "python", "make", "bash", "ld", "ccache", "strip"}
+	cmds := []string{"gcc", "g++", "python", "ld", "perl", "make", "bash", "ccache", "strip"}
 	env := config.Getenv()
 	sort.Strings(env)
 	for _, v := range env {
