@@ -3,26 +3,49 @@ package via
 import (
 	"fmt"
 	"github.com/mrosset/util/json"
+	"sort"
 )
 
 type RepoFiles map[string][]string
 
-func (rf *RepoFiles) Owns(file string) string {
-	for pack, files := range *rf {
-		for _, f := range files {
-			if file == base(f) {
-				return pack
-			}
+// Returns a sorted slice key strings
+func (rf RepoFiles) keys() []string {
+	var (
+		keys = []string{}
+	)
+	for k := range rf {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// Returns the first alphabetical plan Name of plan that contains file
+func (rf RepoFiles) Owns(file string) string {
+	for _, key := range rf.keys() {
+		if filesContains(rf[key], file) {
+			return key
 		}
 	}
 	fmt.Println("warning: can not resolve", file)
 	return ""
 }
 
+// Like Owns but returns a slice of plan names instead of the first
+// occurrence. The returned slice is sorted by strings
+func (rf RepoFiles) Owners(file string) []string {
+	s := []string{}
+	for _, key := range rf.keys() {
+		if filesContains(rf[key], file) {
+			s = append(s, key)
+		}
+	}
+	return s
+}
+
 func ReadRepoFiles() (RepoFiles, error) {
 	files := RepoFiles{}
-	err := json.Read(&files, join(config.Plans, "files.json"))
-	if err != nil {
+	if err := json.Read(&files, join(config.Plans, "files.json")); err != nil {
 		return nil, err
 	}
 	return files, nil

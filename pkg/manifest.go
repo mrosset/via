@@ -98,8 +98,8 @@ func Depends(dir string, plan *Plan) ([]string, error) {
 			continue
 		}
 		for _, d := range n {
+			// skip this file if this plan owns this file
 			if filesContains(plan.Files, d) {
-				// skip this file if this plan owns this file
 				continue
 			}
 			owner := rfiles.Owns(d)

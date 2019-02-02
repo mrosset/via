@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+const EXPECT_GOT_FMT = "expect '%v' got '%v'"
+
 var (
 	test          = "sed"
 	expectDepends = []string{"glibc"}
@@ -18,7 +20,6 @@ func init() {
 }
 
 func TestLint(t *testing.T) {
-	t.Parallel()
 	if err := Lint(); err != nil {
 		t.Fatal(err)
 	}
