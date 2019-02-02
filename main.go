@@ -686,17 +686,17 @@ func which(cmds ...string) {
 }
 
 func owns(ctx *cli.Context) error {
-	rfiles, err := via.ReadRepoFiles()
+	files, err := via.ReadRepoFiles()
 	if err != nil {
 		return err
 	}
 	for _, arg := range ctx.Args().Slice() {
-		owner := rfiles.Owns(arg)
-		if owner == "" {
+		owners := files.Owners(arg)
+		if len(owners) == 0 {
 			fmt.Println(arg+":", "owner not found.")
 			continue
 		}
-		fmt.Println(owner)
+		fmt.Println(owners)
 	}
 	return nil
 }
