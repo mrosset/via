@@ -62,25 +62,42 @@ func TestConfigExpand(t *testing.T) {
 	var (
 		c = &Config{
 			Branch: "x86_64-via-linux-gnu",
+			Arch:   "x86_64",
+			OS:     "linux",
 			Prefix: "/usr/local/via",
 			Binary: "https://bitbucket.org/strings/publish/raw/{{.Branch}}/repo",
+			Flags: []string{
+				"--build={{.Arch}}-via-{{.OS}}-gnu",
+			},
 			Env: map[string]string{
+				"CFLAGS":         "-O2 -pipe",
+				"CXXFLAGS":       "{{.Env.CFLAGS}}",
 				"C_INCLUDE_PATH": "{{.Prefix}}/include",
 			},
 		}
-		expect = "https://bitbucket.org/strings/publish/raw/x86_64-via-linux-gnu/repo"
-		got    = ""
 	)
 
-	got = c.Expand().Binary
+	test{
+		Expect: "https://bitbucket.org/strings/publish/raw/x86_64-via-linux-gnu/repo",
+		Got:    c.Expand().Binary,
+	}.equals(t, t.Errorf)
+
+	expect := "/usr/local/via/include"
+	got := c.Expand().Env["C_INCLUDE_PATH"]
 	if got != expect {
-		t.Errorf("expected %s got %s", expect, got)
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}
 
-	expect = "/usr/local/via/include"
-	got = c.Expand().Env["C_INCLUDE_PATH"]
+	expect = "--build=x86_64-via-linux-gnu"
+	got = c.Expand().Flags[0]
 	if got != expect {
-		t.Errorf("expected %s got %s", expect, got)
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
+	}
+
+	expect = "-O2 -pipe"
+	got = c.Expand().Env["CXXFLAGS"]
+	if got != expect {
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}
 }
 
