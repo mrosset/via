@@ -162,7 +162,7 @@ func doCommands(config *Config, dir string, cmds []string) (err error) {
 		}
 		if debug {
 			fmt.Println(config.Getenv())
-			fmt.Println(cmd.Args)
+			fmt.Println(os.ExpandEnv(j))
 		}
 		err = cmd.Run()
 		if err != nil {

@@ -27,6 +27,9 @@ func Download(config *Config, plan *Plan) error {
 		url   = config.Binary + "/" + plan.Cid
 		pfile = plan.PackagePath()
 	)
+	if isDocker() {
+		url = "http://172.17.0.1:8080/ipfs/" + plan.Cid
+	}
 	if file.Exists(pfile) {
 		return nil
 	}
