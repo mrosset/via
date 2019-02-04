@@ -1,11 +1,17 @@
 package main
 
 import (
+	"fmt"
+	"github.com/blang/semver"
 	"github.com/mrosset/via/pkg"
+	"github.com/mrosset/via/pkg/upstream"
 	"gopkg.in/urfave/cli.v2"
 	"io/ioutil"
+	"net"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -161,5 +167,73 @@ This is useful for creating a new branch that either has another config or to bo
 				return nil
 			},
 		},
+		&cli.Command{
+			Name:  "upstream",
+			Usage: "manage upstream versions and urls",
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "w",
+					Value: false,
+					Usage: "writes new upstream versions",
+				},
+			},
+			Action: cupstream,
+		},
 	},
+}
+
+func cupstream(ctx *cli.Context) error {
+	files, err := via.PlanFiles()
+	if err != nil {
+		return err
+	}
+	sfmt := "%-10s %-10s %-10s\n"
+
+	for _, f := range files {
+		plan, err := via.ReadPath(config, f)
+		if err != nil {
+			return err
+		}
+		if plan.Version == "" || plan.Url == "" || plan.Cid == "" {
+			continue
+		}
+		dir, err := url.Parse("./")
+		if err != nil {
+			return err
+		}
+		uri, err := url.Parse(plan.Expand().Url)
+		if err != nil {
+			return err
+		}
+		uri = uri.ResolveReference(dir)
+		current, err := semver.ParseTolerant(plan.Version)
+		if err != nil {
+			fmt.Printf(sfmt, plan.Name, "error", err)
+			continue
+		}
+		upstream, err := upstream.GnuUpstreamLatest(plan.Name, uri.String(), current)
+		if err != nil {
+			if oerr, ok := err.(net.Error); ok {
+				fmt.Printf(sfmt, plan.Name, "error", oerr)
+				continue
+			}
+			fmt.Printf(sfmt, plan.Name, "error", err)
+			continue
+		}
+		if upstream != "0.0.0" {
+			fmt.Printf(sfmt, plan.Name, plan.Version, upstream)
+		}
+
+		if upstream != "0.0.0" && ctx.Bool("w") {
+			plan.Url = strings.Replace(plan.Url, plan.Version, "{{.Version}}", -1)
+			plan.Version = upstream
+			plan.IsRebuilt = false
+			plan.Cid = ""
+			err := plan.Save()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
