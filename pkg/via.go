@@ -177,6 +177,9 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 	var (
 		pack = plan.Package
 	)
+	// Remove plans Cid it's assumed we'll be creating a new one
+	plan.Cid = ""
+	defer os.Remove(plan.PackagePath())
 	pdir := join(cache.Packages(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(cache.Builds(), plan.NameVersion())
@@ -215,6 +218,7 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 	}
 	err = CreatePackage(config, plan)
 	if err != nil {
+		elog.Println(err)
 		return (err)
 	}
 	plan.Cid, err = IpfsAdd(config, Path(plan.PackagePath()))

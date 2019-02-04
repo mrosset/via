@@ -86,7 +86,7 @@ func TestPlanPackagePath(t *testing.T) {
 			config:  testConfig,
 		}
 		got    = plan.PackagePath()
-		expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4-hello-2.9-linux-x86_64.tar.gz"
+		expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz"
 	)
 	if got != expect {
 		t.Errorf("expect '%s' -> got %s", expect, got)

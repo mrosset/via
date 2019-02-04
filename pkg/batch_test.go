@@ -12,7 +12,10 @@ func TestBatchAdd(t *testing.T) {
 		expect = "hello-2.9"
 	)
 	d.Add(testPlan)
-	got := d.Plans[testPlan.Name].NameVersion()
+	if len(d.Plans()) != 1 {
+		t.Errorf("expected 'one' plan got '%d'", len(d.Plans()))
+	}
+	got := d.Plans()[0].NameVersion()
 	if expect != got {
 		t.Errorf("expect '%s' got '%s'", expect, got)
 	}
@@ -21,16 +24,17 @@ func TestBatchAdd(t *testing.T) {
 func TestBatchWalk(t *testing.T) {
 	var (
 		p, _   = NewPlan(config, "ccache")
-		got    = NewBatch(testConfig)
+		batch  = NewBatch(testConfig)
 		expect = 1
 	)
-	got.Walk(p)
-	if len(got.Plans) != expect {
-		t.Errorf("expect %d depends got %d", expect, len(got.Plans))
+	batch.Walk(p)
+	got := len(batch.Plans())
+	if got != expect {
+		t.Errorf("expect %d depends got %d", expect, got)
 	}
 }
 
-func testBatchInstall(t *testing.T) {
+func fixmeTestBatchInstall(t *testing.T) {
 	var (
 		p, _   = NewPlan(config, "ccache")
 		got    = NewBatch(testConfig)

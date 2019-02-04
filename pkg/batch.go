@@ -2,20 +2,17 @@ package via
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"github.com/mrosset/progmeter"
 	"github.com/mrosset/util/file"
-	"github.com/mrosset/util/human"
 	"io"
 	"os"
 	"sync"
-	"text/template"
 )
 
 // Batch Plan type
 type Batch struct {
-	Plans  map[string]*Plan
+	plans  Plans
 	config *Config
 	pm     *progmeter.ProgMeter
 	size   int64
@@ -33,7 +30,6 @@ func NewBatch(conf *Config) Batch {
 		threads = 4
 	}
 	return Batch{
-		Plans:  make(map[string]*Plan),
 		config: conf,
 		pm:     progmeter.NewProgMeter(false),
 		ch:     make(chan bool, threads),
@@ -41,18 +37,22 @@ func NewBatch(conf *Config) Batch {
 	}
 }
 
+func (b Batch) Plans() Plans {
+	return b.plans
+}
+
 // Prunes Installed Plans within the Batch
 func (b *Batch) PruneInstalled() {
-	for i, _ := range b.Plans {
-		if IsInstalled(b.config, i) {
-			delete(b.Plans, i)
+	for _, p := range b.plans {
+		if IsInstalled(b.config, p.Name) {
+			panic("Not Implimented")
 		}
 	}
 }
 
-// Adds 'Plane to the Batch
+// Adds 'Plan to the Batch
 func (b *Batch) Add(plan *Plan) {
-	b.Plans[plan.Name] = plan
+	b.plans = append(b.plans, plan)
 	b.size += plan.Size
 }
 
@@ -63,7 +63,7 @@ func (b *Batch) Walk(plan *Plan) error {
 		if err != nil {
 			return err
 		}
-		if _, ok := b.Plans[p.Name]; ok {
+		if b.plans.Contains(p) {
 			continue
 		}
 		b.Walk(p)
@@ -72,22 +72,22 @@ func (b *Batch) Walk(plan *Plan) error {
 }
 
 // Returns a string slice of 'Plans to install
-func (b *Batch) ToInstall() []string {
-	s := []string{}
-	for i, _ := range b.Plans {
-		if !IsInstalled(b.config, i) {
-			s = append(s, i)
+func (b *Batch) ToInstall() Plans {
+	var plans Plans
+	for _, p := range b.plans {
+		if !IsInstalled(b.config, p.Name) {
+			plans = append(plans, p)
 		}
 	}
-	return s
+	return plans
 }
 
 // Returns a string slice of 'Plans to download
 func (b *Batch) ToDownload() []string {
 	s := []string{}
-	for i, p := range b.Plans {
+	for _, p := range b.plans {
 		if !file.Exists(p.PackagePath()) && !IsInstalled(b.config, p.Name) {
-			s = append(s, i)
+			s = append(s, p.Name)
 		}
 	}
 	return s
@@ -127,7 +127,7 @@ func (b Batch) Download(plan *Plan) error {
 
 type PlanFunc func(*Plan)
 
-func (b *Batch) downloadInstall(plan *Plan) {
+func (b *Batch) DownloadInstall(plan *Plan) {
 	if err := b.Download(plan); err != nil {
 		b.pm.Error(plan.Name, err.Error())
 		elog.Fatal(err)
@@ -142,19 +142,14 @@ func (b *Batch) downloadInstall(plan *Plan) {
 
 }
 
-func (b Batch) ForEach(fn PlanFunc) (errors []error) {
-	for _, n := range b.ToInstall() {
-		p, err := NewPlan(b.config, n)
-		if err != nil {
-			errors = append(errors, err)
-			continue
-		}
+func (b Batch) ForEach(fn PlanFunc, plans Plans) (errors []error) {
+	for _, p := range plans {
 		b.wg.Add(1)
 		b.pm.AddTodos(1)
 		go func(plan *Plan) {
 			b.pm.AddEntry(plan.Name, plan.Name, fmt.Sprintf("%+*s", 20, ""))
 			b.ch <- true
-			fn(p)
+			fn(plan)
 			<-b.ch
 			b.pm.Finish(plan.Name)
 			b.wg.Done()
@@ -167,7 +162,7 @@ func (b Batch) ForEach(fn PlanFunc) (errors []error) {
 }
 
 func (b *Batch) Install() (errors []error) {
-	return b.ForEach(b.downloadInstall)
+	return b.ForEach(b.DownloadInstall, b.ToInstall())
 }
 
 func (b Batch) PromptInstall() []error {
@@ -187,31 +182,32 @@ func (b Batch) PromptInstall() []error {
 
 // Provides stringer interface
 func (b Batch) String() string {
-	bf := new(bytes.Buffer)
-	st := struct {
-		Install  []string
-		Download []string
-		Size     string
-	}{b.ToInstall(), b.ToDownload(), human.ByteSize(b.size).String()}
+	//	bf := new(bytes.Buffer)
+	//	st := struct {
+	//		Install  []string
+	//		Download []string
+	//		Size     string
+	//	}{b.ToInstall(), b.ToDownload(), human.ByteSize(b.size).String()}
 
-	ot := `
-Installing:
-{{.Install}}
+	//	ot := `
+	// Installing:
+	// {{.Install}}
 
-Downloading:
-{{.Download}}
+	// Downloading:
+	// {{.Download}}
 
-Install Size: {{.Size}}
+	// Install Size: {{.Size}}
 
-`
-	tmpl, err := template.New("output").Parse(ot)
+	// `
+	//	tmpl, err := template.New("output").Parse(ot)
 
-	if err != nil {
-		panic(err)
-	}
-	err = tmpl.Execute(bf, st)
-	if err != nil {
-		panic(err)
-	}
-	return bf.String()
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	err = tmpl.Execute(bf, st)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	return bf.String()
+	return "Not Implimented"
 }

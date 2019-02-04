@@ -51,7 +51,7 @@ var (
 		},
 		&cli.Command{
 			Name:    "upgrade",
-			Aliases: []string{"u"},
+			Aliases: []string{"u", "up"},
 			Usage:   "upgrade currently installed packages with newer build or versions",
 			Action: func(ctx *cli.Context) error {
 				up := via.NewUpgrader(config)
@@ -62,7 +62,11 @@ var (
 				if len(p) > 0 {
 					fmt.Println("upgrading", p)
 				}
-				return up.Upgrade()
+				errs := up.Upgrade()
+				if len(errs) > 0 {
+					return errs[0]
+				}
+				return nil
 			},
 		},
 	}
