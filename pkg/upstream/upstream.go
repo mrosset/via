@@ -11,7 +11,7 @@ import (
 
 type nginx struct {
 	Title string   `goquery:"h1"`
-	Links []string `goquery:"pre a"`
+	Files []string `goquery:"pre a"`
 }
 
 type example struct {
@@ -19,42 +19,42 @@ type example struct {
 	Files []string `goquery:"table.files tbody tr.js-navigation-item td.content,text"`
 }
 
-// func KernelMirror() error {
-//	res, err := http.Get("https://ftp.gnu.org/gnu/bash/?C=M;O=D")
-//	if err != nil {
-//		return err
-//	}
-//	var n nginx
-
-//	err = goq.NewDecoder(res.Body).Decode(&n)
-//	if err != nil {
-//		return err
-//	}
-//	f := n.Files
-//	for _, v := range f {
-//		fmt.Println(v)
-//	}
-//	return nil
-// }
-
-func Upstream() error {
-	res, err := http.Get("http://mirrors.kernel.org/gnu/bash/")
-	if err != nil {
-		return err
+func GnuUpstreamLatest(name, url string, current semver.Version) (string, error) {
+	var (
+		res    *http.Response
+		err    error
+		latest = "0.0.0"
+	)
+	if res, err = http.Get(url); err != nil {
+		return "", err
 	}
 	defer res.Body.Close()
 
-	var n nginx
+	n := new(nginx)
 
-	err = goq.NewDecoder(res.Body).Decode(&n)
-	if err != nil {
-		return err
+	if err = goq.NewDecoder(res.Body).Decode(&n); err != nil {
+		return "", err
 	}
 
-	for _, l := range n.Links {
-		_, _ = semver.Parse(l)
+	for _, l := range n.Files {
+		n, v := ParseNameVersion(l)
+		if n != name || v == "" {
+			continue
+		}
+		sv, err := semver.ParseTolerant(v)
+		if err != nil {
+			continue
+		}
+		lv, err := semver.ParseTolerant(latest)
+		if err != nil {
+			continue
+		}
+		if sv.GT(current) && sv.GT(lv) {
+			latest = v
+		}
+
 	}
-	return nil
+	return latest, nil
 }
 
 func isInt(i rune) bool {

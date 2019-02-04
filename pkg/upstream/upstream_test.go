@@ -1,14 +1,49 @@
 package upstream
 
 import (
+	"github.com/blang/semver"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/via/pkg"
+	"path/filepath"
 	"testing"
 )
 
-func TestUpstreamError(t *testing.T) {
-	if err := Upstream(); err != nil {
-		t.Error(err)
+type release struct {
+	name    string
+	url     string
+	current string
+	expect  string
+}
+
+func TestGnuUpstreamLatest(t *testing.T) {
+	var (
+		releases = []release{
+			{
+				"bash",
+				"http://mirrors.kernel.org/gnu/bash/",
+				"4.4",
+				"5.0",
+			},
+			{
+				"emacs",
+				"http://mirrors.kernel.org/gnu/emacs/",
+				"25.1",
+				"26.1",
+			},
+		}
+	)
+	for _, r := range releases {
+		sv, err := semver.ParseTolerant(r.current)
+		if err != nil {
+			t.Error(err)
+		}
+		got, err := GnuUpstreamLatest(r.name, r.url, sv)
+		if err != nil {
+			t.Error(err)
+		}
+		if r.expect != got {
+			t.Errorf("expect '%s' got '%s'", r.expect, got)
+		}
 	}
 }
 
@@ -50,7 +85,7 @@ func TestParseVersion(t *testing.T) {
 	}
 }
 
-func OTestEachPlanFile(t *testing.T) {
+func testEachPlanFile(t *testing.T) {
 	plans, err := via.GetPlans()
 	if err != nil {
 		t.Error(err)
@@ -59,8 +94,8 @@ func OTestEachPlanFile(t *testing.T) {
 		if p.Cid == "" {
 
 		}
-		// file := path.Base(p.Expand().Url)
-		//console.Println(file, ParseName(file), ParseVersion(file))
+		file := filepath.Base(p.Expand().Url)
+		console.Println(file, ParseName(file), ParseVersion(file))
 	}
 	console.Flush()
 }
