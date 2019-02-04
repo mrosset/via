@@ -334,6 +334,8 @@ func strap(ctx *cli.Context) error {
 		return err
 	}
 
+	via.Debug(ctx.Bool("d"))
+
 	for _, p := range dplan.ManualDepends {
 		plan, err := via.NewPlan(config, p)
 		if err != nil {
@@ -406,38 +408,42 @@ func local(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
 	}
-	plan, err := via.NewPlan(config, ctx.Args().First())
-	if err != nil {
-		return err
-	}
-	if plan.IsRebuilt && !ctx.Bool("f") {
-		return fmt.Errorf("Plan is built already")
-	}
-	if plan.IsRebuilt && ctx.Bool("f") {
-		plan.IsRebuilt = false
-		plan.Save()
-	}
-	via.Verbose(ctx.Bool("v"))
-	via.Debug(ctx.Bool("d"))
-	via.Update(ctx.Bool("u"))
+	for _, arg := range ctx.Args().Slice() {
+		plan, err := via.NewPlan(config, arg)
+		if err != nil {
+			return err
+		}
+		if plan.IsRebuilt && !ctx.Bool("f") {
+			return fmt.Errorf("Plan is built already")
+		}
+		if plan.IsRebuilt && ctx.Bool("f") {
+			plan.IsRebuilt = false
+			plan.Save()
+		}
+		via.Verbose(ctx.Bool("v"))
+		via.Debug(ctx.Bool("d"))
+		via.Update(ctx.Bool("u"))
 
-	if ctx.Bool("c") {
-		via.Clean(plan.Name)
-	}
-	if ctx.Bool("dd") {
-		err = via.BuildDeps(config, plan)
-		if err != nil {
-			return err
+		if ctx.Bool("c") {
+			via.Clean(plan.Name)
 		}
-	} else {
-		err = via.BuildSteps(config, plan)
-		if err != nil {
-			return err
+		if ctx.Bool("dd") {
+			err = via.BuildDeps(config, plan)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = via.BuildSteps(config, plan)
+			if err != nil {
+				return err
+			}
 		}
-	}
-	if ctx.Bool("i") {
-		fmt.Printf(lfmt, "install", plan.NameVersion())
-		return via.NewInstaller(config, plan).Install()
+		if ctx.Bool("i") {
+			fmt.Printf(lfmt, "install", plan.NameVersion())
+			if err := via.NewInstaller(config, plan).Install(); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
