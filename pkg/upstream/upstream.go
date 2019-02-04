@@ -9,6 +9,10 @@ import (
 	"text/scanner"
 )
 
+var (
+	client = new(http.Client)
+)
+
 type nginx struct {
 	Title string   `goquery:"h1"`
 	Files []string `goquery:"pre a"`
@@ -25,7 +29,7 @@ func GnuUpstreamLatest(name, url string, current semver.Version) (string, error)
 		err    error
 		latest = "0.0.0"
 	)
-	if res, err = http.Get(url); err != nil {
+	if res, err = client.Get(url); err != nil {
 		return "", err
 	}
 	defer res.Body.Close()
