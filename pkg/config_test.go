@@ -80,25 +80,23 @@ func TestConfigExpand(t *testing.T) {
 	test{
 		Expect: "https://bitbucket.org/strings/publish/raw/x86_64-via-linux-gnu/repo",
 		Got:    c.Expand().Binary,
-	}.equals(t, t.Errorf)
+	}.equals(t.Errorf)
 
-	expect := "/usr/local/via/include"
-	got := c.Expand().Env["C_INCLUDE_PATH"]
-	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
-	}
+	test{
+		Expect: "/usr/local/via/include",
+		Got:    c.Expand().Env["C_INCLUDE_PATH"],
+	}.equals(t.Errorf)
 
-	expect = "--build=x86_64-via-linux-gnu"
-	got = c.Expand().Flags[0]
-	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
-	}
+	test{
+		Expect: "--build=x86_64-via-linux-gnu",
+		Got:    c.Expand().Flags[0],
+	}.equals(t.Errorf)
 
-	expect = "-O2 -pipe"
-	got = c.Expand().Env["CXXFLAGS"]
-	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
-	}
+	test{
+		Expect: "-O2 -pipe",
+		Got:    c.Expand().Env["CXXFLAGS"],
+	}.equals(t.Errorf)
+
 }
 
 func TestConfig(t *testing.T) {

@@ -16,20 +16,27 @@ type test struct {
 	Got    string
 }
 
-func (vt test) equals(t *testing.T, fn func(format string, arg ...interface{})) {
+func (vt test) equals(fn func(format string, arg ...interface{})) {
 	if vt.Expect == "" && vt.Got == "" {
-		t.Errorf("Expect and Got will always be equal")
+		fn("expect and got will always be equal")
 	}
 	if vt.Expect != vt.Got {
 		fn(EXPECT_GOT_FMT, vt.Expect, vt.Got)
 	}
 }
 
+func equals(expect, got string, fn func(format string, arg ...interface{})) {
+	test{
+		Expect: expect,
+		Got:    got,
+	}.equals(fn)
+}
+
 func TestTestType(t *testing.T) {
 	test{
 		Expect: "foo",
 		Got:    "foo",
-	}.equals(t, t.Errorf)
+	}.equals(t.Errorf)
 }
 
 func TestLint(t *testing.T) {
