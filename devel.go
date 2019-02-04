@@ -38,6 +38,11 @@ var develCommand = &cli.Command{
 					Value: false,
 					Usage: "marks package in development group for rebuild",
 				},
+				&cli.BoolFlag{
+					Name:  "d",
+					Value: false,
+					Usage: "debug output",
+				},
 			},
 		},
 		&cli.Command{
