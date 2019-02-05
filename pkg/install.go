@@ -60,8 +60,7 @@ func (i Installer) Install() error {
 		return err
 	}
 	if IsInstalled(i.config, name) {
-		err := Remove(i.config, name)
-		if err != nil {
+		if err := Remove(i.config, name); err != nil {
 			return err
 		}
 	}

@@ -271,10 +271,8 @@ func PostInstall(config *Config, plan *Plan) (err error) {
 func Remove(config *Config, name string) (err error) {
 	if !IsInstalled(config, name) {
 		err = fmt.Errorf("%s is not installed.", name)
-		elog.Println(err)
 		return err
 	}
-
 	man, err := ReadManifest(config, name)
 	if err != nil {
 		elog.Println(err)
@@ -286,7 +284,6 @@ func Remove(config *Config, name string) (err error) {
 			elog.Println(err)
 		}
 	}
-
 	return os.RemoveAll(join(config.DB.Installed(config), name))
 }
 
