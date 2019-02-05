@@ -56,6 +56,9 @@ func (i Installer) Install() error {
 	var (
 		name = i.plan.Name
 	)
+	if err := i.VerifyCid(); err != nil {
+		return err
+	}
 	if IsInstalled(i.config, name) {
 		err := Remove(i.config, name)
 		if err != nil {

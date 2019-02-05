@@ -15,12 +15,23 @@ func TestInstallerCidVerifiy(t *testing.T) {
 			config:  testConfig,
 		}
 	)
-	defer os.Remove(plan.PackagePath())
+
+	os.MkdirAll(testConfig.Repo, 0755)
 	file.Touch(plan.PackagePath())
+
 	test{
 		Expect: nil,
 		Got:    NewInstaller(testConfig, plan).VerifyCid(),
 	}.equals(t.Errorf)
+
+	plan.Cid = ""
+	file.Touch(plan.PackagePath())
+
+	test{
+		Expect: "verify-0.0.1 Plans CID does not match tarballs got QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH",
+		Got:    NewInstaller(testConfig, plan).Install().Error(),
+	}.equals(t.Errorf)
+
 }
 
 func fixmeTestBuild(t *testing.T) {
