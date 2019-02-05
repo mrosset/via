@@ -12,8 +12,8 @@ func init() {
 }
 
 type test struct {
-	Expect string
-	Got    string
+	Expect interface{}
+	Got    interface{}
 }
 
 func (vt test) equals(fn func(format string, arg ...interface{})) {

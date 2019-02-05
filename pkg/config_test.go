@@ -15,6 +15,8 @@ var (
 		Root:    "testdata/root",
 		Repo:    "testdata/repo",
 		Cache:   "testdata/cache",
+		OS:      "linux",
+		Arch:    "x86_64",
 		DB:      "",
 		Binary:  "http://localhost:8080/ipfs/",
 		Threads: 8,

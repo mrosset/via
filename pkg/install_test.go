@@ -6,6 +6,23 @@ import (
 	"testing"
 )
 
+func TestInstallerCidVerifiy(t *testing.T) {
+	var (
+		plan = &Plan{
+			Name:    "verify",
+			Version: "0.0.1",
+			Cid:     "QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH",
+			config:  testConfig,
+		}
+	)
+	defer os.Remove(plan.PackagePath())
+	file.Touch(plan.PackagePath())
+	test{
+		Expect: nil,
+		Got:    NewInstaller(testConfig, plan).VerifyCid(),
+	}.equals(t.Errorf)
+}
+
 func fixmeTestBuild(t *testing.T) {
 	var (
 		files = []string{

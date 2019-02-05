@@ -41,6 +41,17 @@ func Download(config *Config, plan *Plan) error {
 	return gurl.NameDownload(config.Repo, url, plan.PackageFile())
 }
 
+func (i Installer) VerifyCid() error {
+	cid, err := HashOnly(i.config, Path(i.plan.PackagePath()))
+	if err != nil {
+		return err
+	}
+	if cid != i.plan.Cid {
+		return fmt.Errorf("%s Plans CID does not match tarballs got %s", i.plan.NameVersion(), cid)
+	}
+	return nil
+}
+
 func (i Installer) Install() error {
 	var (
 		name = i.plan.Name
@@ -57,14 +68,6 @@ func (i Installer) Install() error {
 	}
 	if err := Download(i.config, i.plan); err != nil {
 		return err
-	}
-	cid, err := HashOnly(i.config, Path(i.plan.PackagePath()))
-	if err != nil {
-		elog.Println(err)
-		return (err)
-	}
-	if cid != i.plan.Cid {
-		return fmt.Errorf("%s Plans CID does not match tarballs got %s", i.plan.NameVersion(), cid)
 	}
 	man, err := ReadPackManifest(i.plan.PackagePath())
 	if err != nil {
