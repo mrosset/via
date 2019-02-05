@@ -16,6 +16,12 @@ func TestInstallerCidVerifiy(t *testing.T) {
 		}
 	)
 
+	// Travis does not have a ipfs instance remove this once we
+	// have offline Cid verfications
+	if os.Getenv("TRAVIS") != "" {
+		return
+	}
+
 	os.MkdirAll(testConfig.Repo, 0755)
 	file.Touch(plan.PackagePath())
 
