@@ -1,0 +1,4 @@
+* TODO Rootless container build
+* TODO Offline multihash verification
+* TODO GPL3 license
+* TODO Go documentation
