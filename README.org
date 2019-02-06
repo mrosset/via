@@ -1,8 +1,8 @@
 #+TITLE: Via
 
 * Description
-Via is a systems package manager written in go language. It's primary
-purpose is is to download and install precompiled binary packages.
+Via is a systems package manager. It's primary purpose is is to
+download and install precompiled binary packages.
 
 The binary packages are installed to /opt/via . This allows packages
 to be installed along side any modern Unix like system.
