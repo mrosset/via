@@ -1,15 +1,26 @@
 package via
 
 import (
+	"fmt"
 	"github.com/ipfs/go-ipfs-api"
 	"github.com/mrosset/util/file"
+	"github.com/mrosset/util/json"
 	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 const (
 	DOCKERENV = "/.dockerenv"
 	DOCKERAPI = "172.17.0.1:5001"
 )
+
+type IpfsStat struct {
+	Path    string
+	Mode    os.FileMode
+	ModTime time.Time
+}
 
 func isDocker() bool {
 	return file.Exists(DOCKERENV)
@@ -40,4 +51,45 @@ func HashOnly(config *Config, path Path) (string, error) {
 	}
 	defer fd.Close()
 	return s.Add(fd, shell.OnlyHash(true))
+}
+
+// Walk 'path' and creates a stat.json file with each files permissions
+func MakeStat(path Path) error {
+	var (
+		files = []IpfsStat{}
+		sfile = path.JoinS("stat.json")
+	)
+	fn := func(p string, info os.FileInfo, err error) error {
+		// if this is root the directory or the stat file do nothing
+		if p == path.String() || p == sfile.String() {
+			return nil
+		}
+		p = strings.Replace(p, path.String()+"/", "", 1)
+		files = append(files, IpfsStat{Path: p, Mode: info.Mode(), ModTime: info.ModTime()})
+		return nil
+	}
+	filepath.Walk(path.String(), fn)
+	return json.Write(files, sfile.String())
+}
+
+// Sets each files Mode in 'path' to mode contained in the paths stat.json file
+func SetStat(path Path) error {
+	var (
+		files = []IpfsStat{}
+		sfile = path.JoinS("stat.json")
+	)
+	if !sfile.Exists() {
+		return fmt.Errorf("%s: does not have a stat.json file", path)
+	}
+	if err := json.Read(&files, sfile.String()); err != nil {
+		return err
+	}
+	for _, f := range files {
+		fpath := path.JoinS(f.Path)
+		if err := os.Chmod(string(fpath), f.Mode); err != nil {
+			return err
+		}
+		os.Chtimes(fpath.String(), time.Now(), f.ModTime)
+	}
+	return nil
 }
