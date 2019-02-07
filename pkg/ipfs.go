@@ -3,6 +3,7 @@ package via
 import (
 	"github.com/ipfs/go-ipfs-api"
 	"github.com/mrosset/util/file"
+	mhopts "github.com/multiformats/go-multihash/opts"
 	"os"
 )
 
@@ -33,11 +34,20 @@ func IpfsAdd(config *Config, path Path) (string, error) {
 }
 
 func HashOnly(config *Config, path Path) (string, error) {
-	s := shell.NewShell(whichApi(config))
+	opts := &mhopts.Options{
+		Algorithm:     "sha2-256",
+		AlgorithmCode: 18,
+		Encoding:      "base58",
+		Length:        -1,
+	}
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
 	}
 	defer fd.Close()
-	return s.Add(fd, shell.OnlyHash(true))
+	h, err := opts.Multihash(fd)
+	if err != nil {
+		return "", err
+	}
+	return mhopts.Encode(opts.Encoding, h)
 }

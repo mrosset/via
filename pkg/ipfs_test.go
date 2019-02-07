@@ -21,7 +21,7 @@ func fixmeTestAdd(t *testing.T) {
 
 }
 
-func fixmeTestHashOnly(t *testing.T) {
+func TestIpfsHashOnly(t *testing.T) {
 	var (
 		expect = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
 	)
