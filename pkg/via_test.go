@@ -45,7 +45,7 @@ func TestLint(t *testing.T) {
 	}
 }
 
-func TestCreate(t *testing.T) {
+func testCreate(t *testing.T) {
 	var (
 		expect = "2.9"
 	)
