@@ -1,8 +1,12 @@
 package via
 
 import (
+	"context"
 	"fmt"
 	"github.com/ipfs/go-ipfs-api"
+	"github.com/ipfs/go-ipfs-files"
+	"github.com/ipfs/go-ipfs/core"
+	"github.com/ipfs/go-ipfs/core/coreunix"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"os"
@@ -51,6 +55,33 @@ func HashOnly(config *Config, path Path) (string, error) {
 	}
 	defer fd.Close()
 	return s.Add(fd, shell.OnlyHash(true))
+}
+
+func CoreHashOnly(path Path) (string, error) {
+	node, err := core.NewNode(context.TODO(), &core.BuildCfg{Online: false}) // NilRepo: true})
+	if err != nil {
+
+		return "", err
+	}
+	fd, err := os.Open(path.String())
+	if err != nil {
+		return "", err
+	}
+	defer fd.Close()
+	adder, err := coreunix.NewAdder(context.TODO(), node.Pinning, node.Blockstore, node.DAG)
+	if err != nil {
+
+		return "", err
+	}
+	file := files.NewReaderFile(fd)
+	if err != nil {
+		return "", err
+	}
+	fn, err := adder.AddAllAndPin(file)
+	if err != nil {
+		return "", err
+	}
+	return fn.Cid().String(), nil
 }
 
 // Walk 'path' and creates a stat.json file with each files permissions
