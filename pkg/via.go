@@ -148,9 +148,13 @@ func Build(config *Config, plan *Plan) (err error) {
 }
 
 func doCommands(config *Config, dir string, cmds []string) (err error) {
+	bash, err := exec.LookPath("bash")
+	if err != nil {
+		return err
+	}
 	for _, j := range cmds {
 		cmd := &exec.Cmd{
-			Path:   "/bin/bash",
+			Path:   bash,
 			Args:   []string{"bash", "-c", j},
 			Stdin:  os.Stdin,
 			Stderr: os.Stderr,

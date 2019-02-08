@@ -7,6 +7,7 @@ import (
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
+	"github.com/mrosset/via/pkg/contain"
 	viaplugin "github.com/mrosset/via/pkg/plugin"
 	"gopkg.in/urfave/cli.v2"
 	"log"
@@ -231,6 +232,7 @@ var (
 )
 
 func main() {
+	contain.Append(app)
 	app.Commands = append(app.Commands, []*cli.Command{
 		cremove,
 		cbuild,
@@ -355,13 +357,16 @@ func strap(ctx *cli.Context) error {
 		if err := via.BuildSteps(config, plan); err != nil {
 			return err
 		}
-		if err := via.NewInstaller(config, plan).Install(); err != nil {
-			return err
+		batch := via.NewBatch(config)
+		batch.Add(plan)
+		if errs := batch.Install(); len(errs) != 0 {
+			return errs[0]
 		}
 	}
 	return nil
 }
 
+// TODO: move this to install.go
 func batch(ctx *cli.Context) error {
 	var errors []error
 	if ctx.Bool("s") {
