@@ -103,7 +103,7 @@ func run() {
 	cmd.Env = []string{
 		"HOME=/home/mrosset",
 		"GOPATH=/home/mrosset/gocode",
-		"PATH=/bin:/opt/via/bin:/home/mrosset/gocode/bin",
+		fmt.Sprintf("PATH=/bin:%s/bin:/home/mrosset/gocode/bin", config.Prefix),
 		"PS1=-[via-build]- # ",
 	}
 
