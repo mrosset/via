@@ -21,8 +21,8 @@ var (
 	viabin          = filepath.Join(os.Getenv("GOPATH"), "bin/via")
 	containCommands = []*cli.Command{
 		&cli.Command{
-			Name:   "contain",
-			Usage:  "enters a container",
+			Name:   "enter",
+			Usage:  "enter via build namespace",
 			Action: contain,
 		},
 	}
@@ -145,11 +145,7 @@ func run() {
 			"PS1=-[via-build]- # ",
 		},
 		SysProcAttr: &syscall.SysProcAttr{
-			Cloneflags: syscall.CLONE_NEWNS |
-				syscall.CLONE_NEWUTS |
-				syscall.CLONE_NEWIPC |
-				syscall.CLONE_NEWPID |
-				syscall.CLONE_NEWUSER,
+			Cloneflags: syscall.CLONE_NEWUSER,
 			UidMappings: []syscall.SysProcIDMap{
 				{
 					ContainerID: 1000,
