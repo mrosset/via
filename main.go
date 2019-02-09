@@ -7,7 +7,6 @@ import (
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
-	"github.com/mrosset/via/pkg/contain"
 	viaplugin "github.com/mrosset/via/pkg/plugin"
 	"gopkg.in/urfave/cli.v2"
 	"log"
@@ -35,13 +34,18 @@ var (
 		Name:          "build",
 		Usage:         "builds a plan locally",
 		Aliases:       []string{"b"},
-		Action:        local,
+		Action:        build,
 		ShellComplete: planArgCompletion,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "c",
 				Value: false,
 				Usage: "clean build directory before building",
+			},
+			&cli.BoolFlag{
+				Name:   "real",
+				Value:  false,
+				Hidden: true,
 			},
 			&cli.BoolFlag{
 				Name:  "v",
@@ -232,7 +236,6 @@ var (
 )
 
 func main() {
-	contain.Append(app)
 	app.Commands = append(app.Commands, []*cli.Command{
 		cremove,
 		cbuild,
@@ -405,7 +408,20 @@ func remove(ctx *cli.Context) error {
 	return via.Remove(config, ctx.Args().First())
 }
 
-func local(ctx *cli.Context) error {
+func build(ctx *cli.Context) error {
+	for _, arg := range ctx.Args().Slice() {
+		plan, err := via.NewPlan(config, arg)
+		if err != nil {
+			return err
+		}
+		if plan.IsRebuilt && !ctx.Bool("f") {
+			return fmt.Errorf("Plan is built already")
+		}
+	}
+	// if we don't have a real flag then we need to rexec into a container
+	if !ctx.Bool("real") {
+		return contain(ctx)
+	}
 	// if r flag build package with RPC daemon
 	if ctx.Bool("r") {
 		return remote(ctx)

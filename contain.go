@@ -1,13 +1,11 @@
-package contain
+package main
 
 import (
 	"fmt"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/mrosset/util/file"
-	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,8 +18,7 @@ const (
 )
 
 var (
-	elog   = log.New(os.Stderr, "error: ", log.Lshortfile)
-	config = via.GetConfig()
+	viabin = filepath.Join(os.Getenv("GOPATH"), "bin/via")
 )
 
 func init() {
@@ -32,13 +29,33 @@ func init() {
 
 }
 
-func Append(app *cli.App) {
-	cmd := &cli.Command{
-		Name:   "contain",
-		Action: contain,
-		Hidden: false,
+func linksh(root string) error {
+	var (
+		source = filepath.Join(config.Prefix, "bin", "bash")
+		bin    = filepath.Join(root, "bin")
+		target = filepath.Join(bin, "sh")
+	)
+	if err := os.MkdirAll(bin, 0755); err != nil {
+		return err
 	}
-	app.Commands = append(app.Commands, cmd)
+	return os.Link(source, target)
+}
+
+func bindbin(root string) error {
+	var (
+		source = filepath.Join(config.Prefix, "bin")
+		target = filepath.Join(root, "bin")
+	)
+	if err := os.MkdirAll(target, 0755); err != nil {
+		return err
+	}
+	return syscall.Mount(
+		source,
+		target,
+		"",
+		BIND_RO,
+		"",
+	)
 }
 
 // instead of linking, bind sh to bash to avoid cross linking across
@@ -49,7 +66,7 @@ func bindsh(root string) error {
 		bin    = filepath.Join(root, "bin")
 		target = filepath.Join(bin, "sh")
 	)
-	if err := os.MkdirAll(bin, 07550); err != nil {
+	if err := os.MkdirAll(bin, 0755); err != nil {
 		return err
 	}
 	if err := file.Touch(target); err != nil {
@@ -65,7 +82,6 @@ func bindsh(root string) error {
 }
 
 func initialize() {
-	fmt.Println(os.Args)
 	root, err := ioutil.TempDir("", "via-build")
 	if err != nil {
 		elog.Fatal(err)
@@ -90,12 +106,11 @@ func initialize() {
 	if err := pivot(root); err != nil {
 		elog.Fatal(err)
 	}
-	run()
+	run(root)
 }
-
-func run() {
-
-	cmd := exec.Command(filepath.Join(config.Prefix, "bin", "bash"))
+func run(root string) {
+	// cmd := exec.Command(filepath.Join(config.Prefix, "bin", "bash"))
+	cmd := exec.Command(viabin, os.Args[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -135,7 +150,17 @@ func run() {
 }
 
 func contain(ctx *cli.Context) error {
-	cmd := reexec.Command("init", ctx.Command.Name)
+	args := []string{
+		"init",
+		"build",
+		"-real",
+	}
+	// maybe there is a better way to chain down flags?
+	for _, f := range ctx.FlagNames() {
+		args = append(args, fmt.Sprintf("-%s", f))
+	}
+	args = append(args, ctx.Args().Slice()...)
+	cmd := reexec.Command(args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -170,14 +195,14 @@ func contain(ctx *cli.Context) error {
 type FileSystem struct {
 	Source string
 	Type   string
+	Target string
 	Flags  int
 	Data   string
 	MakeFn func(string) error
 }
 
 func (fs FileSystem) Mount(root string) error {
-
-	target := filepath.Join(root, fs.Source)
+	target := filepath.Join(root, fs.Target)
 	if err := os.MkdirAll(target, 0755); err != nil {
 		return err
 	}
@@ -252,17 +277,19 @@ func mount(root string) error {
 		config.Cache.String(),
 		config.Plans,
 		config.Repo,
-		filepath.Join(os.Getenv("GOPATH"), "bin/via"),
 		config.Prefix,
+		viabin,
 	}
 	// our filesystems
 	fs := []FileSystem{
 		{
 			Source: "proc",
+			Target: "/proc",
 			Type:   "proc",
 		},
 		{
 			Source: "tmpfs",
+			Target: "/tmp",
 			Type:   "tmpfs",
 		},
 	}
