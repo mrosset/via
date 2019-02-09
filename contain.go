@@ -100,15 +100,11 @@ func initialize() {
 	if err := os.MkdirAll(root, 0700); err != nil {
 		elog.Fatal(err)
 	}
-	// setup busybox
-	// if err := busybox(root); err != nil {
-	//	elog.Fatal(err)
-	// }
-
 	// setup all our mounts
 	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
+	// bind
 	if err := bindsh(root); err != nil {
 		elog.Fatal(err)
 	}
