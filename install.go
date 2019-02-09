@@ -12,17 +12,6 @@ func init() {
 	app.Commands = append(app.Commands, installCommands...)
 }
 
-func planArgCompletion(ctx *cli.Context) {
-	plans, err := via.GetPlans()
-	if err != nil {
-		elog.Println(err)
-		return
-	}
-	for _, p := range plans {
-		fmt.Printf("%s ", p.Name)
-	}
-}
-
 var (
 	installCommands = []*cli.Command{
 		&cli.Command{
@@ -97,4 +86,15 @@ func install(ctx *cli.Context) error {
 		}
 	}
 	return nil
+}
+
+func planArgCompletion(ctx *cli.Context) {
+	plans, err := via.GetPlans()
+	if err != nil {
+		elog.Println(err)
+		return
+	}
+	for _, p := range plans {
+		fmt.Printf("%s ", p.Name)
+	}
 }

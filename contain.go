@@ -18,7 +18,14 @@ const (
 )
 
 var (
-	viabin = filepath.Join(os.Getenv("GOPATH"), "bin/via")
+	viabin          = filepath.Join(os.Getenv("GOPATH"), "bin/via")
+	containCommands = []*cli.Command{
+		&cli.Command{
+			Name:   "contain",
+			Usage:  "enters a container",
+			Action: contain,
+		},
+	}
 )
 
 func init() {
@@ -26,7 +33,7 @@ func init() {
 	if reexec.Init() {
 		os.Exit(0)
 	}
-
+	app.Commands = append(app.Commands, containCommands...)
 }
 
 func linksh(root string) error {
@@ -86,7 +93,10 @@ func initialize() {
 	if err != nil {
 		elog.Fatal(err)
 	}
-
+	// set hostname
+	if err := syscall.Sethostname([]byte("via-build")); err != nil {
+		elog.Fatalf("could not set hostname: %s", err)
+	}
 	if err := os.MkdirAll(root, 0700); err != nil {
 		elog.Fatal(err)
 	}
@@ -106,54 +116,73 @@ func initialize() {
 	if err := pivot(root); err != nil {
 		elog.Fatal(err)
 	}
-	run(root)
+	run()
 }
-func run(root string) {
-	// cmd := exec.Command(filepath.Join(config.Prefix, "bin", "bash"))
-	cmd := exec.Command(viabin, os.Args[1:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+func run() {
+	var (
+		path = "/bin/sh"
+		args = []string{}
+	)
 
-	cmd.Env = []string{
-		"HOME=/home/mrosset",
-		"GOPATH=/home/mrosset/gocode",
-		fmt.Sprintf("PATH=/bin:%s/bin:/home/mrosset/gocode/bin", config.Prefix),
-		"PS1=-[via-build]- # ",
+	switch {
+	case len(os.Args) >= 2 && os.Args[1] == "build":
+		path = viabin
+		args = append([]string{"via"}, os.Args[1:]...)
+	case len(os.Args) >= 2 && os.Args[1] == "contain":
+		path = "/bin/sh"
+		args = []string{}
+	default:
+		elog.Fatalf("can not handle arguments %v", os.Args)
 	}
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWNS |
-			syscall.CLONE_NEWUTS |
-			syscall.CLONE_NEWIPC |
-			syscall.CLONE_NEWPID |
-			syscall.CLONE_NEWUSER,
-		UidMappings: []syscall.SysProcIDMap{
-			{
-				ContainerID: 1000,
-				HostID:      os.Getuid(),
-				Size:        1,
-			},
+	cmd := &exec.Cmd{
+		Path:   path,
+		Args:   args,
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Env: []string{
+			fmt.Sprintf("TERM=%s", os.Getenv("TERM")),
+			fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
+			fmt.Sprintf("GOPATH=%s", os.Getenv("GOPATH")),
+			fmt.Sprintf("PATH=/bin:%s/bin:/home/mrosset/gocode/bin", config.Prefix),
+			"PS1=-[via-build]- # ",
 		},
-		GidMappings: []syscall.SysProcIDMap{
-			{
-				ContainerID: 1001,
-				HostID:      os.Getgid(),
-				Size:        1,
+		SysProcAttr: &syscall.SysProcAttr{
+			Cloneflags: syscall.CLONE_NEWNS |
+				syscall.CLONE_NEWUTS |
+				syscall.CLONE_NEWIPC |
+				syscall.CLONE_NEWPID |
+				syscall.CLONE_NEWUSER,
+			UidMappings: []syscall.SysProcIDMap{
+				{
+					ContainerID: 1000,
+					HostID:      os.Getuid(),
+					Size:        1,
+				},
+			},
+			GidMappings: []syscall.SysProcIDMap{
+				{
+					ContainerID: 1001,
+					HostID:      os.Getgid(),
+					Size:        1,
+				},
 			},
 		},
 	}
-
 	if err := cmd.Run(); err != nil {
 		elog.Fatal(err)
 	}
 }
 
 func contain(ctx *cli.Context) error {
-	args := []string{
-		"init",
-		"build",
-		"-real",
+	var (
+		args = []string{}
+	)
+	if len(os.Args) > 1 && os.Args[1] == "build" {
+		args = []string{"init", "build", "-real"}
+	} else {
+		args = []string{"init", "contain"}
 	}
 	// maybe there is a better way to chain down flags?
 	for _, f := range ctx.FlagNames() {
