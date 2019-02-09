@@ -19,7 +19,7 @@ func TestContextPackagePath(t *testing.T) {
 		expect = "testdata/repo/QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH.tar.gz"
 	)
 
-	ctx := NewContext(config, plan)
+	ctx := NewViaContext(config, plan)
 	if got := ctx.PackagePath(); expect != got {
 		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}

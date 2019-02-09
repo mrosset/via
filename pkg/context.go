@@ -4,23 +4,23 @@ import (
 	"fmt"
 )
 
-// Context helps to tie config, cache and plan fields together
-type Context struct {
+// ViaContext helps to tie config, cache and plan fields together
+type ViaContext struct {
 	Plan   *Plan
 	Config Config
 }
 
-func NewContext(config Config, plan *Plan) *Context {
-	return &Context{Config: config, Plan: plan}
+func NewViaContext(config Config, plan *Plan) *ViaContext {
+	return &ViaContext{Config: config, Plan: plan}
 }
 
-func (c Context) PackageFile() string {
+func (c ViaContext) PackageFile() string {
 	if c.Plan.Cid == "" {
 		return fmt.Sprintf("%s-%s-%s.tar.gz", c.Plan.NameVersion(), c.Config.OS, c.Config.Arch)
 	}
 	return fmt.Sprintf("%s.tar.gz", c.Plan.Cid)
 }
 
-func (c Context) PackagePath() string {
+func (c ViaContext) PackagePath() string {
 	return join(c.Config.Repo, c.PackageFile())
 }
