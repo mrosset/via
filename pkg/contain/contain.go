@@ -41,6 +41,29 @@ func Append(app *cli.App) {
 	app.Commands = append(app.Commands, cmd)
 }
 
+// instead of linking, bind sh to bash to avoid cross linking across
+// devices
+func bindsh(root string) error {
+	var (
+		source = filepath.Join(config.Prefix, "bin", "bash")
+		bin    = filepath.Join(root, "bin")
+		target = filepath.Join(bin, "sh")
+	)
+	if err := os.MkdirAll(bin, 07550); err != nil {
+		return err
+	}
+	if err := file.Touch(target); err != nil {
+		return err
+	}
+	return syscall.Mount(
+		source,
+		target,
+		"",
+		BIND_RO,
+		"",
+	)
+}
+
 func initialize() {
 	fmt.Println(os.Args)
 	root, err := ioutil.TempDir("", "via-build")
@@ -60,13 +83,7 @@ func initialize() {
 	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
-	if err := os.MkdirAll(filepath.Join(root, "bin"), 0755); err != nil {
-		elog.Fatal(err)
-	}
-	if err := os.Link(
-		filepath.Join(config.Prefix, "bin", "sh"),
-		filepath.Join(root, "bin", "sh"),
-	); err != nil {
+	if err := bindsh(root); err != nil {
 		elog.Fatal(err)
 	}
 	// finally pivot our root
