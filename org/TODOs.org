@@ -8,7 +8,7 @@ Config and cache variables are global. Initializing in via init
 functions produces side effects.
 ** Solution
 *** Phase one
-**** TODO Move all init functions and global variables to via.go
+**** DONE Move all init functions and global variables to via.go
 **** TODO Remove global usage of config
 
 *** Phase two

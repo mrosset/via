@@ -6,6 +6,7 @@ import (
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
+	"github.com/mrosset/util/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -17,15 +18,77 @@ import (
 )
 
 var (
+	cache   Cache
+	cfile   = filepath.Join(viapath, "plans/config.json")
 	client  = new(http.Client)
-	verbose = false
-	elog    = log.New(os.Stderr, "", log.Lshortfile)
-	lfmt    = "%-20.20s %v\n"
+	config  = new(Config)
 	debug   = false
-	expand  = os.ExpandEnv
-	update  = false
 	deps    = false
+	elog    = log.New(os.Stderr, "", log.Lshortfile)
+	expand  = os.ExpandEnv
+	lfmt    = "%-20.20s %v\n"
+	planUrl = "https://github.com/mrosset/plans"
+	update  = false
+	verbose = false
+	viaUrl  = "https://github.com/mrosset/via"
+	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
 )
+
+func init() {
+	if os.Getenv("GOPATH") == "" {
+		elog.Fatal("GOPATH must be set")
+	}
+	// TODO rework this to error and suggest user use 'via init'
+	if !file.Exists(viapath) {
+		elog.Println("cloning plans")
+		if err := Clone(viapath, viaUrl); err != nil {
+			elog.Fatal(err)
+		}
+	}
+	pdir := filepath.Dir(cfile)
+	if !file.Exists(pdir) {
+		elog.Println("cloning plans")
+		err := Clone(pdir, planUrl)
+		if err != nil {
+			elog.Fatal(err)
+		}
+	}
+}
+
+func init() {
+	err := json.Read(&config, cfile)
+	if err != nil {
+		elog.Fatal(err)
+	}
+	// TODO: provide Lint for master config
+	sort.Strings([]string(config.Flags))
+	sort.Strings(config.Remove)
+	err = json.Write(&config, cfile)
+	if err != nil {
+		elog.Fatal(err)
+	}
+
+	config = config.Expand()
+
+	// if err := CheckLink(); err != nil {
+	//	elog.Fatal(err)
+	// }
+
+	cache = Cache(os.ExpandEnv(string(config.Cache)))
+	cache.Init()
+	config.Plans = os.ExpandEnv(config.Plans)
+	config.Repo = os.ExpandEnv(config.Repo)
+	err = os.MkdirAll(config.Repo, 0755)
+	if err != nil {
+		elog.Fatal(err)
+	}
+	for i, j := range config.Env {
+		os.Setenv(i, os.ExpandEnv(j))
+	}
+	for i, j := range config.Env {
+		os.Setenv(i, os.ExpandEnv(j))
+	}
+}
 
 func Root(path string) {
 	config.Root = path
