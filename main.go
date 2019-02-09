@@ -34,13 +34,18 @@ var (
 		Name:          "build",
 		Usage:         "builds a plan locally",
 		Aliases:       []string{"b"},
-		Action:        local,
+		Action:        build,
 		ShellComplete: planArgCompletion,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "c",
 				Value: false,
 				Usage: "clean build directory before building",
+			},
+			&cli.BoolFlag{
+				Name:   "real",
+				Value:  false,
+				Hidden: true,
 			},
 			&cli.BoolFlag{
 				Name:  "v",
@@ -71,6 +76,11 @@ var (
 				Name:  "u",
 				Value: false,
 				Usage: "force downloading of sources",
+			},
+			&cli.BoolFlag{
+				Name:  "l",
+				Value: false,
+				Usage: "builds plan locally",
 			},
 			&cli.BoolFlag{
 				Name:  "r",
@@ -355,13 +365,16 @@ func strap(ctx *cli.Context) error {
 		if err := via.BuildSteps(config, plan); err != nil {
 			return err
 		}
-		if err := via.NewInstaller(config, plan).Install(); err != nil {
-			return err
+		batch := via.NewBatch(config)
+		batch.Add(plan)
+		if errs := batch.Install(); len(errs) != 0 {
+			return errs[0]
 		}
 	}
 	return nil
 }
 
+// TODO: move this to install.go
 func batch(ctx *cli.Context) error {
 	var errors []error
 	if ctx.Bool("s") {
@@ -373,7 +386,6 @@ func batch(ctx *cli.Context) error {
 
 	via.Root(ctx.String("r"))
 	batch := via.NewBatch(config)
-
 	for _, a := range ctx.Args().Slice() {
 		p, err := via.NewPlan(config, a)
 		if err != nil {
@@ -400,13 +412,26 @@ func remove(ctx *cli.Context) error {
 	return via.Remove(config, ctx.Args().First())
 }
 
-func local(ctx *cli.Context) error {
+func build(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
+	}
+	for _, arg := range ctx.Args().Slice() {
+		plan, err := via.NewPlan(config, arg)
+		if err != nil {
+			return err
+		}
+		if plan.IsRebuilt && !ctx.Bool("f") {
+			return fmt.Errorf("plan %s is already built", plan.Name)
+		}
+	}
+	// if we don't have a real flag then we need to enter a contain
+	if !ctx.Bool("real") && !ctx.Bool("l") {
+		return contain(ctx)
+	}
 	// if r flag build package with RPC daemon
 	if ctx.Bool("r") {
 		return remote(ctx)
-	}
-	if !ctx.Args().Present() {
-		return fmt.Errorf("build requires a 'PLAN' argument. see: 'via help build'")
 	}
 	for _, arg := range ctx.Args().Slice() {
 		plan, err := via.NewPlan(config, arg)
