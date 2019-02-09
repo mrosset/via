@@ -1,4 +1,15 @@
-* TODO Rootless container build
+* DONE Rootless container build
 * TODO Offline multihash verification
 * TODO GPL3 license
 * TODO Go documentation
+* TODO Global variables config/cache
+** Problem
+Config and cache variables are global. Initializing in via init
+functions produces side effects.
+** Solution
+*** Phase one
+**** TODO Move all init functions and global variables to via.go
+**** TODO Remove global usage of config
+
+*** Phase two
+**** TODO Design data structure to simplify config/cache/plan use
