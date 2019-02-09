@@ -20,7 +20,8 @@ const (
 )
 
 var (
-	elog = log.New(os.Stderr, "", log.Lshortfile)
+	elog   = log.New(os.Stderr, "error: ", log.Lshortfile)
+	config = via.GetConfig()
 )
 
 func init() {
@@ -40,22 +41,6 @@ func Append(app *cli.App) {
 	app.Commands = append(app.Commands, cmd)
 }
 
-// install devel group
-func devel(root string) error {
-	via.Root(root)
-	config := via.GetConfig()
-	batch := via.NewBatch(config)
-	p, err := via.NewPlan(config, "devel")
-	if err != nil {
-		return err
-	}
-	batch.Walk(p)
-	errors := batch.Install()
-	if len(errors) != 0 {
-		return errors[0]
-	}
-	return nil
-}
 func initialize() {
 	fmt.Println(os.Args)
 	root, err := ioutil.TempDir("", "via-build")
@@ -63,22 +48,28 @@ func initialize() {
 		elog.Fatal(err)
 	}
 
-	// if err := devel(root); err != nil {
-	//	elog.Fatal(err)
-	// }
+	if err := os.MkdirAll(root, 0700); err != nil {
+		elog.Fatal(err)
+	}
 	// setup busybox
 	// if err := busybox(root); err != nil {
 	//	elog.Fatal(err)
 	// }
-	// Setup all our mounts
+
+	// setup all our mounts
 	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
-	if err := os.Link("/opt/via/bin/sh", filepath.Join(root, "bin", "sh")); err != nil {
+	if err := os.MkdirAll(filepath.Join(root, "bin"), 0755); err != nil {
 		elog.Fatal(err)
 	}
-
-	// finally pivot our rout
+	if err := os.Link(
+		filepath.Join(config.Prefix, "bin", "sh"),
+		filepath.Join(root, "bin", "sh"),
+	); err != nil {
+		elog.Fatal(err)
+	}
+	// finally pivot our root
 	if err := pivot(root); err != nil {
 		elog.Fatal(err)
 	}
@@ -86,16 +77,16 @@ func initialize() {
 }
 
 func run() {
-	cmd := exec.Command("/bin/sh")
 
+	cmd := exec.Command(filepath.Join(config.Prefix, "bin", "bash"))
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	cmd.Env = []string{
-		"PATH=/bin:/opt/via/bin",
-		"GOPATH=/home/mrosset/gocode",
 		"HOME=/home/mrosset",
+		"GOPATH=/home/mrosset/gocode",
+		"PATH=/bin:/opt/via/bin:/home/mrosset/gocode/bin",
 		"PS1=-[via-build]- # ",
 	}
 
@@ -114,15 +105,15 @@ func run() {
 		},
 		GidMappings: []syscall.SysProcIDMap{
 			{
-				ContainerID: 1000,
+				ContainerID: 1001,
 				HostID:      os.Getgid(),
 				Size:        1,
 			},
 		},
 	}
+
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("Error running the /bin/sh command - %s\n", err)
-		os.Exit(1)
+		elog.Fatal(err)
 	}
 }
 
@@ -161,22 +152,21 @@ func contain(ctx *cli.Context) error {
 
 type FileSystem struct {
 	Source string
-	Target string
 	Type   string
 	Flags  int
 	Data   string
 	MakeFn func(string) error
 }
 
-func (fs FileSystem) Mount() error {
-	if fs.MakeFn != nil {
-		if err := fs.MakeFn(fs.Target); err != nil {
-			return err
-		}
+func (fs FileSystem) Mount(root string) error {
+
+	target := filepath.Join(root, fs.Source)
+	if err := os.MkdirAll(target, 0755); err != nil {
+		return err
 	}
 	return syscall.Mount(
 		fs.Source,
-		fs.Target,
+		target,
 		fs.Type,
 		uintptr(fs.Flags),
 		fs.Data,
@@ -185,14 +175,6 @@ func (fs FileSystem) Mount() error {
 
 func mkdir(path string) error {
 	return os.MkdirAll(path, 0755)
-}
-
-func bindFile(path string) error {
-	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return err
-	}
-	return file.Touch(path)
 }
 
 func busybox(root string) error {
@@ -218,81 +200,68 @@ func busybox(root string) error {
 	return file.Copy(out, bpath)
 }
 
+func bind(source, root string) error {
+	target := filepath.Join(root, source)
+	stat, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+	if stat.IsDir() {
+		os.MkdirAll(target, 0755)
+	} else {
+		dir := filepath.Dir(target)
+		os.MkdirAll(dir, 0755)
+		if err := file.Touch(target); err != nil {
+			return err
+		}
+	}
+	return syscall.Mount(
+		source,
+		target,
+		"",
+		BIND_RO,
+		"",
+	)
+}
+
 func mount(root string) error {
-	// viabin := filepath.Join(os.Getenv("GOPATH"), "bin", "via")
-	mounts := []FileSystem{
+	// our binds
+	binds := []string{
+		"/dev",
+		"/etc/resolv.conf",
+		"/etc/ssl",
+		"/etc/passwd",
+		os.ExpandEnv("$HOME/.ccache"),
+		config.Cache.String(),
+		config.Plans,
+		config.Repo,
+		filepath.Join(os.Getenv("GOPATH"), "bin/via"),
+		config.Prefix,
+	}
+	// our filesystems
+	fs := []FileSystem{
 		{
 			Source: "proc",
-			Target: filepath.Join(root, "proc"),
 			Type:   "proc",
-			MakeFn: mkdir,
 		},
 		{
 			Source: "tmpfs",
-			Target: filepath.Join(root, "tmp"),
 			Type:   "tmpfs",
-			MakeFn: mkdir,
-		},
-		// FIXME: we don't need everything in dev
-		{
-			Source: "/dev",
-			Target: filepath.Join(root, "dev"),
-			Flags:  BIND_RO,
-			MakeFn: mkdir,
-		},
-		{
-			Source: filepath.Join(os.Getenv("GOPATH"), "bin", "via"),
-			Target: filepath.Join(root, "bin", "via"),
-			Flags:  BIND_RO,
-			MakeFn: bindFile,
-		},
-		{
-			Source: "/etc/ssl",
-			Target: filepath.Join(root, "etc", "ssl"),
-			Flags:  BIND_RO,
-			MakeFn: mkdir,
-		},
-		{
-			Source: "/home/mrosset/.ccache",
-			Target: filepath.Join(root, "/home/mrosset/.ccache"),
-			Flags:  BIND_RO,
-			MakeFn: mkdir,
-		},
-
-		{
-			Source: "/home/mrosset/.cache/via",
-			Target: filepath.Join(root, "/home/mrosset/.cache/via"),
-			Flags:  BIND_RO,
-			MakeFn: mkdir,
-		},
-		{
-			Source: "/home/mrosset/gocode/src/github.com/mrosset/via",
-			Target: filepath.Join(root, "/home/mrosset/gocode/src/github.com/mrosset/via"),
-			Flags:  BIND_RO,
-			MakeFn: mkdir,
-		},
-		{
-			Source: "/etc/resolv.conf",
-			Target: filepath.Join(root, "etc", "resolv.conf"),
-			Flags:  BIND_RO,
-			MakeFn: bindFile,
-		},
-		{
-			Source: "/opt/via",
-			Target: filepath.Join(root, "/opt/via"),
-			Flags:  BIND_RO,
-			MakeFn: mkdir,
 		},
 	}
-	errors := []error{}
-	for _, m := range mounts {
-		if err := m.Mount(); err != nil {
-			elog.Printf("%+v", m)
-			errors = append(errors, err)
+	// mount our binds
+	for _, source := range binds {
+		if err := bind(source, root); err != nil {
+			elog.Printf("binding %s to %s", source, filepath.Join(root, source))
+			return err
 		}
 	}
-	if len(errors) > 0 {
-		return errors[0]
+	// mount our filesystems
+	for _, m := range fs {
+		if err := m.Mount(root); err != nil {
+			elog.Printf("mounting %s to %s", m.Source, filepath.Join(root, m.Source))
+			return err
+		}
 	}
 	return nil
 }
