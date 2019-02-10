@@ -26,8 +26,8 @@ type Builder struct {
 }
 
 func (t *Builder) RpcBuild(req Request, resp *Response) error {
-	Clean(req.Plan.Name)
 	ctx := NewPlanContext(t.config, &req.Plan)
+	Clean(ctx)
 	if err := BuildSteps(ctx); err != nil {
 		return err
 	}

@@ -35,8 +35,6 @@ func init() {
 	for i, e := range testConfig.Env {
 		os.Setenv(i, os.ExpandEnv(e))
 	}
-	cache = Cache(filepath.Join(wd, string(testConfig.Cache)))
-	cache.Init()
 }
 
 func TestConfigGetenv(t *testing.T) {
@@ -99,10 +97,4 @@ func TestConfigExpand(t *testing.T) {
 		Got:    c.Expand().Env["CXXFLAGS"],
 	}.equals(t.Errorf)
 
-}
-
-func TestConfig(t *testing.T) {
-	if config == nil {
-		t.Errorf("config is nil")
-	}
 }

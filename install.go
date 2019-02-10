@@ -70,7 +70,7 @@ func install(ctx *cli.Context) error {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
 
-	via.Root(ctx.String("r"))
+	config.Root = ctx.String("r")
 	if !file.Exists(ctx.String("r")) {
 		if err := os.MkdirAll(ctx.String("r"), 0755); err != nil {
 			return err

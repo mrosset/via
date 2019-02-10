@@ -57,6 +57,9 @@ func (b *Batch) Add(plan *Plan) {
 }
 
 func (b *Batch) Walk(plan *Plan) error {
+	if b.config == nil {
+		return fmt.Errorf("config is nil")
+	}
 	b.Add(plan)
 	for _, d := range plan.Depends() {
 		p, err := NewPlan(b.config, d)

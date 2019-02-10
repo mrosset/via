@@ -10,6 +10,7 @@ import (
 type PlanContext struct {
 	Plan   *Plan
 	Config Config
+	Cache  Cache
 	Update bool
 	Debug  bool
 	Verbos bool
@@ -17,7 +18,11 @@ type PlanContext struct {
 
 // Returns a new VieaContext
 func NewPlanContext(config *Config, plan *Plan) *PlanContext {
-	return &PlanContext{Config: *config, Plan: plan}
+	return &PlanContext{
+		Config: *config,
+		Plan:   plan,
+		Cache:  config.Cache,
+	}
 }
 
 func NewPlanContextByName(config *Config, name string) (*PlanContext, error) {
@@ -25,19 +30,36 @@ func NewPlanContextByName(config *Config, name string) (*PlanContext, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PlanContext{Config: *config, Plan: plan}, nil
+	return &PlanContext{
+		Config: *config,
+		Cache:  config.Cache,
+		Plan:   plan,
+	}, nil
 }
 
 func (c PlanContext) PlanPath() string {
 	return filepath.Join(c.Config.Plans, c.Plan.Group, c.Plan.Name+".json")
 }
 
+func (c PlanContext) BuildDir() string {
+	bdir := join(c.Cache.Builds(), c.Plan.NameVersion())
+	if c.Plan.BuildInStage {
+		bdir = join(c.Cache.Stages(), c.Plan.stageDir())
+	}
+	return bdir
+}
+
 func (c PlanContext) WritePlan() error {
 	return json.Write(c.Plan, c.PlanPath())
 }
 
+func (c PlanContext) StageDir() string {
+	return join(c.Cache.Stages(), c.Plan.stageDir())
+}
+
 func (c PlanContext) SourcePath() string {
-	return c.Plan.SourcePath()
+	s := filepath.Join(c.Cache.Sources(), filepath.Base(c.Plan.Expand().Url))
+	return s
 }
 
 func (c PlanContext) PackageFile() string {

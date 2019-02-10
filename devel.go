@@ -113,7 +113,7 @@ This is useful for creating a new branch that either has another config or to bo
 					files []string
 					err   error
 				)
-				if files, err = via.PlanFiles(); err != nil {
+				if files, err = via.PlanFiles(config); err != nil {
 					return err
 				}
 				for _, path := range files {
@@ -190,7 +190,7 @@ func notimplemented(ctx *cli.Context) error {
 }
 
 func cupstream(ctx *cli.Context) error {
-	files, err := via.PlanFiles()
+	files, err := via.PlanFiles(config)
 	if err != nil {
 		return err
 	}

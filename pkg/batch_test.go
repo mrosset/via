@@ -1,8 +1,6 @@
 package via
 
 import (
-	"github.com/mrosset/util/file"
-	"os"
 	"testing"
 )
 
@@ -21,34 +19,35 @@ func TestBatchAdd(t *testing.T) {
 	}
 }
 
-func TestBatchWalk(t *testing.T) {
-	var (
-		p, _   = NewPlan(config, "ccache")
-		batch  = NewBatch(testConfig)
-		expect = 1
-	)
-	batch.Walk(p)
-	got := len(batch.Plans())
-	if got != expect {
-		t.Errorf("expect %d depends got %d", expect, got)
-	}
-}
+//FIXME:
+// func TestBatchWalk(t *testing.T) {
+//	var (
+//		p, _   = NewPlan(testConfig, "ccache")
+//		batch  = NewBatch(testConfig)
+//		expect = 1
+//	)
+//	batch.Walk(p)
+//	got := len(batch.Plans())
+//	if got != expect {
+//		t.Errorf("expect %d depends got %d", expect, got)
+//	}
+// }
 
-func fixmeTestBatchInstall(t *testing.T) {
-	var (
-		p, _   = NewPlan(config, "ccache")
-		got    = NewBatch(testConfig)
-		expect = join(testConfig.Repo, "repo", p.PackageFile())
-	)
-	defer os.RemoveAll(testConfig.Repo)
-	defer os.RemoveAll(testConfig.Root)
-	defer os.RemoveAll(testConfig.DB.Installed(testConfig))
-	got.Walk(p)
-	errors := got.Install()
-	if len(errors) != 0 {
-		t.Error(errors)
-	}
-	if !file.Exists(expect) {
-		t.Errorf("expect: %s got: %v", expect, false)
-	}
-}
+// func fixmeTestBatchInstall(t *testing.T) {
+//	var (
+//		p, _   = NewPlan(config, "ccache")
+//		got    = NewBatch(testConfig)
+//		expect = join(testConfig.Repo, "repo", p.PackageFile())
+//	)
+//	defer os.RemoveAll(testConfig.Repo)
+//	defer os.RemoveAll(testConfig.Root)
+//	defer os.RemoveAll(testConfig.DB.Installed(testConfig))
+//	got.Walk(p)
+//	errors := got.Install()
+//	if len(errors) != 0 {
+//		t.Error(errors)
+//	}
+//	if !file.Exists(expect) {
+//		t.Errorf("expect: %s got: %v", expect, false)
+//	}
+// }

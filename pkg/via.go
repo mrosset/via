@@ -6,7 +6,6 @@ import (
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
-	"github.com/mrosset/util/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -18,81 +17,18 @@ import (
 )
 
 var (
-	cache   Cache
-	cfile   = filepath.Join(viapath, "plans/config.json")
-	client  = new(http.Client)
-	config  = new(Config)
-	debug   = false
-	deps    = false
-	elog    = log.New(os.Stderr, "", log.Lshortfile)
-	expand  = os.ExpandEnv
-	lfmt    = "%-20.20s %v\n"
-	planUrl = "https://github.com/mrosset/plans"
+	cache Cache
+
+	client = new(http.Client)
+	debug  = false
+	deps   = false
+	elog   = log.New(os.Stderr, "", log.Lshortfile)
+	expand = os.ExpandEnv
+	lfmt   = "%-20.20s %v\n"
+
 	update  = false
 	verbose = false
-	viaUrl  = "https://github.com/mrosset/via"
-	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
 )
-
-func init() {
-	if os.Getenv("GOPATH") == "" {
-		elog.Fatal("GOPATH must be set")
-	}
-	// TODO rework this to error and suggest user use 'via init'
-	if !file.Exists(viapath) {
-		elog.Println("cloning plans")
-		if err := Clone(viapath, viaUrl); err != nil {
-			elog.Fatal(err)
-		}
-	}
-	pdir := filepath.Dir(cfile)
-	if !file.Exists(pdir) {
-		elog.Println("cloning plans")
-		err := Clone(pdir, planUrl)
-		if err != nil {
-			elog.Fatal(err)
-		}
-	}
-}
-
-func init() {
-	err := json.Read(&config, cfile)
-	if err != nil {
-		elog.Fatal(err)
-	}
-	// TODO: provide Lint for master config
-	sort.Strings([]string(config.Flags))
-	sort.Strings(config.Remove)
-	err = json.Write(&config, cfile)
-	if err != nil {
-		elog.Fatal(err)
-	}
-
-	config = config.Expand()
-
-	// if err := CheckLink(); err != nil {
-	//	elog.Fatal(err)
-	// }
-
-	cache = Cache(os.ExpandEnv(string(config.Cache)))
-	cache.Init()
-	config.Plans = os.ExpandEnv(config.Plans)
-	config.Repo = os.ExpandEnv(config.Repo)
-	err = os.MkdirAll(config.Repo, 0755)
-	if err != nil {
-		elog.Fatal(err)
-	}
-	for i, j := range config.Env {
-		os.Setenv(i, os.ExpandEnv(j))
-	}
-	for i, j := range config.Env {
-		os.Setenv(i, os.ExpandEnv(j))
-	}
-}
-
-func Root(path string) {
-	config.Root = path
-}
 
 func Verbose(b bool) {
 	verbose = b
@@ -122,11 +58,11 @@ func DownloadSrc(ctx *PlanContext) (err error) {
 	}
 	switch u.Scheme {
 	case "ftp":
-		wget(cache.Sources(), eurl)
+		wget(ctx.Cache.Sources(), eurl)
 	case "http", "https":
-		return gurl.Download(cache.Sources(), eurl)
+		return gurl.Download(ctx.Cache.Sources(), eurl)
 	case "git":
-		spath := filepath.Join(cache.Sources(), ctx.Plan.Name)
+		spath := filepath.Join(ctx.Cache.Sources(), ctx.Plan.Name)
 		if err := Clone(spath, "https"+eurl[3:]); err != nil {
 			elog.Println(err)
 			return err
@@ -140,7 +76,7 @@ func DownloadSrc(ctx *PlanContext) (err error) {
 // Stages the downloaded source in via's cache directory
 // the stage only happens once unless BuilInStage is used
 func Stage(ctx *PlanContext) (err error) {
-	if ctx.Plan.Url == "" || file.Exists(ctx.Plan.GetStageDir()) {
+	if ctx.Plan.Url == "" || file.Exists(ctx.StageDir()) {
 		// nothing to stage
 		return nil
 	}
@@ -152,22 +88,22 @@ func Stage(ctx *PlanContext) (err error) {
 	}
 	//FIXME: move this down to switch statement so avoid goto
 	if u.Scheme == "git" {
-		fmt.Println(ctx.Plan.SourcePath())
-		fmt.Println(ctx.Plan.GetStageDir())
-		if err := Clone(ctx.Plan.GetStageDir(), ctx.Plan.SourcePath()); err != nil {
+		fmt.Println(ctx.SourcePath())
+		fmt.Println(ctx.StageDir())
+		if err := Clone(ctx.StageDir(), ctx.SourcePath()); err != nil {
 			return err
 		}
 		goto patch
 	}
 	switch filepath.Ext(ctx.Plan.SourceFile()) {
 	case ".zip":
-		unzip(cache.Stages(), ctx.Plan.SourcePath())
+		unzip(ctx.Cache.Stages(), ctx.SourcePath())
 	default:
-		GNUUntar(cache.Stages(), ctx.Plan.SourcePath())
+		GNUUntar(ctx.Cache.Stages(), ctx.SourcePath())
 	}
 patch:
 	fmt.Printf(lfmt, "patch", ctx.Plan.NameVersion())
-	return doCommands(config, join(cache.Stages(), ctx.Plan.stageDir()), ctx.Plan.Patch)
+	return doCommands(&ctx.Config, join(ctx.Cache.Stages(), ctx.Plan.stageDir()), ctx.Plan.Patch)
 }
 
 // Calls each shell command in the plans Build field.
@@ -177,33 +113,33 @@ func Build(ctx *PlanContext) (err error) {
 		build = plan.Build
 	)
 	for _, p := range plan.BuildDepends {
-		if IsInstalled(config, p) {
+		if IsInstalled(&ctx.Config, p) {
 			continue
 		}
-		dp, err := NewPlan(config, p)
+		dp, err := NewPlan(&ctx.Config, p)
 		if err != nil {
 			return err
 		}
-		if err := NewInstaller(config, dp).Install(); err != nil {
+		if err := NewInstaller(&ctx.Config, dp).Install(); err != nil {
 			return err
 		}
 	}
 	// FIXME: flags should not be merged should have a ConfigFLags
 	// and PlanFlags environment variable
-	flags := append(config.Flags, plan.Flags...)
-	os.MkdirAll(plan.BuildDir(), 0755)
+	flags := append(ctx.Config.Flags, plan.Flags...)
+	os.MkdirAll(ctx.BuildDir(), 0755)
 	// Parent plan Build is run first this plans is added at the end.
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(config, plan.Inherit)
+		parent, _ := NewPlan(&ctx.Config, plan.Inherit)
 		build = append(parent.Build, plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}
 	// FIXME: this should be set within exec.Cmd
-	os.Setenv("SRCDIR", plan.GetStageDir())
+	os.Setenv("SRCDIR", ctx.StageDir())
 	os.Setenv("Flags", expand(flags.String()))
-	err = doCommands(config, plan.BuildDir(), build)
+	err = doCommands(&ctx.Config, ctx.BuildDir(), build)
 	if err != nil {
-		return fmt.Errorf("%s in %s", err.Error(), plan.BuildDir())
+		return fmt.Errorf("%s in %s", err.Error(), ctx.BuildDir())
 	}
 	return nil
 }
@@ -246,12 +182,12 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 	// Remove plans Cid it's assumed we'll be creating a new one
 	plan.Cid = ""
 	defer os.Remove(plan.PackagePath())
-	pdir := join(cache.Packages(), plan.NameVersion())
+	pdir := join(ctx.Cache.Packages(), plan.NameVersion())
 	if bdir == "" {
-		bdir = join(cache.Builds(), plan.NameVersion())
+		bdir = join(ctx.Cache.Builds(), plan.NameVersion())
 	}
 	if plan.BuildInStage {
-		bdir = join(cache.Stages(), plan.stageDir())
+		bdir = join(ctx.Cache.Stages(), plan.stageDir())
 	}
 	if file.Exists(pdir) {
 		err := os.RemoveAll(pdir)
@@ -266,10 +202,10 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 	}
 	os.Setenv("PKGDIR", pdir)
 	if plan.Inherit != "" {
-		parent, _ := NewPlan(config, plan.Inherit)
+		parent, _ := NewPlan(&ctx.Config, plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
 	}
-	err = doCommands(config, bdir, pack)
+	err = doCommands(&ctx.Config, bdir, pack)
 	if err != nil {
 		return err
 	}
@@ -287,7 +223,7 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 		elog.Println(err)
 		return (err)
 	}
-	plan.Cid, err = IpfsAdd(config, Path(plan.PackagePath()))
+	plan.Cid, err = IpfsAdd(&ctx.Config, Path(plan.PackagePath()))
 	if err != nil {
 		return err
 	}
@@ -446,7 +382,7 @@ func IsInstalled(config *Config, name string) bool {
 }
 
 func Lint(config *Config) (err error) {
-	e, err := PlanFiles()
+	e, err := PlanFiles(config)
 	if err != nil {
 		return err
 	}
@@ -485,14 +421,14 @@ func fatal(err error) {
 		log.Fatal(err)
 	}
 }
-func Clean(name string) error {
-	plan, err := NewPlan(config, name)
-	if err != nil {
-		return err
-	}
+func Clean(ctx *PlanContext) error {
+	var (
+		plan  = ctx.Plan
+		cache = ctx.Cache
+	)
 	fmt.Printf(lfmt, "clean", plan.NameVersion())
 	dir := join(cache.Builds(), plan.NameVersion())
-	if err = os.RemoveAll(dir); err != nil {
+	if err := os.RemoveAll(dir); err != nil {
 		return err
 	}
 
@@ -503,7 +439,7 @@ func Clean(name string) error {
 	return nil
 }
 
-func PlanFiles() ([]string, error) {
+func PlanFiles(config *Config) ([]string, error) {
 	return filepath.Glob(join(config.Plans, "*", "*.json"))
 }
 
@@ -515,8 +451,4 @@ func conflicts(config *Config, man *Plan) (errs []error) {
 		}
 	}
 	return errs
-}
-
-func GetConfig() *Config {
-	return config
 }

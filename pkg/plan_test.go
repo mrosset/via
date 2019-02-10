@@ -1,7 +1,6 @@
 package via
 
 import (
-	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -41,41 +40,22 @@ func TestPlanExpand(t *testing.T) {
 	}
 }
 
-func TestFindPlan(t *testing.T) {
-	var (
-		expect = &Plan{
-			Name: "sed",
-			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
-		}
-	)
-	got, err := NewPlan(config, "sed")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if expect.Name != got.Name || got.Url != expect.Url {
-		t.Errorf("expected %s got %s", expect.Url, got.Url)
-	}
-}
-
-func TestBuildDir(t *testing.T) {
-	var (
-		expect = filepath.Join(wd, "testdata/cache/bld/hello-2.9")
-		got    = testPlan.BuildDir()
-	)
-	if got != expect {
-		t.Errorf("expect '%s' -> got '%s'", expect, got)
-	}
-}
-
-func TestStageDir(t *testing.T) {
-	var (
-		expect = filepath.Join(wd, "testdata/cache/stg/hello-2.9")
-		got    = testPlan.GetStageDir()
-	)
-	if got != expect {
-		t.Errorf("expect '%s' -> got '%s'", expect, got)
-	}
-}
+// FIXME
+// func TestFindPlan(t *testing.T) {
+//	var (
+//		expect = &Plan{
+//			Name: "sed",
+//			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
+//		}
+//	)
+//	got, err := NewPlan(config, "sed")
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	if expect.Name != got.Name || got.Url != expect.Url {
+//		t.Errorf("expected %s got %s", expect.Url, got.Url)
+//	}
+// }
 
 func TestPlanPackagePath(t *testing.T) {
 	var (
@@ -89,6 +69,6 @@ func TestPlanPackagePath(t *testing.T) {
 		expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz"
 	)
 	if got != expect {
-		t.Errorf("expect '%s' -> got %s", expect, got)
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}
 }

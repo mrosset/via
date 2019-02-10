@@ -202,7 +202,7 @@ func archive(wr io.Writer, dir string) error {
 func Tarball(ctx *PlanContext, wr io.Writer) (err error) {
 	var (
 		plan = ctx.Plan
-		dir  = join(cache.Packages(), plan.NameVersion())
+		dir  = join(ctx.Cache.Packages(), plan.NameVersion())
 	)
 	err = CreateManifest(ctx, dir)
 	if err != nil {

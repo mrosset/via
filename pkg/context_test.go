@@ -27,3 +27,33 @@ func TestContextPackagePath(t *testing.T) {
 
 	}
 }
+
+func TestBuildDir(t *testing.T) {
+	var (
+		expect = "testdata/cache/bld/hello-2.9"
+		got    = NewPlanContext(testConfig, testPlan).BuildDir()
+	)
+	if got != expect {
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
+	}
+}
+
+func TestSourcPath(t *testing.T) {
+	var (
+		expect = "testdata/cache/src/hello-2.9.tar.gz"
+		got    = NewPlanContext(testConfig, testPlan).SourcePath()
+	)
+	if expect != got {
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
+	}
+}
+
+func TestStageDir(t *testing.T) {
+	var (
+		expect = "testdata/cache/stg/hello-2.9"
+		got    = NewPlanContext(testConfig, testPlan).StageDir()
+	)
+	if got != expect {
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
+	}
+}

@@ -20,10 +20,9 @@ import (
 )
 
 var (
-	elog   = log.New(os.Stderr, "", log.Lshortfile)
-	lfmt   = "%-20.20s %v\n"
-	config = via.GetConfig()
-	app    = &cli.App{
+	elog = log.New(os.Stderr, "", log.Lshortfile)
+	lfmt = "%-20.20s %v\n"
+	app  = &cli.App{
 		Name:                  "via",
 		Usage:                 "a systems package manager",
 		EnableShellCompletion: true,
@@ -272,7 +271,6 @@ func main() {
 }
 
 func plugin(ctx *cli.Context) error {
-	config := via.GetConfig()
 	if ctx.Bool("b") {
 		if err := viaplugin.Build(config); err != nil {
 			log.Fatal(err)
@@ -389,7 +387,8 @@ func batch(ctx *cli.Context) error {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
 
-	via.Root(ctx.String("r"))
+	config.Root = ctx.String("r")
+
 	batch := via.NewBatch(config)
 	for _, a := range ctx.Args().Slice() {
 		p, err := via.NewPlan(config, a)
@@ -458,7 +457,7 @@ func build(ctx *cli.Context) error {
 		via.Update(ctx.Bool("u"))
 
 		if ctx.Bool("c") {
-			via.Clean(pctx.Plan.Name)
+			via.Clean(pctx)
 		}
 		if ctx.Bool("dd") {
 			return fmt.Errorf("flag -dd is not implemented need BuildDeps()")
@@ -582,11 +581,11 @@ func plog(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help log'")
 	}
-	plan, err := via.NewPlan(config, ctx.Args().First())
+	pctx, err := via.NewPlanContextByName(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
-	f := filepath.Join(plan.BuildDir(), "config.log")
+	f := filepath.Join(pctx.BuildDir(), "config.log")
 	err = file.Cat(os.Stdout, f)
 	if err != nil {
 		log.Fatal(err)
@@ -634,11 +633,11 @@ func options(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("options requires a 'PLAN' argument. see: 'via help options'")
 	}
-	plan, err := via.NewPlan(config, ctx.Args().First())
+	pctx, err := via.NewPlanContextByName(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
-	c := filepath.Join(plan.GetStageDir(), "configure")
+	c := filepath.Join(pctx.StageDir(), "configure")
 	fmt.Println(c)
 	cmd := exec.Command("sh", c, "--help")
 	cmd.Stdout = os.Stdout
@@ -736,16 +735,16 @@ func cd(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("cd requires a 'PLAN' argument. see: 'via help cd'")
 	}
-	plan, err := via.NewPlan(config, ctx.Args().First())
+	pctx, err := via.NewPlanContextByName(config, ctx.Args().First())
 	if err != nil {
 		return err
 	}
 	if ctx.Bool("s") {
-		fmt.Printf("cd %s", plan.GetStageDir())
+		fmt.Printf("cd %s", pctx.StageDir())
 		return nil
 	}
 	if ctx.Bool("b") {
-		fmt.Printf("cd %s", plan.BuildDir())
+		fmt.Printf("cd %s", pctx.BuildDir())
 		return nil
 	}
 	return fmt.Errorf("cd requires either -s or -b flag")

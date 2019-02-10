@@ -34,13 +34,13 @@ func (rf RepoFiles) Owns(file string) string {
 // Like Owns but returns a slice of plan names instead of the first
 // occurrence. The returned slice is sorted alphabetically
 func (rf RepoFiles) Owners(file string) []string {
-	s := []string{}
+	owners := []string{}
 	for _, key := range rf.keys() {
 		if filesContains(rf[key], file) {
-			s = append(s, key)
+			owners = append(owners, key)
 		}
 	}
-	return s
+	return owners
 }
 
 func ReadRepoFiles(config *Config) (RepoFiles, error) {
@@ -58,7 +58,7 @@ func RepoCreate(config *Config) error {
 		rfile = join(config.Plans, "repo.json")
 		ffile = join(config.Plans, "files.json")
 	)
-	e, err := PlanFiles()
+	e, err := PlanFiles(config)
 	if err != nil {
 		return err
 	}

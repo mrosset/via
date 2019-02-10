@@ -4,17 +4,28 @@ import (
 	"fmt"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/mrosset/util/file"
+	"github.com/mrosset/util/json"
+	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"syscall"
 )
 
 const (
 	BIND_RO = syscall.MS_BIND | syscall.MS_RDONLY | syscall.MS_REC
 	BIND_RW = syscall.MS_BIND | syscall.MS_REC
+)
+
+var (
+	config  = new(via.Config)
+	cfile   = filepath.Join(viapath, "plans/config.json")
+	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
+	viaUrl  = "https://github.com/mrosset/via"
+	planUrl = "https://github.com/mrosset/plans"
 )
 
 var (
@@ -29,11 +40,64 @@ var (
 )
 
 func init() {
+	if os.Getenv("GOPATH") == "" {
+		elog.Fatal("GOPATH must be set")
+	}
+	// TODO rework this to error and suggest user use 'via init'
+	if !file.Exists(viapath) {
+		elog.Println("cloning plans")
+		if err := via.Clone(viapath, viaUrl); err != nil {
+			elog.Fatal(err)
+		}
+	}
+	pdir := filepath.Dir(cfile)
+	if !file.Exists(pdir) {
+		elog.Println("cloning plans")
+		err := via.Clone(pdir, planUrl)
+		if err != nil {
+			elog.Fatal(err)
+		}
+	}
+
+	if err := json.Read(&config, cfile); err != nil {
+		elog.Fatal(err)
+	}
+
+	// TODO: provide Lint for master config
+	sort.Strings([]string(config.Flags))
+	sort.Strings(config.Remove)
+
+	if err := json.Write(&config, cfile); err != nil {
+		elog.Fatal(err)
+	}
+
+	config = config.Expand()
+	config.Cache = config.Cache.Expand()
+
+	// if err := CheckLink(); err != nil {
+	//	elog.Fatal(err)
+	// }
+
+	config.Cache.Init()
+	config.Plans = os.ExpandEnv(config.Plans)
+	config.Repo = os.ExpandEnv(config.Repo)
+	if err := os.MkdirAll(config.Repo, 0755); err != nil {
+		elog.Fatal(err)
+	}
+	for i, j := range config.Env {
+		os.Setenv(i, os.ExpandEnv(j))
+	}
+	for i, j := range config.Env {
+		os.Setenv(i, os.ExpandEnv(j))
+	}
+}
+
+func init() {
+	app.Commands = append(app.Commands, containCommands...)
 	reexec.Register("init", initialize)
 	if reexec.Init() {
 		os.Exit(0)
 	}
-	app.Commands = append(app.Commands, containCommands...)
 }
 
 func linksh(root string) error {
@@ -270,10 +334,13 @@ func busybox(root string) error {
 }
 
 func bind(source, root string) error {
+	if source == "" {
+		return fmt.Errorf("source can not be ''")
+	}
 	target := filepath.Join(root, source)
 	stat, err := os.Stat(source)
 	if err != nil {
-		return err
+		return fmt.Errorf("bind %s to %s with error %s", source, target, err)
 	}
 	if stat.IsDir() {
 		os.MkdirAll(target, 0755)

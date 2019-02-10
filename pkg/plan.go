@@ -15,7 +15,7 @@ type Plans []*Plan
 
 // Returns a Plan slice of all Plans in config.Plans
 func GetPlans(config *Config) (Plans, error) {
-	pf, err := PlanFiles()
+	pf, err := PlanFiles(config)
 	if err != nil {
 		return nil, err
 	}
@@ -151,23 +151,6 @@ func (p *Plan) PackageFile() string {
 
 func (p *Plan) SourceFile() string {
 	return join(filepath.Base(p.Expand().Url))
-}
-
-func (p *Plan) SourcePath() string {
-	return filepath.Join(cache.Sources(), filepath.Base(p.Expand().Url))
-}
-
-func (p Plan) BuildDir() string {
-	bdir := join(cache.Builds(), p.NameVersion())
-	if p.BuildInStage {
-		bdir = join(cache.Stages(), p.stageDir())
-	}
-	return bdir
-}
-
-func (p Plan) GetStageDir() string {
-	path := join(cache.Stages(), p.stageDir())
-	return path
 }
 
 func (p Plan) PackagePath() string {
