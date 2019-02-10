@@ -9,7 +9,8 @@ functions produces side effects.
 ** Solution
 *** Phase one
 **** DONE Move all init functions and global variables to via.go
-**** TODO Remove global usage of config
+**** TODO Design structure to encapsulate config/cache/plan
 
 *** Phase two
-**** TODO Design data structure to simplify config/cache/plan use
+**** TODO Use PlanContext data structure to simplify config/cache/plan use
+***** Convert Config to vales not pointers

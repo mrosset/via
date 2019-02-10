@@ -238,8 +238,9 @@ func doCommands(config *Config, dir string, cmds []string) (err error) {
 	return nil
 }
 
-func Package(config *Config, bdir string, plan *Plan) (err error) {
+func Package(ctx *PlanContext, bdir string) (err error) {
 	var (
+		plan = ctx.Plan
 		pack = plan.Package
 	)
 	// Remove plans Cid it's assumed we'll be creating a new one
@@ -273,11 +274,11 @@ func Package(config *Config, bdir string, plan *Plan) (err error) {
 		return err
 	}
 	for _, j := range plan.SubPackages {
-		sub, err := NewPlan(config, j)
+		sub, err := NewPlanContextByName(&ctx.Config, j)
 		if err != nil {
 			return err
 		}
-		if err = Package(config, bdir, sub); err != nil {
+		if err = Package(sub, bdir); err != nil {
 			return err
 		}
 	}
@@ -397,7 +398,7 @@ func BuildSteps(ctx *PlanContext) (err error) {
 		return err
 	}
 	fmt.Printf(lfmt, "package", ctx.Plan.NameVersion())
-	if err := Package(&ctx.Config, "", ctx.Plan); err != nil {
+	if err := Package(ctx, ""); err != nil {
 		elog.Println(err)
 		return err
 	}

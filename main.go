@@ -658,11 +658,11 @@ func hash(ctx *cli.Context) error {
 func pack(ctx *cli.Context) error {
 	via.Verbose(ctx.Bool("v"))
 	for _, arg := range ctx.Args().Slice() {
-		plan, err := via.NewPlan(config, arg)
+		pctx, err := via.NewPlanContextByName(config, arg)
 		if err != nil {
 			return err
 		}
-		err = via.Package(config, "", plan)
+		err = via.Package(pctx, "")
 		if err != nil {
 			return err
 		}
