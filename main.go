@@ -717,7 +717,7 @@ func which(cmds ...string) {
 }
 
 func owns(ctx *cli.Context) error {
-	files, err := via.ReadRepoFiles()
+	files, err := via.ReadRepoFiles(config)
 	if err != nil {
 		return err
 	}

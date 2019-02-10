@@ -56,12 +56,12 @@ func TestReadelf(t *testing.T) {
 
 func TestOwns(t *testing.T) {
 	var (
-		files, _ = ReadRepoFiles()
-		expect   = "glibc"
-		got      = files.Owns("libc.so.6")
+		files  = RepoFiles{"glibc": []string{"libc.so.6"}}
+		expect = "glibc"
+		got    = files.Owns("libc.so.6")
 	)
 	if expect != got {
-		t.Errorf("expected %s got %s.", expect, got)
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}
 
 }

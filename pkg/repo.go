@@ -32,7 +32,7 @@ func (rf RepoFiles) Owns(file string) string {
 }
 
 // Like Owns but returns a slice of plan names instead of the first
-// occurrence. The returned slice is sorted by strings
+// occurrence. The returned slice is sorted alphabetically
 func (rf RepoFiles) Owners(file string) []string {
 	s := []string{}
 	for _, key := range rf.keys() {
