@@ -235,7 +235,8 @@ var (
 				return err
 			}
 			plan.Version = ctx.String("ver")
-			return plan.Save()
+			pctx := via.NewPlanContext(config, plan)
+			return pctx.WritePlan()
 		},
 	}
 )
@@ -321,13 +322,16 @@ func clean(ctx *cli.Context) error {
 }
 
 func fix(ctx *cli.Context) error {
-	plans, err := via.GetPlans()
+	plans, err := via.GetPlans(config)
 	if err != nil {
 		return err
 	}
 	for _, p := range plans {
 		p.IsRebuilt = false
-		p.Save()
+		pctx := via.NewPlanContext(config, p)
+		if err := pctx.WritePlan(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -443,7 +447,7 @@ func build(ctx *cli.Context) error {
 		}
 		if pctx.Plan.IsRebuilt && ctx.Bool("f") {
 			pctx.Plan.IsRebuilt = false
-			pctx.Plan.Save()
+			pctx.WritePlan()
 		}
 		via.Verbose(ctx.Bool("v"))
 		via.Debug(ctx.Bool("d"))
@@ -507,7 +511,7 @@ func edit(ctx *cli.Context) error {
 	}
 	elog.Println("linting...")
 	via.Verbose(false)
-	return via.Lint()
+	return via.Lint(config)
 }
 
 func list(ctx *cli.Context) error {
@@ -526,7 +530,7 @@ func list(ctx *cli.Context) error {
 
 func lint(ctx *cli.Context) error {
 	via.Verbose(ctx.Bool("v"))
-	return via.Lint()
+	return via.Lint(config)
 }
 
 func show(ctx *cli.Context) error {
@@ -614,7 +618,7 @@ func diff(ctx *cli.Context) error {
 }
 
 func search(ctx *cli.Context) error {
-	plans, err := via.GetPlans()
+	plans, err := via.GetPlans(config)
 	if err != nil {
 		return err
 	}
@@ -643,15 +647,10 @@ func create(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("pack requires a 'URL' argument. see: 'via help create'")
 	}
-	err := via.Create(ctx.Args().First(), "core")
+	err := via.Create(config, ctx.Args().First(), "core")
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func hash(ctx *cli.Context) error {
-	via.SyncHashs(config)
 	return nil
 }
 

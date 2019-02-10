@@ -2,9 +2,6 @@ package upstream
 
 import (
 	"github.com/blang/semver"
-	"github.com/mrosset/util/console"
-	"github.com/mrosset/via/pkg"
-	"path/filepath"
 	"testing"
 )
 
@@ -83,19 +80,4 @@ func TestParseVersion(t *testing.T) {
 			t.Errorf("expect '%s' got '%s'", expect, got)
 		}
 	}
-}
-
-func testEachPlanFile(t *testing.T) {
-	plans, err := via.GetPlans()
-	if err != nil {
-		t.Error(err)
-	}
-	for _, p := range plans {
-		if p.Cid == "" {
-
-		}
-		file := filepath.Base(p.Expand().Url)
-		console.Println(file, ParseName(file), ParseVersion(file))
-	}
-	console.Flush()
 }

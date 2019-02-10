@@ -61,7 +61,7 @@ var develCommand = &cli.Command{
 		&cli.Command{
 			Name:   "hash",
 			Usage:  "DEV ONLY sync the plans Oid with binary banch",
-			Action: hash,
+			Action: notimplemented,
 		},
 		&cli.Command{
 			Name:  "cd",
@@ -128,7 +128,8 @@ This is useful for creating a new branch that either has another config or to bo
 					plan.Files = nil
 					plan.Size = 0
 					plan.AutoDepends = nil
-					if err = plan.Save(); err != nil {
+					ctx := via.NewPlanContext(config, plan)
+					if err := ctx.WritePlan(); err != nil {
 						return err
 					}
 				}
@@ -184,6 +185,10 @@ This is useful for creating a new branch that either has another config or to bo
 	},
 }
 
+func notimplemented(ctx *cli.Context) error {
+	return fmt.Errorf("'%s' command is not implemented", ctx.Command.FullName())
+}
+
 func cupstream(ctx *cli.Context) error {
 	files, err := via.PlanFiles()
 	if err != nil {
@@ -231,8 +236,8 @@ func cupstream(ctx *cli.Context) error {
 			plan.Version = upstream
 			plan.IsRebuilt = false
 			plan.Cid = ""
-			err := plan.Save()
-			if err != nil {
+			ctx := via.NewPlanContext(config, plan)
+			if err := ctx.WritePlan(); err != nil {
 				return err
 			}
 		}

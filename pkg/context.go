@@ -2,9 +2,11 @@ package via
 
 import (
 	"fmt"
+	"github.com/mrosset/util/json"
+	"path/filepath"
 )
 
-// ViaContext helps to tie config, cache and plan fields together
+// PlanContext helps to tie config, cache and plan fields together
 type PlanContext struct {
 	Plan   *Plan
 	Config Config
@@ -24,6 +26,14 @@ func NewPlanContextByName(config *Config, name string) (*PlanContext, error) {
 		return nil, err
 	}
 	return &PlanContext{Config: *config, Plan: plan}, nil
+}
+
+func (c PlanContext) PlanPath() string {
+	return filepath.Join(c.Config.Plans, c.Plan.Group, c.Plan.Name+".json")
+}
+
+func (c PlanContext) WritePlan() error {
+	return json.Write(c.Plan, c.PlanPath())
 }
 
 func (c PlanContext) SourcePath() string {

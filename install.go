@@ -89,7 +89,7 @@ func install(ctx *cli.Context) error {
 }
 
 func planArgCompletion(ctx *cli.Context) {
-	plans, err := via.GetPlans()
+	plans, err := via.GetPlans(config)
 	if err != nil {
 		elog.Println(err)
 		return

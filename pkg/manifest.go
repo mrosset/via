@@ -40,7 +40,7 @@ func CreateManifest(ctx *PlanContext, dir string) (err error) {
 		}
 		// FIXME: Do removes in Package
 		spath := path[len(dir)+1:]
-		removes := append(config.Remove, plan.Remove...)
+		removes := append(ctx.Config.Remove, plan.Remove...)
 		// If the file is in config.Remove or plan.Removes delete it
 		if contains(removes, "/"+spath) {
 			// TODO: expand path
@@ -72,7 +72,9 @@ func CreateManifest(ctx *PlanContext, dir string) (err error) {
 	}
 	plan.Date = time.Now()
 	plan.Size = size
-	plan.Save()
+	if err := ctx.WritePlan(); err != nil {
+		return err
+	}
 	// Remove the old Cid before writing the package tarball
 	plan.Cid = ""
 	return json.WriteGz(&plan, mfile)

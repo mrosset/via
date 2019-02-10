@@ -14,7 +14,7 @@ import (
 type Plans []*Plan
 
 // Returns a Plan slice of all Plans in config.Plans
-func GetPlans() (Plans, error) {
+func GetPlans(config *Config) (Plans, error) {
 	pf, err := PlanFiles()
 	if err != nil {
 		return nil, err
@@ -105,15 +105,6 @@ func (p *Plan) Depends() []string {
 
 func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
-}
-
-func (p *Plan) Path() string {
-	return filepath.Join(config.Plans, p.Group, p.Name+".json")
-}
-
-// TODO: make this atomic
-func (p *Plan) Save() (err error) {
-	return json.Write(p, p.Path())
 }
 
 func FindPlanPath(config *Config, name string) (string, error) {

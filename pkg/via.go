@@ -292,7 +292,7 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 		return err
 	}
 	plan.IsRebuilt = true
-	return plan.Save()
+	return ctx.WritePlan()
 	/*
 		err = CreatePackage(plan)
 		if err != nil {
@@ -319,19 +319,20 @@ func CreatePackage(ctx *PlanContext) (err error) {
 	return Tarball(ctx, gz)
 }
 
+// FIXME: unused should probably remove this
 // Updates each plans Oid to the Oid of the tarball in publish git repo
 // this function should never be used in production. It's used for making sure
 // the plans Oid match the git repo's Oid
-func SyncHashs(config *Config) {
-	plans, _ := GetPlans()
-	for _, p := range plans {
-		if file.Exists(p.PackagePath()) {
-			p.Cid, _ = HashOnly(config, Path(p.PackagePath()))
-			p.Save()
-			log.Println(p.Cid, p.Name)
-		}
-	}
-}
+// func SyncHashs(config *Config) {
+//	plans, _ := GetPlans()
+//	for _, p := range plans {
+//		if file.Exists(p.PackagePath()) {
+//			p.Cid, _ = HashOnly(config, Path(p.PackagePath()))
+//			p.Save()
+//			log.Println(p.Cid, p.Name)
+//		}
+//	}
+// }
 
 func PostInstall(config *Config, plan *Plan) (err error) {
 	return doCommands(config, "/", append(plan.PostInstall, config.PostInstall...))
@@ -415,7 +416,7 @@ var (
 )
 
 // Creates a new plan from a given Url
-func Create(url, group string) (err error) {
+func Create(config *Config, url, group string) (err error) {
 	var (
 		xfile   = filepath.Base(url)
 		name    = rexName.FindString(xfile)
@@ -433,30 +434,18 @@ func Create(url, group string) (err error) {
 	}
 	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
 	plan.Inherit = "gnu"
-	if file.Exists(plan.Path()) {
-		return fmt.Errorf("%s already exists", plan.Path())
+	ctx := NewPlanContext(config, plan)
+	if file.Exists(ctx.PlanPath()) {
+		return fmt.Errorf("%s already exists", ctx.PlanPath())
 	}
-	return plan.Save()
+	return ctx.WritePlan()
 }
 
 func IsInstalled(config *Config, name string) bool {
 	return file.Exists(join(config.DB.Installed(config), name))
 }
 
-func refactor(plan *Plan) {
-	if len(plan.SubPackages) > 0 {
-		for _, j := range plan.SubPackages {
-			s, _ := NewPlan(config, j)
-			if s.Version == plan.Version {
-				continue
-			}
-			s.Version = plan.Version
-			s.Save()
-		}
-	}
-}
-
-func Lint() (err error) {
+func Lint(config *Config) (err error) {
 	e, err := PlanFiles()
 	if err != nil {
 		return err
@@ -481,9 +470,8 @@ func Lint() (err error) {
 		sort.Strings(plan.AutoDepends)
 		sort.Strings(plan.ManualDepends)
 		sort.Strings(plan.BuildDepends)
-		refactor(plan)
-		err = plan.Save()
-		if err != nil {
+		ctx := NewPlanContext(config, plan)
+		if err := ctx.WritePlan(); err != nil {
 			elog.Println(err)
 			return err
 		}

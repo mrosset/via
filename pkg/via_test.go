@@ -1,7 +1,6 @@
 package via
 
 import (
-	"os"
 	"testing"
 )
 
@@ -37,33 +36,6 @@ func TestTestType(t *testing.T) {
 		Expect: "foo",
 		Got:    "foo",
 	}.equals(t.Errorf)
-}
-
-func TestLint(t *testing.T) {
-	if err := Lint(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func testCreate(t *testing.T) {
-	var (
-		expect = "2.9"
-	)
-	os.Remove(testPlan.Path())
-	err := Create(testPlan.Expand().Url, "core")
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = NewPlan(config, testPlan.Name)
-	if err != nil {
-		t.Error(err)
-	}
-	got := testPlan.Version
-	if expect != testPlan.Version {
-
-		t.Errorf("expected '%s' got '%s'", expect, got)
-	}
-	os.Remove(testPlan.Path())
 }
 
 func TestRepoCreate(t *testing.T) {
