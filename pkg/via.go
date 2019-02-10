@@ -171,8 +171,9 @@ patch:
 }
 
 // Calls each shell command in the plans Build field.
-func Build(config *Config, plan *Plan) (err error) {
+func Build(ctx *PlanContext) (err error) {
 	var (
+		plan  = ctx.Plan
 		build = plan.Build
 	)
 	for _, p := range plan.BuildDepends {
@@ -391,7 +392,7 @@ func BuildSteps(ctx *PlanContext) (err error) {
 		return err
 	}
 	fmt.Printf(lfmt, "build", ctx.Plan.NameVersion())
-	if err := Build(&ctx.Config, ctx.Plan); err != nil {
+	if err := Build(ctx); err != nil {
 		elog.Println(err)
 		return err
 	}
