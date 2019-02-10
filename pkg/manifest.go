@@ -66,7 +66,7 @@ func CreateManifest(ctx *PlanContext, dir string) (err error) {
 		return err
 	}
 	plan.Files = files
-	plan.AutoDepends, err = Depends(dir, plan)
+	plan.AutoDepends, err = Depends(ctx, dir)
 	if err != nil {
 		return err
 	}
@@ -89,9 +89,12 @@ func filesContains(files []string, file string) bool {
 	return false
 }
 
-func Depends(dir string, plan *Plan) ([]string, error) {
-	depends := []string{}
-	rfiles, err := ReadRepoFiles()
+func Depends(ctx *PlanContext, dir string) ([]string, error) {
+	var (
+		plan    = ctx.Plan
+		depends = []string{}
+	)
+	rfiles, err := ReadRepoFiles(&ctx.Config)
 	if err != nil {
 		return nil, err
 	}

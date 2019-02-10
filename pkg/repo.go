@@ -43,7 +43,7 @@ func (rf RepoFiles) Owners(file string) []string {
 	return s
 }
 
-func ReadRepoFiles() (RepoFiles, error) {
+func ReadRepoFiles(config *Config) (RepoFiles, error) {
 	files := RepoFiles{}
 	if err := json.Read(&files, join(config.Plans, "files.json")); err != nil {
 		return nil, err
