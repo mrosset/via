@@ -12,8 +12,9 @@ import (
 //TODO: use our own keyring
 var keyring = filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
 
-func Sign(plan *Plan) (err error) {
+func Sign(ctx *PlanContext) (err error) {
 	var (
+		plan     = ctx.Plan
 		entity   *openpgp.Entity
 		identity *openpgp.Identity
 	)
@@ -26,14 +27,14 @@ func Sign(plan *Plan) (err error) {
 		return err
 	}
 	for _, k := range keys {
-		i, ok := k.Identities[config.Identity]
+		i, ok := k.Identities[ctx.Config.Identity]
 		if ok {
 			entity = k
 			identity = i
 		}
 	}
 	if entity == nil || identity == nil {
-		return fmt.Errorf("Could not find entity or identity for %s", config.Identity)
+		return fmt.Errorf("Could not find entity or identity for %s", ctx.Config.Identity)
 	}
 	if entity.PrivateKey.Encrypted {
 		// TODO: prompt for user Password use keyagent?
@@ -50,7 +51,7 @@ func Sign(plan *Plan) (err error) {
 			return err
 		}
 	}
-	ppath := path.Join(config.Repo, plan.PackageFile())
+	ppath := path.Join(ctx.Config.Repo, plan.PackageFile())
 	pkg, err := os.Open(ppath)
 	if err != nil {
 		return err
@@ -69,7 +70,7 @@ func Sign(plan *Plan) (err error) {
 	return nil
 }
 
-func CheckSig(path string) (err error) {
+func VerifiySig(path string) (err error) {
 	fd, err := os.Open(keyring)
 	if err != nil {
 		return err
