@@ -92,9 +92,10 @@ var (
 
 	// remove command
 	cremove = &cli.Command{
-		Name:   "remove",
-		Usage:  "uninstall package",
-		Action: remove,
+		Name:          "remove",
+		Usage:         "uninstall package",
+		Action:        remove,
+		ShellComplete: planArgCompletion,
 	}
 
 	// show command
@@ -181,7 +182,7 @@ var (
 	cpack = &cli.Command{
 		Name:   "pack",
 		Usage:  "package plan",
-		Action: pack,
+		Action: notimplemented,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "v",
@@ -394,6 +395,9 @@ func batch(ctx *cli.Context) error {
 		p, err := via.NewPlan(config, a)
 		if err != nil {
 			return err
+		}
+		if p.Cid == "" {
+			return fmt.Errorf("plan '%s' does not have a Cid. Has the plan been built?", p.Name)
 		}
 		if err := batch.Walk(p); err != nil {
 			return err
