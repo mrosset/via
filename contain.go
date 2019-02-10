@@ -22,7 +22,7 @@ var (
 	containCommands = []*cli.Command{
 		&cli.Command{
 			Name:   "enter",
-			Usage:  "enter via build namespace",
+			Usage:  "enter build namespace",
 			Action: contain,
 		},
 	}
@@ -104,10 +104,13 @@ func initialize() {
 	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
-	// bind
-	if err := bindsh(root); err != nil {
+	if err := busybox(root); err != nil {
 		elog.Fatal(err)
 	}
+	// bind sh
+	// if err := bindsh(root); err != nil {
+	//	elog.Fatal(err)
+	// }
 	// finally pivot our root
 	if err := pivot(root); err != nil {
 		elog.Fatal(err)
@@ -141,7 +144,9 @@ func run() {
 			fmt.Sprintf("TERM=%s", os.Getenv("TERM")),
 			fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
 			fmt.Sprintf("GOPATH=%s", os.Getenv("GOPATH")),
-			fmt.Sprintf("PATH=/bin:%s/bin:/home/mrosset/gocode/bin", config.Prefix),
+			fmt.Sprintf("CFLAGS=%s", config.Env["CFLAGS"]),
+			fmt.Sprintf("LDFLAGS=%s", config.Env["LDFLAGS"]),
+			fmt.Sprintf("PATH=%s/bin:/bin:/home/mrosset/gocode/bin", config.Prefix),
 			"PS1=-[via-build]- # ",
 		},
 		SysProcAttr: &syscall.SysProcAttr{
@@ -161,6 +166,7 @@ func run() {
 				},
 			},
 		},
+		Dir: os.Getenv("HOME"),
 	}
 	if err := cmd.Run(); err != nil {
 		elog.Fatal(err)
@@ -245,7 +251,7 @@ func busybox(root string) error {
 	if err := os.MkdirAll(bin, 0755); err != nil {
 		return err
 	}
-	bpath := "/bin/busybox"
+	bpath := filepath.Join(config.Prefix, "bin", "busybox")
 	cmd := exec.Cmd{
 		Path:   bpath,
 		Args:   []string{"busybox", "--install", "-s", bin},
