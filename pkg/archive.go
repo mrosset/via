@@ -199,9 +199,12 @@ func archive(wr io.Writer, dir string) error {
 }
 
 // TODO: rewrite this hackfest
-func Tarball(wr io.Writer, plan *Plan) (err error) {
-	dir := join(cache.Packages(), plan.NameVersion())
-	err = CreateManifest(dir, plan)
+func Tarball(ctx *PlanContext, wr io.Writer) (err error) {
+	var (
+		plan = ctx.Plan
+		dir  = join(cache.Packages(), plan.NameVersion())
+	)
+	err = CreateManifest(ctx, dir)
 	if err != nil {
 		elog.Println(err)
 		return err

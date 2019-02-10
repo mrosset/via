@@ -282,7 +282,7 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 			return err
 		}
 	}
-	err = CreatePackage(config, plan)
+	err = CreatePackage(ctx)
 	if err != nil {
 		elog.Println(err)
 		return (err)
@@ -302,8 +302,11 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 	*/
 }
 
-func CreatePackage(config *Config, plan *Plan) (err error) {
-	pfile := plan.PackagePath()
+func CreatePackage(ctx *PlanContext) (err error) {
+	var (
+		plan  = ctx.Plan
+		pfile = plan.PackagePath()
+	)
 	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
@@ -313,7 +316,7 @@ func CreatePackage(config *Config, plan *Plan) (err error) {
 	defer fd.Close()
 	gz := gzip.NewWriter(fd)
 	defer gz.Close()
-	return Tarball(gz, plan)
+	return Tarball(ctx, gz)
 }
 
 // Updates each plans Oid to the Oid of the tarball in publish git repo

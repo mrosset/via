@@ -27,8 +27,9 @@ func strip(p string) error {
 }
 
 // Walks the plans PKGDIR and creates a gzipped manifest file.
-func CreateManifest(dir string, plan *Plan) (err error) {
+func CreateManifest(ctx *PlanContext, dir string) (err error) {
 	var (
+		plan  = ctx.Plan
 		size  int64
 		mfile = join(dir, "manifest.json.gz")
 		files = []string{}
