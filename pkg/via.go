@@ -139,38 +139,35 @@ func DownloadSrc(ctx *PlanContext) (err error) {
 
 // Stages the downloaded source in via's cache directory
 // the stage only happens once unless BuilInStage is used
-func Stage(config *Config, plan *Plan) (err error) {
-	if plan.Url == "" || file.Exists(plan.GetStageDir()) {
+func Stage(ctx *PlanContext) (err error) {
+	if ctx.Plan.Url == "" || file.Exists(ctx.Plan.GetStageDir()) {
 		// nothing to stage
 		return nil
 	}
-	fmt.Printf(lfmt, "stage", plan.NameVersion())
-	u, err := url.Parse(plan.Expand().Url)
+	fmt.Printf(lfmt, "stage", ctx.Plan.NameVersion())
+	u, err := url.Parse(ctx.Plan.Expand().Url)
 	if err != nil {
 		elog.Println(err)
 		return err
 	}
 	//FIXME: move this down to switch statement so avoid goto
 	if u.Scheme == "git" {
-		fmt.Println(plan.SourcePath())
-		fmt.Println(plan.GetStageDir())
-		if err := Clone(plan.GetStageDir(), plan.SourcePath()); err != nil {
+		fmt.Println(ctx.Plan.SourcePath())
+		fmt.Println(ctx.Plan.GetStageDir())
+		if err := Clone(ctx.Plan.GetStageDir(), ctx.Plan.SourcePath()); err != nil {
 			return err
 		}
 		goto patch
 	}
-	switch filepath.Ext(plan.SourceFile()) {
+	switch filepath.Ext(ctx.Plan.SourceFile()) {
 	case ".zip":
-		unzip(cache.Stages(), plan.SourcePath())
+		unzip(cache.Stages(), ctx.Plan.SourcePath())
 	default:
-		GNUUntar(cache.Stages(), plan.SourcePath())
+		GNUUntar(cache.Stages(), ctx.Plan.SourcePath())
 	}
 patch:
-	fmt.Printf(lfmt, "patch", plan.NameVersion())
-	if err := doCommands(config, join(cache.Stages(), plan.stageDir()), plan.Patch); err != nil {
-		return err
-	}
-	return
+	fmt.Printf(lfmt, "patch", ctx.Plan.NameVersion())
+	return doCommands(config, join(cache.Stages(), ctx.Plan.stageDir()), ctx.Plan.Patch)
 }
 
 // Calls each shell command in the plans Build field.
@@ -389,7 +386,7 @@ func BuildSteps(ctx *PlanContext) (err error) {
 		elog.Println(err)
 		return err
 	}
-	if err := Stage(&ctx.Config, ctx.Plan); err != nil {
+	if err := Stage(ctx); err != nil {
 		elog.Println(err)
 		return err
 	}
