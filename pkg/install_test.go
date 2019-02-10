@@ -48,7 +48,8 @@ func fixmeTestBuild(t *testing.T) {
 			"testdata/cache/pkg/hello-2.9/opt/via/bin/a.out",
 		}
 	)
-	if err := BuildSteps(testConfig, testPlan); err != nil {
+	ctx := NewPlanContext(testConfig, testPlan)
+	if err := BuildSteps(ctx); err != nil {
 		t.Error(err)
 	}
 	for _, expect := range files {

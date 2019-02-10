@@ -35,9 +35,8 @@ var develCommand = &cli.Command{
 			Action: diff,
 		},
 		&cli.Command{
-			Name:   "strap",
-			Usage:  "rebuilds each package in the devel group",
-			Action: strap,
+			Name:  "strap",
+			Usage: "rebuilds each package in the devel group",
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:  "m",
@@ -49,6 +48,9 @@ var develCommand = &cli.Command{
 					Value: false,
 					Usage: "debug output",
 				},
+			},
+			Action: func(ctx *cli.Context) error {
+				return fmt.Errorf("strap command is not implemented")
 			},
 		},
 		&cli.Command{

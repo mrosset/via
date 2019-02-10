@@ -110,12 +110,12 @@ func Debug(b bool) {
 	debug = b
 }
 
-func DownloadSrc(config *Config, plan *Plan) (err error) {
-	if file.Exists(plan.SourcePath()) && !update {
+func DownloadSrc(ctx *PlanContext) (err error) {
+	if file.Exists(ctx.SourcePath()) && !update {
 		return nil
 	}
-	fmt.Printf(lfmt, "download", plan.NameVersion())
-	eurl := plan.Expand().Url
+	fmt.Printf(lfmt, "download", ctx.Plan.NameVersion())
+	eurl := ctx.Plan.Expand().Url
 	u, err := url.Parse(eurl)
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func DownloadSrc(config *Config, plan *Plan) (err error) {
 	case "http", "https":
 		return gurl.Download(cache.Sources(), eurl)
 	case "git":
-		spath := filepath.Join(cache.Sources(), plan.Name)
+		spath := filepath.Join(cache.Sources(), ctx.Plan.Name)
 		if err := Clone(spath, "https"+eurl[3:]); err != nil {
 			elog.Println(err)
 			return err
@@ -354,56 +354,56 @@ func Remove(config *Config, name string) (err error) {
 	return os.RemoveAll(join(config.DB.Installed(config), name))
 }
 
-func BuildDeps(config *Config, plan *Plan) (err error) {
-	for _, d := range plan.Depends() {
-		if IsInstalled(config, d) {
-			continue
-		}
-		p, _ := NewPlan(config, d)
-		if file.Exists(p.PackagePath()) {
-			if err := NewInstaller(config, plan).Install(); err != nil {
-				return err
-			}
-			continue
-		}
-		fmt.Println("building", d, "for", plan.NameVersion())
-		err := BuildDeps(config, p)
-		if err != nil {
-			elog.Println(err)
-			return err
-		}
-	}
-	err = BuildSteps(config, plan)
-	if err != nil {
-		return err
-	}
-	return NewInstaller(config, plan).Install()
-}
+// func BuildDeps(config *Config, plan *Plan) (err error) {
+//	for _, d := range plan.Depends() {
+//		if IsInstalled(config, d) {
+//			continue
+//		}
+//		p, _ := NewPlan(config, d)
+//		if file.Exists(p.PackagePath()) {
+//			if err := NewInstaller(config, plan).Install(); err != nil {
+//				return err
+//			}
+//			continue
+//		}
+//		fmt.Println("building", d, "for", plan.NameVersion())
+//		err := BuildDeps(config, p)
+//		if err != nil {
+//			elog.Println(err)
+//			return err
+//		}
+//	}
+//	err = BuildSteps(config, plan)
+//	if err != nil {
+//		return err
+//	}
+//	return NewInstaller(config, plan).Install()
+// }
 
 // Run all of the functions required to build a package
-func BuildSteps(config *Config, plan *Plan) (err error) {
-	if file.Exists(plan.PackageFile()) {
-		return fmt.Errorf("package %s exists", plan.PackageFile())
+func BuildSteps(ctx *PlanContext) (err error) {
+	if file.Exists(ctx.PackageFile()) {
+		return fmt.Errorf("package %s exists", ctx.PackageFile())
 	}
-	if err := DownloadSrc(config, plan); err != nil {
+	if err := DownloadSrc(ctx); err != nil {
 		elog.Println(err)
 		return err
 	}
-	if err := Stage(config, plan); err != nil {
+	if err := Stage(&ctx.Config, ctx.Plan); err != nil {
 		elog.Println(err)
 		return err
 	}
-	fmt.Printf(lfmt, "build", plan.NameVersion())
-	if err := Build(config, plan); err != nil {
+	fmt.Printf(lfmt, "build", ctx.Plan.NameVersion())
+	if err := Build(&ctx.Config, ctx.Plan); err != nil {
 		elog.Println(err)
 		return err
 	}
-	fmt.Printf(lfmt, "package", plan.NameVersion())
-	if err := Package(config, "", plan); err != nil {
+	fmt.Printf(lfmt, "package", ctx.Plan.NameVersion())
+	if err := Package(&ctx.Config, "", ctx.Plan); err != nil {
 		elog.Println(err)
 		return err
 	}
-	return RepoCreate(config)
+	return RepoCreate(&ctx.Config)
 }
 
 var (

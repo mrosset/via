@@ -27,8 +27,8 @@ type Builder struct {
 
 func (t *Builder) RpcBuild(req Request, resp *Response) error {
 	Clean(req.Plan.Name)
-	err := BuildSteps(t.config, &req.Plan)
-	if err != nil {
+	ctx := NewPlanContext(t.config, &req.Plan)
+	if err := BuildSteps(ctx); err != nil {
 		return err
 	}
 	return NewInstaller(t.config, &req.Plan).Install()

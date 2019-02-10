@@ -5,22 +5,38 @@ import (
 )
 
 // ViaContext helps to tie config, cache and plan fields together
-type ViaContext struct {
+type PlanContext struct {
 	Plan   *Plan
 	Config Config
+	Update bool
+	Debug  bool
+	Verbos bool
 }
 
-func NewViaContext(config Config, plan *Plan) *ViaContext {
-	return &ViaContext{Config: config, Plan: plan}
+// Returns a new VieaContext
+func NewPlanContext(config *Config, plan *Plan) *PlanContext {
+	return &PlanContext{Config: *config, Plan: plan}
 }
 
-func (c ViaContext) PackageFile() string {
+func NewPlanContextByName(config *Config, name string) (*PlanContext, error) {
+	plan, err := NewPlan(config, name)
+	if err != nil {
+		return nil, err
+	}
+	return &PlanContext{Config: *config, Plan: plan}, nil
+}
+
+func (c PlanContext) SourcePath() string {
+	return c.Plan.SourcePath()
+}
+
+func (c PlanContext) PackageFile() string {
 	if c.Plan.Cid == "" {
 		return fmt.Sprintf("%s-%s-%s.tar.gz", c.Plan.NameVersion(), c.Config.OS, c.Config.Arch)
 	}
 	return fmt.Sprintf("%s.tar.gz", c.Plan.Cid)
 }
 
-func (c ViaContext) PackagePath() string {
+func (c PlanContext) PackagePath() string {
 	return join(c.Config.Repo, c.PackageFile())
 }

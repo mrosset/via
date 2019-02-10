@@ -336,43 +336,43 @@ func daemon(ctx *cli.Context) error {
 	return via.StartDaemon(config)
 }
 
-func strap(ctx *cli.Context) error {
+// func strap(ctx *cli.Context) error {
 
-	dplan, err := via.NewPlan(config, "devel")
+//	dplan, err := via.NewPlan(config, "devel")
 
-	if err != nil {
-		return err
-	}
+//	if err != nil {
+//		return err
+//	}
 
-	via.Debug(ctx.Bool("d"))
+//	via.Debug(ctx.Bool("d"))
 
-	for _, p := range dplan.ManualDepends {
-		plan, err := via.NewPlan(config, p)
-		if err != nil {
-			return err
-		}
-		if ctx.Bool("m") {
-			plan.IsRebuilt = false
-			plan.Save()
-			continue
-		}
-		if plan.IsRebuilt {
-			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
-			continue
-		}
-		via.Clean(plan.Name)
+//	for _, p := range dplan.ManualDepends {
+//		plan, err := via.NewPlan(config, p)
+//		if err != nil {
+//			return err
+//		}
+//		if ctx.Bool("m") {
+//			plan.IsRebuilt = false
+//			plan.Save()
+//			continue
+//		}
+//		if plan.IsRebuilt {
+//			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
+//			continue
+//		}
+//		via.Clean(plan.Name)
 
-		if err := via.BuildSteps(config, plan); err != nil {
-			return err
-		}
-		batch := via.NewBatch(config)
-		batch.Add(plan)
-		if errs := batch.Install(); len(errs) != 0 {
-			return errs[0]
-		}
-	}
-	return nil
-}
+//		if err := via.BuildSteps(config, plan); err != nil {
+//			return err
+//		}
+//		batch := via.NewBatch(config)
+//		batch.Add(plan)
+//		if errs := batch.Install(); len(errs) != 0 {
+//			return errs[0]
+//		}
+//	}
+//	return nil
+// }
 
 // TODO: move this to install.go
 func batch(ctx *cli.Context) error {
@@ -434,38 +434,35 @@ func build(ctx *cli.Context) error {
 		return remote(ctx)
 	}
 	for _, arg := range ctx.Args().Slice() {
-		plan, err := via.NewPlan(config, arg)
+		pctx, err := via.NewPlanContextByName(config, arg)
 		if err != nil {
 			return err
 		}
-		if plan.IsRebuilt && !ctx.Bool("f") {
+		if pctx.Plan.IsRebuilt && !ctx.Bool("f") {
 			return fmt.Errorf("Plan is built already")
 		}
-		if plan.IsRebuilt && ctx.Bool("f") {
-			plan.IsRebuilt = false
-			plan.Save()
+		if pctx.Plan.IsRebuilt && ctx.Bool("f") {
+			pctx.Plan.IsRebuilt = false
+			pctx.Plan.Save()
 		}
 		via.Verbose(ctx.Bool("v"))
 		via.Debug(ctx.Bool("d"))
 		via.Update(ctx.Bool("u"))
 
 		if ctx.Bool("c") {
-			via.Clean(plan.Name)
+			via.Clean(pctx.Plan.Name)
 		}
 		if ctx.Bool("dd") {
-			err = via.BuildDeps(config, plan)
-			if err != nil {
-				return err
-			}
+			return fmt.Errorf("flag -dd is not implemented need BuildDeps()")
 		} else {
-			err = via.BuildSteps(config, plan)
+			err = via.BuildSteps(pctx)
 			if err != nil {
 				return err
 			}
 		}
 		if ctx.Bool("i") {
-			fmt.Printf(lfmt, "install", plan.NameVersion())
-			if err := via.NewInstaller(config, plan).Install(); err != nil {
+			fmt.Printf(lfmt, "install", pctx.Plan.NameVersion())
+			if err := via.NewInstaller(&pctx.Config, pctx.Plan).Install(); err != nil {
 				return err
 			}
 		}
