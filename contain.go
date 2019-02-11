@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/mrosset/util/file"
-	"github.com/mrosset/util/json"
-	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"syscall"
 )
 
@@ -21,15 +18,6 @@ const (
 )
 
 var (
-	config  = new(via.Config)
-	cfile   = filepath.Join(viapath, "plans/config.json")
-	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
-	viaUrl  = "https://github.com/mrosset/via"
-	planUrl = "https://github.com/mrosset/plans"
-)
-
-var (
-	viabin          = filepath.Join(os.Getenv("GOPATH"), "bin/via")
 	containCommands = []*cli.Command{
 		&cli.Command{
 			Name:   "enter",
@@ -40,55 +28,8 @@ var (
 )
 
 func init() {
-	if os.Getenv("GOPATH") == "" {
-		elog.Fatal("GOPATH must be set")
-	}
-	// TODO rework this to error and suggest user use 'via init'
-	if !file.Exists(viapath) {
-		elog.Println("cloning plans")
-		if err := via.Clone(viapath, viaUrl); err != nil {
-			elog.Fatal(err)
-		}
-	}
-	pdir := filepath.Dir(cfile)
-	if !file.Exists(pdir) {
-		elog.Println("cloning plans")
-		err := via.Clone(pdir, planUrl)
-		if err != nil {
-			elog.Fatal(err)
-		}
-	}
-
-	if err := json.Read(&config, cfile); err != nil {
+	if err := readconfig(); err != nil {
 		elog.Fatal(err)
-	}
-
-	// TODO: provide Lint for master config
-	sort.Strings([]string(config.Flags))
-	sort.Strings(config.Remove)
-
-	if err := json.Write(&config, cfile); err != nil {
-		elog.Fatal(err)
-	}
-
-	config = config.Expand()
-	config.Cache = config.Cache.Expand()
-
-	// if err := CheckLink(); err != nil {
-	//	elog.Fatal(err)
-	// }
-
-	config.Cache.Init()
-	config.Plans = os.ExpandEnv(config.Plans)
-	config.Repo = os.ExpandEnv(config.Repo)
-	if err := os.MkdirAll(config.Repo, 0755); err != nil {
-		elog.Fatal(err)
-	}
-	for i, j := range config.Env {
-		os.Setenv(i, os.ExpandEnv(j))
-	}
-	for i, j := range config.Env {
-		os.Setenv(i, os.ExpandEnv(j))
 	}
 }
 
@@ -168,13 +109,10 @@ func initialize() {
 	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
+	// setup busybox and links
 	if err := busybox(root); err != nil {
 		elog.Fatal(err)
 	}
-	// bind sh
-	// if err := bindsh(root); err != nil {
-	//	elog.Fatal(err)
-	// }
 	// finally pivot our root
 	if err := pivot(root); err != nil {
 		elog.Fatal(err)
@@ -435,13 +373,8 @@ func pivot(newroot string) error {
 	}
 
 	// umount oldroot, which now lives at /.pivot_root
-	oldroot = "/.root"
-	if err := syscall.Unmount(
-		oldroot,
-		syscall.MNT_DETACH,
-	); err != nil {
+	if err := syscall.Unmount("/.root", syscall.MNT_DETACH); err != nil {
 		return err
 	}
-
 	return os.RemoveAll(oldroot)
 }

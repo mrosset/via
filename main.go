@@ -20,12 +20,25 @@ import (
 )
 
 var (
+	config  = new(via.Config)
+	cfile   = filepath.Join(viapath, "plans/config.json")
+	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
+	viaUrl  = "https://github.com/mrosset/via"
+	planUrl = "https://github.com/mrosset/plans"
+	viabin  = filepath.Join(os.Getenv("GOPATH"), "bin/via")
+
 	elog = log.New(os.Stderr, "", log.Lshortfile)
 	lfmt = "%-20.20s %v\n"
 	app  = &cli.App{
 		Name:                  "via",
 		Usage:                 "a systems package manager",
 		EnableShellCompletion: true,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "config",
+				Value: "/path/to/some",
+			},
+		},
 	}
 
 	// build command
@@ -240,6 +253,60 @@ var (
 		},
 	}
 )
+
+func initvia() error {
+	// TODO rework this to error and suggest user use 'via init'
+	if !file.Exists(viapath) {
+		elog.Println("cloning via")
+		if err := via.Clone(viapath, viaUrl); err != nil {
+			return err
+		}
+	}
+
+	// This should not actually run, though it should be used
+	// instead of cloning the above via path though is should be
+	// used instead of
+	pdir := filepath.Dir(cfile)
+	if !file.Exists(pdir) {
+		elog.Println("cloning plans")
+		if err := via.Clone(pdir, planUrl); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func readconfig() error {
+	if os.Getenv("GOPATH") == "" {
+		elog.Fatal("GOPATH must be set")
+	}
+
+	if err := json.Read(&config, cfile); err != nil {
+		return err
+	}
+
+	// TODO: create a marshell command to sort these fields?
+	sort.Strings([]string(config.Flags))
+	sort.Strings(config.Remove)
+
+	if err := json.Write(&config, cfile); err != nil {
+		elog.Fatal(err)
+	}
+
+	config = config.Expand()
+	config.Cache = config.Cache.Expand()
+
+	config.Cache.Init()
+	config.Plans = os.ExpandEnv(config.Plans)
+	config.Repo = os.ExpandEnv(config.Repo)
+	if err := os.MkdirAll(config.Repo, 0755); err != nil {
+		return err
+	}
+	for i, j := range config.Env {
+		os.Setenv(i, os.ExpandEnv(j))
+	}
+	return nil
+}
 
 func main() {
 	app.Commands = append(app.Commands, []*cli.Command{
