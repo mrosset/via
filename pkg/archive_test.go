@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-// FIXME: create a test to verify we can extract long file names.
+// TODO: create a test to verify we can extract long file names.
 func TestLongNames(t *testing.T) {
 	var (
 		longName = fmt.Sprintf("L%sng", strings.Repeat("o", 98))
