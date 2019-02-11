@@ -1,3 +1,5 @@
+// +build online
+
 package via
 
 import (
@@ -7,7 +9,7 @@ import (
 // testdata/ipfs directory is generated using.
 // ipfs get -o testdata/ipfs QmS4ustL54uo8FzR9455qaxZwuMiUhyvMcX9Ba8nUH4uVv
 
-func fixmeTestAdd(t *testing.T) {
+func TestIpfsAdd(t *testing.T) {
 	var (
 		expect = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
 	)
@@ -21,7 +23,7 @@ func fixmeTestAdd(t *testing.T) {
 
 }
 
-func TestHashOnly(t *testing.T) {
+func TestIpfsHashOnly(t *testing.T) {
 	var (
 		expect = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB"
 	)
