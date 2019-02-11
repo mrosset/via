@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// ProgressWriter provides a writer interface that updates speed and
+// progress information for ProgMeter
 type ProgressWriter struct {
 	total int64
 	w     io.Writer
@@ -19,6 +21,7 @@ type ProgressWriter struct {
 	key   string
 }
 
+// NewProgressWriter returns a new ProgressWriter that has been initialized
 func NewProgressWriter(pm *progmeter.ProgMeter, key string, t int64, w io.Writer) *ProgressWriter {
 	return &ProgressWriter{
 		pm:    pm,
@@ -27,6 +30,7 @@ func NewProgressWriter(pm *progmeter.ProgMeter, key string, t int64, w io.Writer
 		w:     w}
 }
 
+// Write provides writer interface write method
 func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	if pw.done == 0 {
 		pw.start = time.Now()
@@ -41,8 +45,4 @@ func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	pw.pm.Working(pw.key, bar, speed)
 	// time.Sleep(2.4e7)
 	return pw.w.Write(b)
-}
-
-func (pw *ProgressWriter) Close() error {
-	return nil
 }

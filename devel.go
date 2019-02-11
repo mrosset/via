@@ -133,12 +133,7 @@ This is useful for creating a new branch that either has another config or to bo
 						return err
 					}
 				}
-				if err = via.RepoCreate(config); err != nil {
-					return err
-				}
-
-				return nil
-
+				return via.RepoCreate(config)
 			},
 		},
 		&cli.Command{

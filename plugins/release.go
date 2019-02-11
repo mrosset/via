@@ -19,11 +19,11 @@ type release struct {
 	config *via.Config
 }
 
-func NewRelease(config *via.Config) release {
-	return release{
-		config: config,
-	}
-}
+// func NewRelease(config *via.Config) release {
+//	return release{
+//		config: config,
+//	}
+// }
 
 func (f *release) SetConfig(config *via.Config) {
 	f.config = config
@@ -75,4 +75,5 @@ func execs(cmd string, args ...string) error {
 	return e.Run()
 }
 
+// Release exports release type
 var Release release

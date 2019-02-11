@@ -8,7 +8,10 @@ import (
 	"testing"
 )
 
+//revive:disable
 const EXPECT_GOT_FMT = "expect '%v' got '%v'"
+
+//revive:enable
 
 func init() {
 	Verbose(false)

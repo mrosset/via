@@ -15,10 +15,13 @@ import (
 	"time"
 )
 
+//revive:disable
 const (
 	DOCKERENV = "/.dockerenv"
 	DOCKERAPI = "172.17.0.1:5001"
 )
+
+//revive:enable
 
 type IpfsStat struct {
 	Path    string
@@ -30,12 +33,15 @@ func isDocker() bool {
 	return file.Exists(DOCKERENV)
 }
 
+//revive:disable
 func whichApi(config *Config) string {
 	if isDocker() {
 		return DOCKERAPI
 	}
 	return config.IpfsApi
 }
+
+//revive:enable
 
 func IpfsAdd(config *Config, path Path) (string, error) {
 	s := shell.NewShell(whichApi(config))

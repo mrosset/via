@@ -23,8 +23,8 @@ var (
 	config  = new(via.Config)
 	cfile   = filepath.Join(viapath, "plans/config.json")
 	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
-	viaUrl  = "https://github.com/mrosset/via"
-	planUrl = "https://github.com/mrosset/plans"
+	viaURL  = "https://github.com/mrosset/via"
+	planURL = "https://github.com/mrosset/plans"
 	viabin  = filepath.Join(os.Getenv("GOPATH"), "bin/via")
 
 	elog = log.New(os.Stderr, "", log.Lshortfile)
@@ -258,7 +258,7 @@ func initvia() error {
 	// TODO rework this to error and suggest user use 'via init'
 	if !file.Exists(viapath) {
 		elog.Println("cloning via")
-		if err := via.Clone(viapath, viaUrl); err != nil {
+		if err := via.Clone(viapath, viaURL); err != nil {
 			return err
 		}
 	}
@@ -269,7 +269,7 @@ func initvia() error {
 	pdir := filepath.Dir(cfile)
 	if !file.Exists(pdir) {
 		elog.Println("cloning plans")
-		if err := via.Clone(pdir, planUrl); err != nil {
+		if err := via.Clone(pdir, planURL); err != nil {
 			return err
 		}
 	}
@@ -381,10 +381,7 @@ func clean(ctx *cli.Context) error {
 	if err := os.RemoveAll(via.Path(config.Cache.Builds()).String()); err != nil {
 		return err
 	}
-	if err := os.RemoveAll(via.Path(config.Cache.Stages()).String()); err != nil {
-		return err
-	}
-	return nil
+	return os.RemoveAll(via.Path(config.Cache.Stages()).String())
 }
 
 func fix(ctx *cli.Context) error {
@@ -528,12 +525,11 @@ func build(ctx *cli.Context) error {
 		}
 		if ctx.Bool("dd") {
 			return fmt.Errorf("flag -dd is not implemented need BuildDeps()")
-		} else {
-			err = via.BuildSteps(pctx)
-			if err != nil {
-				return err
-			}
 		}
+		if err := via.BuildSteps(pctx); err != nil {
+			return err
+		}
+
 		if ctx.Bool("i") {
 			fmt.Printf(lfmt, "install", pctx.Plan.NameVersion())
 			if err := via.NewInstaller(&pctx.Config, pctx.Plan).Install(); err != nil {
@@ -741,7 +737,7 @@ func pack(ctx *cli.Context) error {
 
 func debug(ctx *cli.Context) error {
 	cmds := []string{"gcc", "g++", "python", "ld", "perl", "make", "bash", "ccache", "strip"}
-	env := config.Getenv()
+	env := config.SanitizeEnv()
 	sort.Strings(env)
 	for _, v := range env {
 		e := strings.SplitN(v, "=", 2)

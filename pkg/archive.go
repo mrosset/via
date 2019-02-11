@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
@@ -15,10 +14,11 @@ import (
 	"strings"
 )
 
-var (
-	ErrorTarHeader = errors.New("Unknown tar header")
-)
-
+// Uses tar program to decompress an extract source files
+//
+// FIXME: this is temporary used to handle some corner cases with long
+// file names which could now be resolved with go upstream. Revisit
+// this when we rework our untar functions
 func GNUUntar(dest string, file string) error {
 	tar := exec.Command("tar", "-xf", file)
 	tar.Dir = dest
@@ -27,11 +27,13 @@ func GNUUntar(dest string, file string) error {
 	return tar.Run()
 }
 
-// TODO: rewrite this hackfest
-// Decompress Reader to destination directory
+// Untar decompress reader to destination directory. This is mainly
+// used for install via packages
+//
+// FIXME: rewrite this hackfest
 func Untar(dest string, r io.Reader) error {
 	if !file.Exists(dest) {
-		return fmt.Errorf("%s does not exist.", dest)
+		return fmt.Errorf("%s does not exist", dest)
 	}
 	tr := tar.NewReader(r)
 	for {
@@ -198,7 +200,9 @@ func archive(wr io.Writer, dir string) error {
 
 }
 
-// TODO: rewrite this hackfest
+// Tarball tars a PlanContext's package directory
+//
+// FIXME: rewrite this hackfest
 func Tarball(ctx *PlanContext, wr io.Writer) (err error) {
 	var (
 		plan = ctx.Plan
@@ -217,11 +221,7 @@ func mkDir(path string, mode int64) (err error) {
 	if file.Exists(path) {
 		return
 	}
-	err = os.Mkdir(path, os.FileMode(mode))
-	if err != nil {
-		return err
-	}
-	return
+	return os.Mkdir(path, os.FileMode(mode))
 }
 
 // Write file from tar reader
@@ -288,5 +288,5 @@ func ReadPackManifest(p string) (*Plan, error) {
 			return man, err
 		}
 	}
-	return nil, fmt.Errorf("%s: could not find manifest.", p)
+	return nil, fmt.Errorf("%s: could not find manifest", p)
 }

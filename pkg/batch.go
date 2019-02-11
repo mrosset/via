@@ -124,7 +124,6 @@ func (b Batch) Download(plan *Plan) error {
 	pw := NewProgressWriter(b.pm, plan.Name, res.ContentLength, fd)
 	defer fd.Close()
 	_, err = io.Copy(pw, res.Body)
-	pw.Close()
 	return err
 }
 

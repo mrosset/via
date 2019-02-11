@@ -10,9 +10,7 @@ import (
 	"strings"
 )
 
-// Clones remote URL into directory
-// name is the reference name to clone.
-// e.g reference name ref/heads/master
+// Clone remote URL into directory.
 func Clone(dir, url string) error {
 	_, err := git.PlainClone(dir, false, &git.CloneOptions{
 		URL:               url,
@@ -22,15 +20,8 @@ func Clone(dir, url string) error {
 	return err
 }
 
-func Name(path string) {
-}
-
-// Returns the currently checked out branch for a Git directory
+// Branch returns the currently checked out branch for a .git directory
 func Branch(path string) (string, error) {
-	// path, err := filepath.Abs(path)
-	// if err != nil {
-	//	return "", err
-	// }
 	var (
 		head = join(path, ".git/HEAD")
 		dir  = filepath.Base(path)

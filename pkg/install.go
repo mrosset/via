@@ -10,11 +10,13 @@ import (
 	"path/filepath"
 )
 
+// Installer provides Installer type
 type Installer struct {
 	config *Config
 	plan   *Plan
 }
 
+// NewInstaller returns a new Installer that has been initialized
 func NewInstaller(config *Config, plan *Plan) *Installer {
 	return &Installer{
 		config: config,
@@ -22,6 +24,12 @@ func NewInstaller(config *Config, plan *Plan) *Installer {
 	}
 }
 
+// Download gets the plans binary tarball package from ipfs http
+// gateway. If run in a docker instance it will use a local docker ip.
+//
+// FIXME: now that we have have contain namespaces we probably don't
+// need docker logic here. And this will probably produce corner cases
+// down the road.
 func Download(config *Config, plan *Plan) error {
 	var (
 		url   = config.Binary + "/" + plan.Cid
@@ -41,6 +49,7 @@ func Download(config *Config, plan *Plan) error {
 	return gurl.NameDownload(config.Repo, url, plan.PackageFile())
 }
 
+// VerifyCid verifies that the download tarball matches the plans Cid
 func (i Installer) VerifyCid() error {
 	cid, err := HashOnly(i.config, Path(i.plan.PackagePath()))
 	if err != nil {
@@ -52,6 +61,11 @@ func (i Installer) VerifyCid() error {
 	return nil
 }
 
+// Install method does the final installation of decompressing and
+// extracting the tarball. The manifest which is essentially the
+// plan's json file is then stored in the DB installed directory.  It
+// also updates the manifest's Cid resulting in byte to byte parity
+// with the manifest.json and plan.json files.
 func (i Installer) Install() error {
 	var (
 		name = i.plan.Name

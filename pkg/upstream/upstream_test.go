@@ -71,6 +71,7 @@ func TestParseVersion(t *testing.T) {
 			"4.444":         "Bash-4.444.tar.gz",
 			"4.444.444":     "Bash-4.444.444.tar.gz",
 			"4.444.444.555": "Bash-4.444.444.555.tar.gz",
+			"5.0":           "bash-5.0.tar.gz",
 		}
 	)
 

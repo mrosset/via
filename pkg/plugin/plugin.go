@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 )
 
+// Plugin is the interface that provides a via plugin
 type Plugin interface {
 	SetConfig(*via.Config)
 	Execute() error
@@ -25,6 +26,7 @@ func build(out string, in string) error {
 	return execs("go", "build", "-buildmode=plugin", "-o", out, in)
 }
 
+// Build builds all of plugin files in
 func Build(config *via.Config) error {
 	dir := filepath.Join(config.Repo, "../../plugins")
 	glob := filepath.Join(dir, "*.go")

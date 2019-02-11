@@ -10,6 +10,7 @@ import (
 	"syscall"
 )
 
+//revive:disable
 const (
 	SOCKET_FILE = "/tmp/via/socket"
 )
@@ -21,6 +22,10 @@ type Request struct {
 type Response struct {
 }
 
+// Builder provides RPC server type
+//
+// FIXME: this is not complete and not as important since we are using namespaces.
+// could be useful at a later point
 type Builder struct {
 	config *Config
 }
@@ -59,3 +64,5 @@ func StartDaemon(config *Config) error {
 	<-signals
 	return nil
 }
+
+//revive:enable

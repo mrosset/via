@@ -12,6 +12,10 @@ import (
 //TODO: use our own keyring
 var keyring = filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
 
+// Sign produces a detached signature for a plans package file
+//
+// FIXME: currently this is not used at all. And may be redundant
+// considering we are using ipfs multihash. Will revist this later.
 func Sign(ctx *PlanContext) (err error) {
 	var (
 		plan     = ctx.Plan
@@ -70,6 +74,11 @@ func Sign(ctx *PlanContext) (err error) {
 	return nil
 }
 
+// VerifiySig verifiy's that the plans signature matches a trusted
+// signature.
+//
+// FIXME: currently this is not used right now. instead ipfs's
+// multihash is used. Revisit this later
 func VerifiySig(path string) (err error) {
 	fd, err := os.Open(keyring)
 	if err != nil {

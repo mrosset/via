@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// PlanContext helps to tie config, cache and plan fields together
+// PlanContext type ties config, cache and plan fields together
 type PlanContext struct {
 	Plan   *Plan
 	Config Config
@@ -16,7 +16,7 @@ type PlanContext struct {
 	Verbos bool
 }
 
-// Returns a new VieaContext
+// NewPlanContext creates an initializes a new PlanContext
 func NewPlanContext(config *Config, plan *Plan) *PlanContext {
 	return &PlanContext{
 		Config: *config,
@@ -25,22 +25,22 @@ func NewPlanContext(config *Config, plan *Plan) *PlanContext {
 	}
 }
 
+// NewPlanContextByName creates and initializes a new PlanContext this
+// is like NewPlanContext but instead finds a new Plan by name
 func NewPlanContextByName(config *Config, name string) (*PlanContext, error) {
 	plan, err := NewPlan(config, name)
 	if err != nil {
 		return nil, err
 	}
-	return &PlanContext{
-		Config: *config,
-		Cache:  config.Cache,
-		Plan:   plan,
-	}, nil
+	return NewPlanContext(config, plan), nil
 }
 
+// PlanPath returns the full path of this contexts Plan's json file
 func (c PlanContext) PlanPath() string {
 	return filepath.Join(c.Config.Plans, c.Plan.Group, c.Plan.Name+".json")
 }
 
+// BuildDir returns the full path of this context Plan's build directory
 func (c PlanContext) BuildDir() string {
 	bdir := join(c.Cache.Builds(), c.Plan.NameVersion())
 	if c.Plan.BuildInStage {
@@ -49,19 +49,26 @@ func (c PlanContext) BuildDir() string {
 	return bdir
 }
 
+// WritePlan saves the serialized go struct to it's json file. The
+// json file is pretty formatted so to keep consistency
 func (c PlanContext) WritePlan() error {
 	return json.Write(c.Plan, c.PlanPath())
 }
 
+// StageDir returns the full path for the PlanContext staging
+// directory
 func (c PlanContext) StageDir() string {
 	return join(c.Cache.Stages(), c.Plan.stageDir())
 }
 
+// SourcePath returns the full path for the PlanContext source file or
+// directory
 func (c PlanContext) SourcePath() string {
 	s := filepath.Join(c.Cache.Sources(), filepath.Base(c.Plan.Expand().Url))
 	return s
 }
 
+// PackageFile returns the file name for the PlanContext package file
 func (c PlanContext) PackageFile() string {
 	if c.Plan.Cid == "" {
 		return fmt.Sprintf("%s-%s-%s.tar.gz", c.Plan.NameVersion(), c.Config.OS, c.Config.Arch)
@@ -69,6 +76,7 @@ func (c PlanContext) PackageFile() string {
 	return fmt.Sprintf("%s.tar.gz", c.Plan.Cid)
 }
 
+// PackagePath returns the full path for PlanContext package file
 func (c PlanContext) PackagePath() string {
 	return join(c.Config.Repo, c.PackageFile())
 }

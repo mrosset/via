@@ -26,7 +26,7 @@ func strip(p string) error {
 	return cmd.Run()
 }
 
-// Walks the plans PKGDIR and creates a gzipped manifest file.
+// CreateManifest walks the plans PKGDIR and creates a gzipped manifest file.
 func CreateManifest(ctx *PlanContext, dir string) (err error) {
 	var (
 		plan  = ctx.Plan

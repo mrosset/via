@@ -12,11 +12,13 @@ import (
 	"syscall"
 )
 
+//revive:disable
 const (
 	BIND_RO = syscall.MS_BIND | syscall.MS_RDONLY | syscall.MS_REC
 	BIND_RW = syscall.MS_BIND | syscall.MS_REC
 )
 
+//revive:enable
 var (
 	containCommands = []*cli.Command{
 		&cli.Command{
@@ -215,13 +217,10 @@ func contain(ctx *cli.Context) error {
 			},
 		},
 	}
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
+	return cmd.Run()
 }
 
-type FileSystem struct {
+type fileSystem struct {
 	Source string
 	Type   string
 	Target string
@@ -230,7 +229,7 @@ type FileSystem struct {
 	MakeFn func(string) error
 }
 
-func (fs FileSystem) Mount(root string) error {
+func (fs fileSystem) Mount(root string) error {
 	target := filepath.Join(root, fs.Target)
 	if err := os.MkdirAll(target, 0755); err != nil {
 		return err
@@ -313,7 +312,7 @@ func mount(root string) error {
 		viabin,
 	}
 	// our filesystems
-	fs := []FileSystem{
+	fs := []fileSystem{
 		{
 			Source: "proc",
 			Target: "/proc",

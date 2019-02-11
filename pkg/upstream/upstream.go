@@ -23,6 +23,9 @@ type example struct {
 	Files []string `goquery:"table.files tbody tr.js-navigation-item td.content,text"`
 }
 
+// GnuUpstreamLatest returns the latest version found from upstream
+// mirror. This is still highly experimental
+// If the version returned is "0.0.0" then no new versions were found.
 func GnuUpstreamLatest(name, url string, current semver.Version) (string, error) {
 	var (
 		res    *http.Response
@@ -70,6 +73,8 @@ func isInt(i rune) bool {
 	}
 }
 
+// ParseName parses a string and returns the name before the last hyphen.
+// passing "bash-5.0" would return "bash"
 func ParseName(in string) string {
 	var s scanner.Scanner
 	s.Init(strings.NewReader(in))
@@ -82,6 +87,8 @@ func ParseName(in string) string {
 	return ""
 }
 
+// ParseVersion returns the parsed version from a string.
+// passing "bash-5.0" should return "5.0"
 func ParseVersion(in string) string {
 	var (
 		regs = []string{
@@ -99,6 +106,8 @@ func ParseVersion(in string) string {
 	return ""
 }
 
+// ParseNameVersion returns the name and version from a string
+// the string passed is usually in the GNU form of "name-1.0.0"
 func ParseNameVersion(file string) (string, string) {
 	return ParseName(file), ParseVersion(file)
 }

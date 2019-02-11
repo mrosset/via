@@ -50,7 +50,7 @@ func TestConfigGetenv(t *testing.T) {
 			"LDFLAGS=",
 			"PREFIX=/opt/via",
 		}
-		got = testConfig.Getenv()
+		got = testConfig.SanitizeEnv()
 	)
 	sort.Strings(got)
 	sort.Strings(expect)

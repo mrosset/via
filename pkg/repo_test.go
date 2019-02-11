@@ -17,23 +17,23 @@ func TestRepoFilesOwns(t *testing.T) {
 			"glibc-arm": []string{tfile},
 			"glibc":     []string{tfile},
 		}
-		expect_one  = "glibc"
-		expect_more = []string{"glibc", "glibc-arm"}
+		expectOne  = "glibc"
+		expectMore = []string{"glibc", "glibc-arm"}
 	)
 
 	for i := 0; i <= 100; i++ {
 		got := repo.Owns(tfile)
-		if expect_one != got {
-			t.Errorf(EXPECT_GOT_FMT, expect_one, got)
+		if expectOne != got {
+			t.Errorf(EXPECT_GOT_FMT, expectOne, got)
 		}
 		got = inverse.Owns(tfile)
-		if expect_one != got {
-			t.Errorf(EXPECT_GOT_FMT, expect_one, got)
+		if expectOne != got {
+			t.Errorf(EXPECT_GOT_FMT, expectOne, got)
 		}
 	}
 
-	if got := repo.Owners(tfile); !reflect.DeepEqual(got, expect_more) {
-		t.Errorf(EXPECT_GOT_FMT, expect_more, got)
+	if got := repo.Owners(tfile); !reflect.DeepEqual(got, expectMore) {
+		t.Errorf(EXPECT_GOT_FMT, expectMore, got)
 	}
 
 }

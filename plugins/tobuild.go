@@ -27,4 +27,5 @@ func (t *tobuild) SetConfig(config *via.Config) {
 //	return nil
 // }
 
+// Tobuild exports tobuild struct
 var Tobuild tobuild

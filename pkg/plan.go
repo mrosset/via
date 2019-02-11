@@ -72,6 +72,7 @@ func (p *Plan) Expand() *Plan {
 	return o
 }
 
+//revive:disable
 type Plan struct {
 	Name          string
 	Version       string
@@ -99,6 +100,8 @@ type Plan struct {
 	config        *Config
 }
 
+//revive:enable
+
 func (p *Plan) Depends() []string {
 	return append(p.AutoDepends, p.ManualDepends...)
 }
@@ -114,7 +117,7 @@ func FindPlanPath(config *Config, name string) (string, error) {
 		return "", err
 	}
 	if len(e) != 1 {
-		return "", fmt.Errorf("%s: expected 1 plan found %d.", name, len(e))
+		return "", fmt.Errorf("%s: expected 1 plan found %d", name, len(e))
 	}
 	return e[0], nil
 }

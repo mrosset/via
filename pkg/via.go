@@ -156,17 +156,12 @@ func doCommands(config *Config, dir string, cmds []string) (err error) {
 			Stdin:  os.Stdin,
 			Stderr: os.Stderr,
 			Dir:    dir,
-			Env:    config.Getenv(),
+			Env:    config.SanitizeEnv(),
 		}
 		if verbose {
 			cmd.Stdout = os.Stdout
 		}
-		if debug {
-			fmt.Println(config.Getenv())
-			fmt.Println(os.ExpandEnv(j))
-		}
-		err = cmd.Run()
-		if err != nil {
+		if err := cmd.Run(); err != nil {
 			elog.Printf("%s: %s\n", j, err)
 			return err
 		}
@@ -276,7 +271,7 @@ func PostInstall(config *Config, plan *Plan) (err error) {
 
 func Remove(config *Config, name string) (err error) {
 	if !IsInstalled(config, name) {
-		err = fmt.Errorf("%s is not installed.", name)
+		err = fmt.Errorf("%s is not installed", name)
 		return err
 	}
 	man, err := ReadManifest(config, name)
@@ -447,7 +442,7 @@ func conflicts(config *Config, man *Plan) (errs []error) {
 	for _, f := range man.Files {
 		fpath := join(config.Root, f)
 		if file.Exists(fpath) {
-			errs = append(errs, fmt.Errorf("%s already exists.", f))
+			errs = append(errs, fmt.Errorf("%s already exists", f))
 		}
 	}
 	return errs

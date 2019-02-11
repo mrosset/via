@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// RepoFiles provides plan files map hash
 type RepoFiles map[string][]string
 
 // Returns a sorted slice key strings
@@ -20,7 +21,7 @@ func (rf RepoFiles) keys() []string {
 	return keys
 }
 
-// Returns the first alphabetical plan Name of plan that contains file
+// Owns returns the first alphabetical plan Name of plan that contains file
 func (rf RepoFiles) Owns(file string) string {
 	for _, key := range rf.keys() {
 		if filesContains(rf[key], file) {
@@ -31,7 +32,7 @@ func (rf RepoFiles) Owns(file string) string {
 	return ""
 }
 
-// Like Owns but returns a slice of plan names instead of the first
+// Owners like owns but returns a slice of plan names instead of the first
 // occurrence. The returned slice is sorted alphabetically
 func (rf RepoFiles) Owners(file string) []string {
 	owners := []string{}
@@ -43,6 +44,7 @@ func (rf RepoFiles) Owners(file string) []string {
 	return owners
 }
 
+// ReadRepoFiles reads files.json and returns a RepoFiles map hash
 func ReadRepoFiles(config *Config) (RepoFiles, error) {
 	files := RepoFiles{}
 	if err := json.Read(&files, join(config.Plans, "files.json")); err != nil {
@@ -51,6 +53,12 @@ func ReadRepoFiles(config *Config) (RepoFiles, error) {
 	return files, nil
 }
 
+// RepoCreate reads each plan's files creating a repo.json file that
+// contains all plan's and groups. And also creating a files.json that
+// contains a hash map of each plans files
+//
+// FIXME: this is pretty expensive and probably won't scale well. Also
+// repo.json and files.json should probably not be kept in version control.
 func RepoCreate(config *Config) error {
 	var (
 		repo  = []string{}
