@@ -1,3 +1,5 @@
+// +build online
+
 package via
 
 import (
