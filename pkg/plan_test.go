@@ -36,26 +36,25 @@ func TestPlanExpand(t *testing.T) {
 		got    = testPlan.Expand().Url
 	)
 	if expect != got {
-		t.Errorf("expected %s got %s", expect, got)
+		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}
 }
 
-// FIXME
-// func TestFindPlan(t *testing.T) {
-//	var (
-//		expect = &Plan{
-//			Name: "sed",
-//			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
-//		}
-//	)
-//	got, err := NewPlan(config, "sed")
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	if expect.Name != got.Name || got.Url != expect.Url {
-//		t.Errorf("expected %s got %s", expect.Url, got.Url)
-//	}
-// }
+func TestFindPlan(t *testing.T) {
+	var (
+		expect = &Plan{
+			Name: "sed",
+			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
+		}
+	)
+	got, err := NewPlan(testConfig, "sed")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if expect.Name != got.Name || got.Url != expect.Url {
+		t.Errorf("expected %s got %s", expect.Url, got.Url)
+	}
+}
 
 func TestPlanPackagePath(t *testing.T) {
 	var (

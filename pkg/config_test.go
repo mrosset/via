@@ -15,6 +15,7 @@ var (
 		Root:    "testdata/root",
 		Repo:    "testdata/repo",
 		Cache:   "testdata/cache",
+		Plans:   "testdata/plans",
 		OS:      "linux",
 		Arch:    "x86_64",
 		DB:      "",
