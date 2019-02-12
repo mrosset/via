@@ -23,6 +23,7 @@ const (
 
 //revive:enable
 
+// IpfsStat provides type that contains file stat information
 type IpfsStat struct {
 	Path    string
 	Mode    os.FileMode
@@ -43,6 +44,7 @@ func whichApi(config *Config) string {
 
 //revive:enable
 
+// IpfsAdd add a file to ipfs and returns the ipfs multihash
 func IpfsAdd(config *Config, path Path) (string, error) {
 	s := shell.NewShell(whichApi(config))
 	fd, err := os.Open(path.String())
@@ -53,6 +55,7 @@ func IpfsAdd(config *Config, path Path) (string, error) {
 	return s.Add(fd)
 }
 
+// HashOnly returns the ipfs multihash for a file at path
 func HashOnly(config *Config, path Path) (string, error) {
 	s := shell.NewShell(whichApi(config))
 	fd, err := os.Open(path.String())
@@ -90,7 +93,7 @@ func HashOnly(config *Config, path Path) (string, error) {
 //	return fn.Cid().String(), nil
 // }
 
-// Walk 'path' and creates a stat.json file with each files permissions
+// MakeStat walks path and creates a stat.json file with each files permissions
 func MakeStat(path Path) error {
 	var (
 		files = []IpfsStat{}
@@ -109,7 +112,7 @@ func MakeStat(path Path) error {
 	return json.Write(files, sfile.String())
 }
 
-// Sets each files Mode in 'path' to mode contained in the paths stat.json file
+// SetStat each files Mode in path to mode contained in the paths stat.json file
 func SetStat(path Path) error {
 	var (
 		files = []IpfsStat{}

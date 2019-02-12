@@ -89,6 +89,7 @@ func filesContains(files []string, file string) bool {
 	return false
 }
 
+// Depends return the plan names, that each elf file depends on.
 func Depends(ctx *PlanContext, dir string) ([]string, error) {
 	var (
 		plan    = ctx.Plan
@@ -130,15 +131,18 @@ func needs(file string) []string {
 	return im
 }
 
-func ReadManifest(config *Config, name string) (man *Plan, err error) {
-	man = new(Plan)
-	err = json.Read(man, join(config.DB.Installed(config), name, "manifest.json"))
+// ReadManifest returns an installed Plan's manifest by name
+func ReadManifest(config *Config, name string) (*Plan, error) {
+	man := new(Plan)
+	err := json.Read(man, join(config.DB.Installed(config), name, "manifest.json"))
 	if err != nil {
-		return
+		return nil, err
 	}
-	return
+	return man, nil
 }
 
+// Readelf prints the dynamic libs and interop sections for the elf
+// binary specified by path name
 func Readelf(p string) error {
 	f, err := elf.Open(p)
 	if err != nil {

@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// Uses tar program to decompress an extract source files
+// GNUUntar uses tar program to decompress an extract source files
 //
 // FIXME: this is temporary used to handle some corner cases with long
 // file names which could now be resolved with go upstream. Revisit
@@ -250,6 +250,7 @@ func writeFile(path string, hdr *tar.Header, tr *tar.Reader) (err error) {
 	return os.Chtimes(path, hdr.AccessTime, hdr.ModTime)
 }
 
+// TarGzReader returns opens and returns a tar.Reader for give path
 func TarGzReader(p string) (*tar.Reader, error) {
 	fd, err := os.Open(p)
 	if err != nil {
@@ -263,6 +264,9 @@ func TarGzReader(p string) (*tar.Reader, error) {
 	}
 	return tar.NewReader(gz), nil
 }
+
+// ReadPackManifest open and package tarball path and returns a plans
+// package manifest
 func ReadPackManifest(p string) (*Plan, error) {
 	man := new(Plan)
 	tr, err := TarGzReader(p)

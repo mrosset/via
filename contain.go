@@ -36,11 +36,11 @@ func init() {
 }
 
 func init() {
-	app.Commands = append(app.Commands, containCommands...)
 	reexec.Register("init", initialize)
 	if reexec.Init() {
 		os.Exit(0)
 	}
+	app.Commands = append(app.Commands, containCommands...)
 }
 
 func linksh(root string) error {

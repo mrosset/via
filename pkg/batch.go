@@ -21,7 +21,7 @@ type Batch struct {
 	keys   []string
 }
 
-// Creates a new Batch type
+// NewBatch returns a new Batch that has been initialized
 func NewBatch(conf *Config) Batch {
 	threads := conf.Threads
 	if threads == 0 {
@@ -37,25 +37,30 @@ func NewBatch(conf *Config) Batch {
 	}
 }
 
+// Plans returns the Batch's plans
 func (b Batch) Plans() Plans {
 	return b.plans
 }
 
-// Prunes Installed Plans within the Batch
+// PruneInstalled Plans within the Batch
+//
+//FIXME: this is not implemented and is not currently being used
 func (b *Batch) PruneInstalled() {
 	for _, p := range b.plans {
 		if IsInstalled(b.config, p.Name) {
-			panic("Not Implimented")
+			panic("Not Implemented")
 		}
 	}
 }
 
-// Adds 'Plan to the Batch
+// Add a 'Plan to the Batch
 func (b *Batch) Add(plan *Plan) {
 	b.plans = append(b.plans, plan)
 	b.size += plan.Size
 }
 
+// Walk the plan's dependency tree and add each dependency to the
+// batch if it does not already exist
 func (b *Batch) Walk(plan *Plan) error {
 	if b.config == nil {
 		return fmt.Errorf("config is nil")
@@ -74,7 +79,7 @@ func (b *Batch) Walk(plan *Plan) error {
 	return nil
 }
 
-// Returns a string slice of 'Plans to install
+// ToInstall Returns a string slice of 'Plans to install
 func (b *Batch) ToInstall() Plans {
 	var plans Plans
 	for _, p := range b.plans {
@@ -85,7 +90,7 @@ func (b *Batch) ToInstall() Plans {
 	return plans
 }
 
-// Returns a string slice of 'Plans to download
+// ToDownload returns a string slice of Plans to download
 func (b *Batch) ToDownload() []string {
 	s := []string{}
 	for _, p := range b.plans {
@@ -96,6 +101,7 @@ func (b *Batch) ToDownload() []string {
 	return s
 }
 
+// Download plan's binary tarball for configured ipfs gateway
 func (b Batch) Download(plan *Plan) error {
 	var (
 		pfile = plan.PackagePath()
@@ -127,8 +133,11 @@ func (b Batch) Download(plan *Plan) error {
 	return err
 }
 
+// PlanFunc provides a func that takes a Plan
 type PlanFunc func(*Plan)
 
+// DownloadInstall provides a Plan function that downloads and
+// installs a Plan
 func (b *Batch) DownloadInstall(plan *Plan) {
 	if err := b.Download(plan); err != nil {
 		b.pm.Error(plan.Name, err.Error())
@@ -144,6 +153,7 @@ func (b *Batch) DownloadInstall(plan *Plan) {
 
 }
 
+// ForEach run PlanFunc on each plan in Plans.
 func (b Batch) ForEach(fn PlanFunc, plans Plans) (errors []error) {
 	for _, p := range plans {
 		b.wg.Add(1)
@@ -163,10 +173,12 @@ func (b Batch) ForEach(fn PlanFunc, plans Plans) (errors []error) {
 	return errors
 }
 
+// Install does the final download and installing of the batch plans
 func (b *Batch) Install() (errors []error) {
 	return b.ForEach(b.DownloadInstall, b.ToInstall())
 }
 
+// PromptInstall prompts user before installing
 func (b Batch) PromptInstall() []error {
 	fmt.Printf("%s", b)
 	fmt.Printf("Install? y/n : ")

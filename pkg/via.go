@@ -30,22 +30,26 @@ var (
 	verbose = false
 )
 
+// Verbose sets the global verbosity level
+//
+// FIXME: this should be set via PlanContext
 func Verbose(b bool) {
 	verbose = b
 }
 
-func Deps(b bool) {
-	deps = b
-}
-
+// Update set if a plan should update after building
+//
+// FIXME: document what this actually does
 func Update(b bool) {
 	update = b
 }
 
+// Debug sets the global debugging level
 func Debug(b bool) {
 	debug = b
 }
 
+// DownloadSrc downloads the PlanContext Plans upstream source
 func DownloadSrc(ctx *PlanContext) (err error) {
 	if file.Exists(ctx.SourcePath()) && !update {
 		return nil
@@ -73,8 +77,8 @@ func DownloadSrc(ctx *PlanContext) (err error) {
 	return nil
 }
 
-// Stages the downloaded source in via's cache directory
-// the stage only happens once unless BuilInStage is used
+// Stage the downloaded source in via's cache directory the stage only
+// happens once unless BuilInStage is used
 func Stage(ctx *PlanContext) (err error) {
 	if ctx.Plan.Url == "" || file.Exists(ctx.StageDir()) {
 		// nothing to stage
@@ -106,7 +110,7 @@ patch:
 	return doCommands(&ctx.Config, join(ctx.Cache.Stages(), ctx.Plan.stageDir()), ctx.Plan.Patch)
 }
 
-// Calls each shell command in the plans Build field.
+// Build calls each shell command in the plans Build field.
 func Build(ctx *PlanContext) (err error) {
 	var (
 		plan  = ctx.Plan
@@ -169,6 +173,7 @@ func doCommands(config *Config, dir string, cmds []string) (err error) {
 	return nil
 }
 
+// Package calls each shell command in Plans package field
 func Package(ctx *PlanContext, bdir string) (err error) {
 	var (
 		plan = ctx.Plan
@@ -233,6 +238,7 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 	*/
 }
 
+// CreatePackage Walks a Plans package directory and creates a tarball
 func CreatePackage(ctx *PlanContext) (err error) {
 	var (
 		plan  = ctx.Plan
@@ -250,25 +256,12 @@ func CreatePackage(ctx *PlanContext) (err error) {
 	return Tarball(ctx, gz)
 }
 
-// FIXME: unused should probably remove this
-// Updates each plans Oid to the Oid of the tarball in publish git repo
-// this function should never be used in production. It's used for making sure
-// the plans Oid match the git repo's Oid
-// func SyncHashs(config *Config) {
-//	plans, _ := GetPlans()
-//	for _, p := range plans {
-//		if file.Exists(p.PackagePath()) {
-//			p.Cid, _ = HashOnly(config, Path(p.PackagePath()))
-//			p.Save()
-//			log.Println(p.Cid, p.Name)
-//		}
-//	}
-// }
-
+// PostInstall calls each of the Plans PostInstall commands
 func PostInstall(config *Config, plan *Plan) (err error) {
 	return doCommands(config, "/", append(plan.PostInstall, config.PostInstall...))
 }
 
+// Remove a plan from the system
 func Remove(config *Config, name string) (err error) {
 	if !IsInstalled(config, name) {
 		err = fmt.Errorf("%s is not installed", name)
@@ -314,7 +307,7 @@ func Remove(config *Config, name string) (err error) {
 //	return NewInstaller(config, plan).Install()
 // }
 
-// Run all of the functions required to build a package
+// BuildSteps runs all of the functions required to build a package
 func BuildSteps(ctx *PlanContext) (err error) {
 	if file.Exists(ctx.PackageFile()) {
 		return fmt.Errorf("package %s exists", ctx.PackageFile())
@@ -346,7 +339,7 @@ var (
 	rexDouble = regexp.MustCompile("[0-9]+.[0-9]+")
 )
 
-// Creates a new plan from a given Url
+// Create a new plan from a given Url
 func Create(config *Config, url, group string) (err error) {
 	var (
 		xfile   = filepath.Base(url)
@@ -372,10 +365,17 @@ func Create(config *Config, url, group string) (err error) {
 	return ctx.WritePlan()
 }
 
+// IsInstalled returns true if a plan is installed
 func IsInstalled(config *Config, name string) bool {
 	return file.Exists(join(config.DB.Installed(config), name))
 }
 
+// Lint walks all plans and formats it sorting fields
+//
+// FIXME: this should be renamed to Format and a new Lint function
+// created. Lint function should have no side effects just look for
+// known style isses. For example we can check that each upstream URL
+// is using https and not http
 func Lint(config *Config) (err error) {
 	e, err := PlanFiles(config)
 	if err != nil {
@@ -416,6 +416,8 @@ func fatal(err error) {
 		log.Fatal(err)
 	}
 }
+
+// Clean the PlanContext build directory
 func Clean(ctx *PlanContext) error {
 	var (
 		plan  = ctx.Plan
@@ -432,10 +434,6 @@ func Clean(ctx *PlanContext) error {
 		return os.RemoveAll(dir)
 	}
 	return nil
-}
-
-func PlanFiles(config *Config) ([]string, error) {
-	return filepath.Glob(join(config.Plans, "*", "*.json"))
 }
 
 func conflicts(config *Config, man *Plan) (errs []error) {

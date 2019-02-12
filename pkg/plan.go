@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-// Provides a slice of plans
+// Plans provides a slice of plans
 type Plans []*Plan
 
-// Returns a Plan slice of all Plans in config.Plans
+// GetPlans returns a Plan slice of all Plans in config.Plans
 func GetPlans(config *Config) (Plans, error) {
 	pf, err := PlanFiles(config)
 	if err != nil {
@@ -27,15 +27,15 @@ func GetPlans(config *Config) (Plans, error) {
 	return plans, nil
 }
 
-// Returns a copy of this PlanSlice sorted by
-// field Size.
+// SortSize returns a copy of this PlanSlice sorted by field Size.
 func (ps Plans) SortSize() Plans {
 	nps := append(Plans{}, ps...)
 	sort.Sort(Size(nps))
 	return nps
 }
 
-// Prints this slice to console.
+// Print each plans name and size to console
+//
 // TODO: use template
 func (ps Plans) Print() {
 	for _, p := range ps {
@@ -44,7 +44,7 @@ func (ps Plans) Print() {
 	console.Flush()
 }
 
-// Returns a slice of plan names
+// Slice returns a slice of plan names
 func (ps Plans) Slice() []string {
 	s := []string{}
 	for _, p := range ps {
@@ -53,6 +53,7 @@ func (ps Plans) Slice() []string {
 	return s
 }
 
+// Contains return true if plan already exists in this Plans slice
 func (ps Plans) Contains(plan *Plan) bool {
 	for _, p := range ps {
 		if p.Name == plan.Name {
@@ -62,7 +63,9 @@ func (ps Plans) Contains(plan *Plan) bool {
 	return false
 }
 
-// Returns a expanded Plan template.
+// Expand returns a Plan that has been parsed by go's template
+// engine. This provides a form of self referencing json. Where field
+// names can be reference from other filed names
 func (p *Plan) Expand() *Plan {
 	o := new(Plan)
 	err := json.Parse(o, p)
@@ -102,14 +105,24 @@ type Plan struct {
 
 //revive:enable
 
+// Depends returns the Plans Autodepends and ManualDepends as one
+// string slice
 func (p *Plan) Depends() []string {
 	return append(p.AutoDepends, p.ManualDepends...)
 }
 
+// NameVersion returns a plans name and version separated by a hyphen
 func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
 }
 
+// PlanFiles returns a string slice with the full path of all of all
+// plans
+func PlanFiles(config *Config) ([]string, error) {
+	return filepath.Glob(join(config.Plans, "*", "*.json"))
+}
+
+// FindPlanPath returns the fullpath for a plan by it's given name
 func FindPlanPath(config *Config, name string) (string, error) {
 	glob := join(config.Plans, "*", name+".json")
 	e, err := filepath.Glob(glob)
@@ -122,6 +135,7 @@ func FindPlanPath(config *Config, name string) (string, error) {
 	return e[0], nil
 }
 
+// NewPlan returns a new Plan that has been initialized
 func NewPlan(config *Config, name string) (plan *Plan, err error) {
 	path, err := FindPlanPath(config, name)
 	if err != nil {
@@ -135,6 +149,7 @@ func NewPlan(config *Config, name string) (plan *Plan, err error) {
 	return plan, nil
 }
 
+// ReadPath reads a plan by path and return a Plan
 func ReadPath(config *Config, path string) (plan *Plan, err error) {
 	plan = new(Plan)
 	err = json.Read(plan, path)
@@ -145,6 +160,8 @@ func ReadPath(config *Config, path string) (plan *Plan, err error) {
 	return plan, nil
 }
 
+// PackageFile returns the plans tarball name
+// FIXME: this is not longer needed
 func (p *Plan) PackageFile() string {
 	if p.Cid == "" {
 		return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), p.config.OS, p.config.Arch)
@@ -152,10 +169,14 @@ func (p *Plan) PackageFile() string {
 	return fmt.Sprintf("%s.tar.gz", p.Cid)
 }
 
+// SourceFile return the base name of the plans upstream source
+// file/directory
 func (p *Plan) SourceFile() string {
 	return join(filepath.Base(p.Expand().Url))
 }
 
+// PackagePath returns the full path of the plans package file
+// FIXME: this is no longer needed
 func (p Plan) PackagePath() string {
 	return join(p.config.Repo, p.PackageFile())
 }
