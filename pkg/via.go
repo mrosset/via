@@ -379,7 +379,7 @@ func Lint(config *Config) (err error) {
 		return err
 	}
 	for _, j := range e {
-		plan, err := ReadPath(config, j)
+		plan, err := ReadPath(j)
 		if err != nil {
 			err = fmt.Errorf("%s %s", j, err)
 			elog.Println(err)

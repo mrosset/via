@@ -17,9 +17,7 @@ type Config struct {
 	Root      string
 	PlansRepo string
 	Threads   int
-	//revive:disable
-	IpfsApi string
-	//revive:enable
+	IpfsAPI   string
 	// Paths
 	Cache  Cache
 	DB     DB

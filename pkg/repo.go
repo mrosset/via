@@ -71,7 +71,7 @@ func RepoCreate(config *Config) error {
 		return err
 	}
 	for _, j := range e {
-		p, err := ReadPath(config, j)
+		p, err := ReadPath(j)
 		if err != nil {
 			return err
 		}

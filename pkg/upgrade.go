@@ -33,7 +33,7 @@ func (u *Upgrader) Check() ([]string, error) {
 		return []string{}, err
 	}
 	for _, f := range files {
-		ip, err := ReadPath(u.config, f)
+		ip, err := ReadPath(f)
 		if err != nil {
 			return []string{}, err
 		}

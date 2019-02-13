@@ -59,7 +59,7 @@ func (f release) Execute() error {
 		log.Fatal(errors)
 	}
 
-	shell := shell.NewShell(f.config.IpfsApi)
+	shell := shell.NewShell(f.config.IpfsAPI)
 	hash, err := shell.AddDir(f.config.Repo)
 	if err != nil {
 		return err

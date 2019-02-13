@@ -15,13 +15,12 @@ import (
 	"time"
 )
 
-//revive:disable
 const (
-	DOCKERENV = "/.dockerenv"
-	DOCKERAPI = "172.17.0.1:5001"
+	// DockerEnv is the docker environment file
+	DockerEnv = "/.dockerenv"
+	// DockerAPI is the internal docker address used for ipfs API calls
+	DockerAPI = "172.17.0.1:5001"
 )
-
-//revive:enable
 
 // IpfsStat provides type that contains file stat information
 type IpfsStat struct {
@@ -31,22 +30,19 @@ type IpfsStat struct {
 }
 
 func isDocker() bool {
-	return file.Exists(DOCKERENV)
+	return file.Exists(DockerEnv)
 }
 
-//revive:disable
-func whichApi(config *Config) string {
+func whichAPI(config *Config) string {
 	if isDocker() {
-		return DOCKERAPI
+		return DockerAPI
 	}
-	return config.IpfsApi
+	return config.IpfsAPI
 }
-
-//revive:enable
 
 // IpfsAdd add a file to ipfs and returns the ipfs multihash
 func IpfsAdd(config *Config, path Path) (string, error) {
-	s := shell.NewShell(whichApi(config))
+	s := shell.NewShell(whichAPI(config))
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
@@ -57,7 +53,7 @@ func IpfsAdd(config *Config, path Path) (string, error) {
 
 // HashOnly returns the ipfs multihash for a file at path
 func HashOnly(config *Config, path Path) (string, error) {
-	s := shell.NewShell(whichApi(config))
+	s := shell.NewShell(whichAPI(config))
 	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err

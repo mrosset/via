@@ -377,14 +377,14 @@ func get(ctx *cli.Context) error {
 	return gurl.Download("./", plan.Expand().Url)
 }
 
-func clean(ctx *cli.Context) error {
+func clean(_ *cli.Context) error {
 	if err := os.RemoveAll(via.Path(config.Cache.Builds()).String()); err != nil {
 		return err
 	}
 	return os.RemoveAll(via.Path(config.Cache.Stages()).String())
 }
 
-func fix(ctx *cli.Context) error {
+func fix(_ *cli.Context) error {
 	plans, err := via.GetPlans(config)
 	if err != nil {
 		return err
@@ -399,7 +399,7 @@ func fix(ctx *cli.Context) error {
 	return nil
 }
 
-func daemon(ctx *cli.Context) error {
+func daemon(_ *cli.Context) error {
 	return via.StartDaemon(config)
 }
 
@@ -628,7 +628,7 @@ func show(ctx *cli.Context) error {
 	return nil
 }
 
-func fconfig(ctx *cli.Context) error {
+func fconfig(_ *cli.Context) error {
 	err := json.WritePretty(config, os.Stdout)
 	if err != nil {
 		return err
@@ -636,7 +636,7 @@ func fconfig(ctx *cli.Context) error {
 	return nil
 }
 
-func repo(ctx *cli.Context) error {
+func repo(_ *cli.Context) error {
 	return via.RepoCreate(config)
 }
 
@@ -683,7 +683,7 @@ func diff(ctx *cli.Context) error {
 	return nil
 }
 
-func search(ctx *cli.Context) error {
+func search(_ *cli.Context) error {
 	plans, err := via.GetPlans(config)
 	if err != nil {
 		return err
@@ -735,7 +735,7 @@ func pack(ctx *cli.Context) error {
 	return nil
 }
 
-func debug(ctx *cli.Context) error {
+func debug(_ *cli.Context) error {
 	cmds := []string{"gcc", "g++", "python", "ld", "perl", "make", "bash", "ccache", "strip"}
 	env := config.SanitizeEnv()
 	sort.Strings(env)

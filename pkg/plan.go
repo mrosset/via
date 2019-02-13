@@ -22,7 +22,7 @@ func GetPlans(config *Config) (Plans, error) {
 	}
 	plans := Plans{}
 	for _, f := range pf {
-		p, _ := ReadPath(config, f)
+		p, _ := ReadPath(f)
 		plans = append(plans, p)
 	}
 	return plans, nil
@@ -76,7 +76,9 @@ func (p *Plan) Expand() *Plan {
 	return o
 }
 
-//revive:disable
+// revive:disable
+// Plan is the plan type used to define plan meta data and build
+// instructions
 type Plan struct {
 	Name          string
 	Version       string
@@ -141,7 +143,7 @@ func NewPlan(config *Config, name string) (plan *Plan, err error) {
 	if err != nil {
 		return nil, err
 	}
-	plan, err = ReadPath(config, path)
+	plan, err = ReadPath(path)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +151,7 @@ func NewPlan(config *Config, name string) (plan *Plan, err error) {
 }
 
 // ReadPath reads a plan by path and return a Plan
-func ReadPath(config *Config, path string) (plan *Plan, err error) {
+func ReadPath(path string) (plan *Plan, err error) {
 	plan = new(Plan)
 	err = json.Read(plan, path)
 	if err != nil {

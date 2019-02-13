@@ -21,7 +21,7 @@ var (
 		DB:      "",
 		Binary:  "http://localhost:8080/ipfs/",
 		Threads: 8,
-		IpfsApi: "localhost:5001",
+		IpfsAPI: "localhost:5001",
 		Env: map[string]string{
 			"PATH":    "/bin:/usr/bin",
 			"LDFLAGS": "",

@@ -10,15 +10,17 @@ import (
 	"syscall"
 )
 
-//revive:disable
 const (
-	SOCKET_FILE = "/tmp/via/socket"
+	//SocketFile is full path to socket file
+	SocketFile = "/tmp/via/socket"
 )
 
+// Request provide RPC request type
 type Request struct {
 	Plan Plan
 }
 
+// Response is RPC response type
 type Response struct {
 }
 
@@ -30,7 +32,8 @@ type Builder struct {
 	config *Config
 }
 
-func (t *Builder) RpcBuild(req Request, resp *Response) error {
+// RPCBuild calls the RPC to build a plan
+func (t *Builder) RPCBuild(req Request, _ *Response) error {
 	ctx := NewPlanContext(t.config, &req.Plan)
 	Clean(ctx)
 	if err := BuildSteps(ctx); err != nil {
@@ -39,12 +42,13 @@ func (t *Builder) RpcBuild(req Request, resp *Response) error {
 	return NewInstaller(t.config, &req.Plan).Install()
 }
 
+// StartDaemon starts the RPC daemon
 func StartDaemon(config *Config) error {
 	rpc.Register(&Builder{config: config})
-	if !file.Exists(filepath.Dir(SOCKET_FILE)) {
-		os.Mkdir(filepath.Dir(SOCKET_FILE), 0700)
+	if !file.Exists(filepath.Dir(SocketFile)) {
+		os.Mkdir(filepath.Dir(SocketFile), 0700)
 	}
-	l, err := net.Listen("unix", SOCKET_FILE)
+	l, err := net.Listen("unix", SocketFile)
 	if err != nil {
 		return err
 	}
@@ -57,12 +61,10 @@ func StartDaemon(config *Config) error {
 		batch.Walk(p)
 		batch.Install()
 	}
-	defer os.Remove(SOCKET_FILE)
+	defer os.Remove(SocketFile)
 	go rpc.Accept(l)
 	signals := make(chan os.Signal)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGKILL, syscall.SIGHUP)
 	<-signals
 	return nil
 }
-
-//revive:enable

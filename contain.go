@@ -12,13 +12,11 @@ import (
 	"syscall"
 )
 
-//revive:disable
 const (
-	BIND_RO = syscall.MS_BIND | syscall.MS_RDONLY | syscall.MS_REC
-	BIND_RW = syscall.MS_BIND | syscall.MS_REC
+	bindRO = syscall.MS_BIND | syscall.MS_RDONLY | syscall.MS_REC
+	bindRW = syscall.MS_BIND | syscall.MS_REC
 )
 
-//revive:enable
 var (
 	containCommands = []*cli.Command{
 		&cli.Command{
@@ -67,7 +65,7 @@ func bindbin(root string) error {
 		source,
 		target,
 		"",
-		BIND_RO,
+		bindRO,
 		"",
 	)
 }
@@ -90,7 +88,7 @@ func bindsh(root string) error {
 		source,
 		target,
 		"",
-		BIND_RO,
+		bindRO,
 		"",
 	)
 }
@@ -292,7 +290,7 @@ func bind(source, root string) error {
 		source,
 		target,
 		"",
-		BIND_RO,
+		bindRO,
 		"",
 	)
 }
@@ -350,7 +348,7 @@ func pivot(newroot string) error {
 		newroot,
 		newroot,
 		"",
-		BIND_RO,
+		bindRO,
 		"",
 	); err != nil {
 		return err

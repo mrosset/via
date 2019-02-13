@@ -117,7 +117,7 @@ This is useful for creating a new branch that either has another config or to bo
 					return err
 				}
 				for _, path := range files {
-					plan, err := via.ReadPath(config, path)
+					plan, err := via.ReadPath(path)
 					if err != nil {
 						return err
 					}
@@ -192,7 +192,7 @@ func cupstream(ctx *cli.Context) error {
 	sfmt := "%-10s %-10s %-10s\n"
 
 	for _, f := range files {
-		plan, err := via.ReadPath(config, f)
+		plan, err := via.ReadPath(f)
 		if err != nil {
 			return err
 		}
