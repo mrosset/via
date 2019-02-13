@@ -5,7 +5,6 @@ import (
 	"golang.org/x/crypto/openpgp"
 	"golang.org/x/crypto/openpgp/packet"
 	"os"
-	"path"
 	"path/filepath"
 )
 
@@ -18,9 +17,9 @@ var keyring = filepath.Join(os.Getenv("HOME"), ".gnupg", "secring.gpg")
 // considering we are using ipfs multihash. Will revist this later.
 func Sign(ctx *PlanContext) (err error) {
 	var (
-		plan     = ctx.Plan
 		entity   *openpgp.Entity
 		identity *openpgp.Identity
+		pfile    = PackagePath(&ctx.Config, ctx.Plan)
 	)
 	fd, err := os.Open(keyring)
 	if err != nil {
@@ -55,19 +54,18 @@ func Sign(ctx *PlanContext) (err error) {
 			return err
 		}
 	}
-	ppath := path.Join(ctx.Config.Repo, plan.PackageFile())
-	pkg, err := os.Open(ppath)
+	gz, err := os.Open(pfile)
 	if err != nil {
 		return err
 	}
-	defer pkg.Close()
-	sig, err := os.Create(ppath + ".sig")
+	defer gz.Close()
+	sig, err := os.Create(pfile + ".sig")
 	if err != nil {
 		return err
 	}
 	defer sig.Close()
-	fmt.Printf(lfmt, "signing", plan.PackageFile())
-	err = openpgp.DetachSign(sig, entity, pkg, new(packet.Config))
+	fmt.Printf(lfmt, "signing", PackageFile(&ctx.Config, ctx.Plan))
+	err = openpgp.DetachSign(sig, entity, gz, new(packet.Config))
 	if err != nil {
 		return err
 	}

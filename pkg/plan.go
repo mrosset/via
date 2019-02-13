@@ -3,6 +3,7 @@ package via
 import (
 	"fmt"
 	"github.com/mrosset/util/console"
+	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/human"
 	"github.com/mrosset/util/json"
 	"path/filepath"
@@ -100,7 +101,6 @@ type Plan struct {
 	PostInstall   []string
 	Remove        []string
 	Files         []string
-	config        *Config
 }
 
 //revive:enable
@@ -145,7 +145,6 @@ func NewPlan(config *Config, name string) (plan *Plan, err error) {
 	if err != nil {
 		return nil, err
 	}
-	plan.config = config
 	return plan, nil
 }
 
@@ -156,17 +155,15 @@ func ReadPath(config *Config, path string) (plan *Plan, err error) {
 	if err != nil {
 		return nil, err
 	}
-	plan.config = config
 	return plan, nil
 }
 
 // PackageFile returns the plans tarball name
-// FIXME: this is not longer needed
-func (p *Plan) PackageFile() string {
-	if p.Cid == "" {
-		return fmt.Sprintf("%s-%s-%s.tar.gz", p.NameVersion(), p.config.OS, p.config.Arch)
+func PackageFile(config *Config, plan *Plan) string {
+	if plan.Cid == "" {
+		return fmt.Sprintf("%s-%s-%s.tar.gz", plan.NameVersion(), config.OS, config.Arch)
 	}
-	return fmt.Sprintf("%s.tar.gz", p.Cid)
+	return fmt.Sprintf("%s.tar.gz", plan.Cid)
 }
 
 // SourceFile return the base name of the plans upstream source
@@ -176,9 +173,13 @@ func (p *Plan) SourceFile() string {
 }
 
 // PackagePath returns the full path of the plans package file
-// FIXME: this is no longer needed
-func (p Plan) PackagePath() string {
-	return join(p.config.Repo, p.PackageFile())
+func PackagePath(config *Config, plan *Plan) string {
+	return join(config.Repo, PackageFile(config, plan))
+}
+
+// PackageFileExists return true if a plan's package file exists
+func PackageFileExists(config *Config, plan *Plan) bool {
+	return file.Exists(PackagePath(config, plan))
 }
 
 func (p Plan) stageDir() string {

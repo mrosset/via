@@ -9,8 +9,16 @@ functions produces side effects.
 ** Solution
 *** Phase one
 **** DONE Move all init functions and global variables to via.go
-**** TODO Design structure to encapsulate config/cache/plan
+**** DONE Design structure to encapsulate config/cache/plan
 
 *** Phase two
-**** TODO Use PlanContext data structure to simplify config/cache/plan use
-***** Convert Config to vales not pointers
+**** DONE Convert existing code to use Plan context data structure to simplify config/cache/plan use
+**** DONE remove cache global instance
+**** DONE cleanup main init()
+**** TODO revive lint source tree
+**** TODO fix broken tests
+**** TODO Convert Config to values not pointers
+* TODO Modify bind mounts to have a source and target
+* TODO Logger
+* TODO User type used for user defined configuration
+* TODO System type used for system install/configuration

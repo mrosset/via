@@ -176,12 +176,13 @@ func doCommands(config *Config, dir string, cmds []string) (err error) {
 // Package calls each shell command in Plans package field
 func Package(ctx *PlanContext, bdir string) (err error) {
 	var (
-		plan = ctx.Plan
-		pack = plan.Package
+		plan  = ctx.Plan
+		pack  = plan.Package
+		pfile = PackagePath(&ctx.Config, plan)
 	)
 	// Remove plans Cid it's assumed we'll be creating a new one
 	plan.Cid = ""
-	defer os.Remove(plan.PackagePath())
+	defer os.Remove(pfile)
 	pdir := join(ctx.Cache.Packages(), plan.NameVersion())
 	if bdir == "" {
 		bdir = join(ctx.Cache.Builds(), plan.NameVersion())
@@ -223,7 +224,7 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 		elog.Println(err)
 		return (err)
 	}
-	plan.Cid, err = IpfsAdd(&ctx.Config, Path(plan.PackagePath()))
+	plan.Cid, err = IpfsAdd(&ctx.Config, Path(pfile))
 	if err != nil {
 		return err
 	}
@@ -241,8 +242,7 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 // CreatePackage Walks a Plans package directory and creates a tarball
 func CreatePackage(ctx *PlanContext) (err error) {
 	var (
-		plan  = ctx.Plan
-		pfile = plan.PackagePath()
+		pfile = PackagePath(&ctx.Config, ctx.Plan)
 	)
 	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
@@ -309,9 +309,6 @@ func Remove(config *Config, name string) (err error) {
 
 // BuildSteps runs all of the functions required to build a package
 func BuildSteps(ctx *PlanContext) (err error) {
-	if file.Exists(ctx.PackageFile()) {
-		return fmt.Errorf("package %s exists", ctx.PackageFile())
-	}
 	if err := DownloadSrc(ctx); err != nil {
 		elog.Println(err)
 		return err

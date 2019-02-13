@@ -33,7 +33,7 @@ func NewInstaller(config *Config, plan *Plan) *Installer {
 func Download(config *Config, plan *Plan) error {
 	var (
 		url   = config.Binary + "/" + plan.Cid
-		pfile = plan.PackagePath()
+		pfile = PackagePath(config, plan)
 	)
 	if isDocker() {
 		url = "http://172.17.0.1:8080/ipfs/" + plan.Cid
@@ -46,12 +46,12 @@ func Download(config *Config, plan *Plan) error {
 			return err
 		}
 	}
-	return gurl.NameDownload(config.Repo, url, plan.PackageFile())
+	return gurl.NameDownload(config.Repo, url, PackageFile(config, plan))
 }
 
 // VerifyCid verifies that the download tarball matches the plans Cid
 func (i Installer) VerifyCid() error {
-	cid, err := HashOnly(i.config, Path(i.plan.PackagePath()))
+	cid, err := HashOnly(i.config, Path(PackagePath(i.config, i.plan)))
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,8 @@ func (i Installer) VerifyCid() error {
 // with the manifest.json and plan.json files.
 func (i Installer) Install() error {
 	var (
-		name = i.plan.Name
+		name  = i.plan.Name
+		pfile = PackagePath(i.config, i.plan)
 	)
 	if err := i.VerifyCid(); err != nil {
 		return err
@@ -85,7 +86,7 @@ func (i Installer) Install() error {
 	if err := Download(i.config, i.plan); err != nil {
 		return err
 	}
-	man, err := ReadPackManifest(i.plan.PackagePath())
+	man, err := ReadPackManifest(pfile)
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -97,7 +98,7 @@ func (i Installer) Install() error {
 			elog.Println(e)
 		}
 	}
-	fd, err := os.Open(i.plan.PackagePath())
+	fd, err := os.Open(pfile)
 	if err != nil {
 		elog.Println(err)
 		return err

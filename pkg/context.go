@@ -1,7 +1,6 @@
 package via
 
 import (
-	"fmt"
 	"github.com/mrosset/util/json"
 	"path/filepath"
 )
@@ -66,17 +65,4 @@ func (c PlanContext) StageDir() string {
 func (c PlanContext) SourcePath() string {
 	s := filepath.Join(c.Cache.Sources(), filepath.Base(c.Plan.Expand().Url))
 	return s
-}
-
-// PackageFile returns the file name for the PlanContext package file
-func (c PlanContext) PackageFile() string {
-	if c.Plan.Cid == "" {
-		return fmt.Sprintf("%s-%s-%s.tar.gz", c.Plan.NameVersion(), c.Config.OS, c.Config.Arch)
-	}
-	return fmt.Sprintf("%s.tar.gz", c.Plan.Cid)
-}
-
-// PackagePath returns the full path for PlanContext package file
-func (c PlanContext) PackagePath() string {
-	return join(c.Config.Repo, c.PackageFile())
 }

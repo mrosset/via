@@ -16,7 +16,6 @@ var (
 		Package:       []string{"install -m775 -D a.out $PKGDIR/$PREFIX/bin/a.out"},
 		Files:         []string{"a.out"},
 		Group:         "core",
-		config:        testConfig,
 	}
 )
 
@@ -62,9 +61,8 @@ func TestPlanPackagePath(t *testing.T) {
 			Name:    "hello",
 			Version: "2.9",
 			Cid:     "QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4",
-			config:  testConfig,
 		}
-		got    = plan.PackagePath()
+		got    = PackagePath(testConfig, plan)
 		expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz"
 	)
 	if got != expect {

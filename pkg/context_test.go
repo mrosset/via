@@ -13,7 +13,7 @@ func TestContextPackagePath(t *testing.T) {
 	)
 
 	expect := "testdata/repo/testplan-1.0.1-linux-x86_64.tar.gz"
-	got := NewPlanContext(testConfig, plan).PackagePath()
+	got := PackagePath(testConfig, plan)
 	if got != expect {
 		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}
@@ -21,7 +21,7 @@ func TestContextPackagePath(t *testing.T) {
 	plan.Cid = "QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH"
 
 	expect = "testdata/repo/QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH.tar.gz"
-	got = NewPlanContext(testConfig, plan).PackagePath()
+	got = PackagePath(testConfig, plan)
 	if got != expect {
 		t.Errorf(EXPECT_GOT_FMT, expect, got)
 

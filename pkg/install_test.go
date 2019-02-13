@@ -12,7 +12,6 @@ func TestInstallerCidVerifiy(t *testing.T) {
 			Name:    "verify",
 			Version: "0.0.1",
 			Cid:     "QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH",
-			config:  testConfig,
 		}
 	)
 
@@ -23,7 +22,7 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	}
 
 	os.MkdirAll(testConfig.Repo, 0755)
-	file.Touch(plan.PackagePath())
+	file.Touch(PackagePath(testConfig, testPlan))
 
 	test{
 		Expect: nil,
@@ -31,7 +30,7 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	}.equals(t.Errorf)
 
 	plan.Cid = ""
-	file.Touch(plan.PackagePath())
+	file.Touch(PackagePath(testConfig, testPlan))
 
 	test{
 		Expect: "verify-0.0.1 Plans CID does not match tarballs got QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH",
