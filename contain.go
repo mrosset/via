@@ -305,7 +305,7 @@ func mount(root string) error {
 		os.ExpandEnv("$HOME/.ccache"),
 		config.Cache.String(),
 		config.Plans,
-		config.Repo,
+		config.Repo.String(),
 		config.Prefix,
 		viabin,
 	}

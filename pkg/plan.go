@@ -176,7 +176,7 @@ func (p *Plan) SourceFile() string {
 
 // PackagePath returns the full path of the plans package file
 func PackagePath(config *Config, plan *Plan) string {
-	return join(config.Repo, PackageFile(config, plan))
+	return join(config.Repo.String(), PackageFile(config, plan))
 }
 
 // PackageFileExists return true if a plan's package file exists

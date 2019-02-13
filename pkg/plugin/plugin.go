@@ -27,8 +27,9 @@ func build(out string, in string) error {
 }
 
 // Build builds all of plugin files in
+// FIXME: the plugins directory location is not well defined
 func Build(config *via.Config) error {
-	dir := filepath.Join(config.Repo, "../../plugins")
+	dir := filepath.Join(config.Plans, "../../plugins")
 	glob := filepath.Join(dir, "*.go")
 	files, err := filepath.Glob(glob)
 	if err != nil {

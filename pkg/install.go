@@ -41,12 +41,10 @@ func Download(config *Config, plan *Plan) error {
 	if file.Exists(pfile) {
 		return nil
 	}
-	if !file.Exists(config.Repo) {
-		if err := os.MkdirAll(config.Repo, 0775); err != nil {
-			return err
-		}
+	if err := config.Repo.Ensure(); err != nil {
+		return err
 	}
-	return gurl.NameDownload(config.Repo, url, PackageFile(config, plan))
+	return gurl.NameDownload(config.Repo.String(), url, PackageFile(config, plan))
 }
 
 // VerifyCid verifies that the download tarball matches the plans Cid

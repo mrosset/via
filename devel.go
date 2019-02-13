@@ -146,12 +146,12 @@ This is useful for creating a new branch that either has another config or to bo
 					root  = ""
 					err   error
 				)
-				if root, err = ioutil.TempDir("", "via"); err != nil {
+				if root, err = ioutil.TempDir("", "via-test"); err != nil {
 					return err
 				}
 				defer os.RemoveAll(root)
 				config.Root = root
-				config.Repo = filepath.Join(root, "repo")
+				config.Repo = via.Repo(filepath.Join(root, "repo"))
 				if plan, err = via.NewPlan(config, "devel"); err != nil {
 					return err
 				}

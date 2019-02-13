@@ -112,9 +112,8 @@ func (b Batch) Download(plan *Plan) error {
 	} else {
 		url = b.config.Binary + "/" + plan.Cid
 	}
-
-	if !file.Exists(b.config.Repo) {
-		os.MkdirAll(b.config.Repo, 0755)
+	if err := b.config.Repo.Ensure(); err != nil {
+		return err
 	}
 	if file.Exists(pfile) {
 		return nil

@@ -2,9 +2,45 @@ package via
 
 import (
 	"fmt"
+	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
+	"os"
+	"path/filepath"
 	"sort"
 )
+
+// Repo provides repo path string. This is the path that binary
+// tarballs are downloaded and built too
+type Repo string
+
+// String provides stringer interface
+func (r Repo) String() string {
+	return os.ExpandEnv(string(r))
+}
+
+// Exists return true if the Repo path exists
+func (r Repo) Exists() bool {
+	return file.Exists(r.String())
+}
+
+// Ensure that the directory is created
+func (r Repo) Ensure() error {
+	if r.Exists() {
+		return nil
+	}
+	return os.MkdirAll(r.String(), 0755)
+}
+
+// Expand returns the Repo path as a string that has been its
+// environmental variables expanded.
+func (r Repo) Expand() string {
+	return os.ExpandEnv(string(r))
+}
+
+// NewRepo returns a new Repo who's parent is joined with dir
+func NewRepo(parent, dir string) Repo {
+	return Repo(filepath.Join(parent, dir))
+}
 
 // RepoFiles provides plan files map hash
 type RepoFiles map[string][]string

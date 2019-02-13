@@ -21,7 +21,8 @@ func TestInstallerCidVerifiy(t *testing.T) {
 		return
 	}
 
-	os.MkdirAll(testConfig.Repo, 0755)
+	testConfig.Repo.Ensure()
+
 	file.Touch(PackagePath(testConfig, testPlan))
 
 	test{

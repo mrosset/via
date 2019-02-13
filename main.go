@@ -298,10 +298,8 @@ func readconfig() error {
 
 	config.Cache.Init()
 	config.Plans = os.ExpandEnv(config.Plans)
-	config.Repo = os.ExpandEnv(config.Repo)
-	if err := os.MkdirAll(config.Repo, 0755); err != nil {
-		return err
-	}
+	config.Repo = via.Repo(config.Repo.Expand())
+
 	for i, j := range config.Env {
 		os.Setenv(i, os.ExpandEnv(j))
 	}
@@ -348,7 +346,7 @@ func plugin(ctx *cli.Context) error {
 		return fmt.Errorf("plugin requires a 'plugin' argument. see: 'via help get'")
 	}
 	name := ctx.Args().First()
-	mod := filepath.Join(config.Repo, "../../plugins", name+".so")
+	mod := filepath.Join(config.Plans, "../../plugins", name+".so")
 	plug, err := goplugin.Open(mod)
 	if err != nil {
 		elog.Fatal(err)

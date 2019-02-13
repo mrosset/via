@@ -43,7 +43,7 @@ func TestSourcPath(t *testing.T) {
 		expect = "testdata/cache/src/hello-2.9.tar.gz"
 		got    = NewPlanContext(testConfig, testPlan).SourcePath()
 	)
-	if expect != got {
+	if got != expect {
 		t.Errorf(EXPECT_GOT_FMT, expect, got)
 	}
 }

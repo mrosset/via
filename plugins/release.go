@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"github.com/ipfs/go-ipfs-api"
-	"github.com/mrosset/util/file"
 	"github.com/mrosset/via/pkg"
 	"log"
 	"os"
@@ -26,45 +23,10 @@ type release struct {
 // }
 
 func (f *release) SetConfig(config *via.Config) {
-	f.config = config
-	f.config.Root = "/tmp/root"
-	f.config.DB = "db"
 }
 
 func (f release) Execute() error {
-	if f.config == nil {
-		return fmt.Errorf("config is nil use SetConfig method first")
-	}
-	if f.config.Root != "/tmp/root" {
-		return fmt.Errorf("config root is not sane")
-	}
-	defer os.RemoveAll("/tmp/root")
-	fmt.Printf(lfmt, "executing", "release")
-	if file.Exists(f.config.Repo) {
-		fmt.Printf(lfmt, "cleaning", "repo")
-		if err := os.RemoveAll(f.config.Repo); err != nil {
-			return err
-		}
-	}
-	plan, err := via.NewPlan(f.config, "devel")
-	if err != nil {
-		return err
-	}
-	batch := via.NewBatch(f.config)
-	batch.Walk(plan)
-
-	errors := batch.Install()
-
-	if len(errors) > 0 {
-		log.Fatal(errors)
-	}
-
-	shell := shell.NewShell(f.config.IpfsAPI)
-	hash, err := shell.AddDir(f.config.Repo)
-	if err != nil {
-		return err
-	}
-	return execs("ipfs-cluster-ctl", "pin", "add", hash)
+	return nil
 }
 
 // Executes 'cmd' with 'args' useing os.Stdout and os.Stderr

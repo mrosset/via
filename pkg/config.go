@@ -22,7 +22,7 @@ type Config struct {
 	Cache  Cache
 	DB     DB
 	Plans  string
-	Repo   string
+	Repo   Repo
 	Binary string
 	Prefix string
 
