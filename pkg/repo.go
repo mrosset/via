@@ -23,7 +23,7 @@ func (r Repo) Exists() bool {
 	return file.Exists(r.String())
 }
 
-// Ensure that the directory is created
+// Ensure that the Repo directory path is created
 func (r Repo) Ensure() error {
 	if r.Exists() {
 		return nil
@@ -45,7 +45,7 @@ func NewRepo(parent, dir string) Repo {
 // RepoFiles provides plan files map hash
 type RepoFiles map[string][]string
 
-// Returns a sorted slice key strings
+// Returns a sorted  key string slice
 func (rf RepoFiles) keys() []string {
 	var (
 		keys = []string{}
