@@ -6,6 +6,7 @@ import (
 	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
 	"os"
+	"path/filepath"
 )
 
 func init() {
@@ -89,12 +90,13 @@ func install(ctx *cli.Context) error {
 }
 
 func planArgCompletion(_ *cli.Context) {
-	plans, err := via.GetPlans(config)
+	files, err := via.PlanFiles(config)
 	if err != nil {
 		elog.Println(err)
 		return
 	}
-	for _, p := range plans {
-		fmt.Printf("%s ", p.Name)
+	for _, f := range files {
+		name := filepath.Base(f)
+		fmt.Printf("%s ", name[:len(name)-5])
 	}
 }
