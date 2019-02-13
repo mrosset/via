@@ -51,7 +51,7 @@ func Download(config *Config, plan *Plan) error {
 
 // VerifyCid verifies that the download tarball matches the plans Cid
 func (i Installer) VerifyCid() error {
-	cid, err := HashOnly(i.config, Path(PackagePath(i.config, i.plan)))
+	cid, err := HashOnly(i.config, PackagePath(i.config, i.plan))
 	if err != nil {
 		return err
 	}

@@ -224,7 +224,7 @@ func Package(ctx *PlanContext, bdir string) (err error) {
 		elog.Println(err)
 		return (err)
 	}
-	plan.Cid, err = IpfsAdd(&ctx.Config, Path(pfile))
+	plan.Cid, err = IpfsAdd(&ctx.Config, pfile)
 	if err != nil {
 		return err
 	}

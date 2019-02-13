@@ -219,7 +219,7 @@ var (
 	cclean = &cli.Command{
 		Name:   "clean",
 		Usage:  "cleans cache directory",
-		Action: clean,
+		Action: notimplemented,
 	}
 
 	cget = &cli.Command{
@@ -375,13 +375,6 @@ func get(ctx *cli.Context) error {
 		return err
 	}
 	return gurl.Download("./", plan.Expand().Url)
-}
-
-func clean(_ *cli.Context) error {
-	if err := os.RemoveAll(via.Path(config.Cache.Builds()).String()); err != nil {
-		return err
-	}
-	return os.RemoveAll(via.Path(config.Cache.Stages()).String())
 }
 
 func fix(_ *cli.Context) error {
