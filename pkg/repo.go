@@ -15,7 +15,7 @@ type Repo string
 
 // String provides stringer interface
 func (r Repo) String() string {
-	return os.ExpandEnv(string(r))
+	return string(r)
 }
 
 // Exists return true if the Repo path exists
