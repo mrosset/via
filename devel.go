@@ -100,7 +100,7 @@ var develCommand = &cli.Command{
 		&cli.Command{
 			Name:   "fix",
 			Usage:  "DEV ONLY used to mass modify plans",
-			Action: fix,
+			Action: notimplemented,
 		},
 		&cli.Command{
 			Name:  "reset",

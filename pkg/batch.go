@@ -12,7 +12,7 @@ import (
 
 // Batch Plan type
 type Batch struct {
-	plans  Plans
+	plans  PlanSlice
 	config *Config
 	pm     *progmeter.ProgMeter
 	size   int64
@@ -38,7 +38,7 @@ func NewBatch(conf *Config) Batch {
 }
 
 // Plans returns the Batch's plans
-func (b Batch) Plans() Plans {
+func (b Batch) Plans() PlanSlice {
 	return b.plans
 }
 
@@ -80,8 +80,8 @@ func (b *Batch) Walk(plan *Plan) error {
 }
 
 // ToInstall Returns a string slice of 'Plans to install
-func (b *Batch) ToInstall() Plans {
-	var plans Plans
+func (b *Batch) ToInstall() PlanSlice {
+	var plans PlanSlice
 	for _, p := range b.plans {
 		if !IsInstalled(b.config, p.Name) {
 			plans = append(plans, p)
@@ -153,7 +153,7 @@ func (b *Batch) DownloadInstall(plan *Plan) {
 }
 
 // ForEach run PlanFunc on each plan in Plans.
-func (b Batch) ForEach(fn PlanFunc, plans Plans) (errors []error) {
+func (b Batch) ForEach(fn PlanFunc, plans PlanSlice) (errors []error) {
 	for _, p := range plans {
 		b.wg.Add(1)
 		b.pm.AddTodos(1)

@@ -3,7 +3,7 @@ package via
 // Upgrader provides a type for upgrading installed plans
 type Upgrader struct {
 	config   *Config
-	upgrades Plans
+	upgrades PlanSlice
 }
 
 // NewUpgrader creates and initializes a new Upgrader
@@ -13,7 +13,7 @@ func NewUpgrader(config *Config) *Upgrader {
 	}
 	return &Upgrader{
 		config:   config,
-		upgrades: Plans{},
+		upgrades: PlanSlice{},
 	}
 }
 

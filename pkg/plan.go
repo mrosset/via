@@ -11,16 +11,16 @@ import (
 	"time"
 )
 
-// Plans provides a slice of plans
-type Plans []*Plan
+// PlanSlice provides a slice of plans
+type PlanSlice []*Plan
 
-// GetPlans returns a Plan slice of all Plans in config.Plans
-func GetPlans(config *Config) (Plans, error) {
+// GetPlans returns a Plan slice of all Plan in config.Plans
+func GetPlans(config *Config) (PlanSlice, error) {
 	pf, err := PlanFiles(config)
 	if err != nil {
 		return nil, err
 	}
-	plans := Plans{}
+	plans := PlanSlice{}
 	for _, f := range pf {
 		p, _ := ReadPath(f)
 		plans = append(plans, p)
@@ -29,8 +29,8 @@ func GetPlans(config *Config) (Plans, error) {
 }
 
 // SortSize returns a copy of this PlanSlice sorted by field Size.
-func (ps Plans) SortSize() Plans {
-	nps := append(Plans{}, ps...)
+func (ps PlanSlice) SortSize() PlanSlice {
+	nps := append(PlanSlice{}, ps...)
 	sort.Sort(Size(nps))
 	return nps
 }
@@ -38,7 +38,7 @@ func (ps Plans) SortSize() Plans {
 // Print each plans name and size to console
 //
 // TODO: use template
-func (ps Plans) Print() {
+func (ps PlanSlice) Print() {
 	for _, p := range ps {
 		console.Println(p.NameVersion(), human.ByteSize(p.Size))
 	}
@@ -46,7 +46,7 @@ func (ps Plans) Print() {
 }
 
 // Slice returns a slice of plan names
-func (ps Plans) Slice() []string {
+func (ps PlanSlice) Slice() []string {
 	s := []string{}
 	for _, p := range ps {
 		s = append(s, p.Name)
@@ -54,8 +54,8 @@ func (ps Plans) Slice() []string {
 	return s
 }
 
-// Contains return true if plan already exists in this Plans slice
-func (ps Plans) Contains(plan *Plan) bool {
+// Contains return true if plan already exists in this PlanSlice slice
+func (ps PlanSlice) Contains(plan *Plan) bool {
 	for _, p := range ps {
 		if p.Name == plan.Name {
 			return true
@@ -107,7 +107,7 @@ type Plan struct {
 
 //revive:enable
 
-// Depends returns the Plans Autodepends and ManualDepends as one
+// Depends returns the PlanSlice Autodepends and ManualDepends as one
 // string slice
 func (p *Plan) Depends() []string {
 	return append(p.AutoDepends, p.ManualDepends...)

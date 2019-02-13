@@ -375,21 +375,6 @@ func get(ctx *cli.Context) error {
 	return gurl.Download("./", plan.Expand().Url)
 }
 
-func fix(_ *cli.Context) error {
-	plans, err := via.GetPlans(config)
-	if err != nil {
-		return err
-	}
-	for _, p := range plans {
-		p.IsRebuilt = false
-		pctx := via.NewPlanContext(config, p)
-		if err := pctx.WritePlan(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func daemon(_ *cli.Context) error {
 	return via.StartDaemon(config)
 }
