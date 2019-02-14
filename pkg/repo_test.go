@@ -1,10 +1,24 @@
 package via
 
 import (
+	"github.com/mrosset/util/file"
 	"os"
 	"reflect"
 	"testing"
 )
+
+func TestRepoFilePaths(t *testing.T) {
+	tests{
+		{
+			Expect: "testdata/plans/repo.json",
+			Got:    testConfig.Repo.File(testConfig),
+		},
+		{
+			Expect: "testdata/plans/files.json",
+			Got:    testConfig.Repo.FilesFile(testConfig),
+		},
+	}.equals(t)
+}
 
 func TestRepoFilesOwns(t *testing.T) {
 
@@ -25,18 +39,37 @@ func TestRepoFilesOwns(t *testing.T) {
 	for i := 0; i <= 100; i++ {
 		got := repo.Owns(tfile)
 		if expectOne != got {
-			t.Errorf(EXPECT_GOT_FMT, expectOne, got)
+			t.Errorf(EXPECT_GOT_FMT, "", expectOne, got)
 		}
 		got = inverse.Owns(tfile)
 		if expectOne != got {
-			t.Errorf(EXPECT_GOT_FMT, expectOne, got)
+			t.Errorf(EXPECT_GOT_FMT, "", expectOne, got)
 		}
 	}
 
 	if got := repo.Owners(tfile); !reflect.DeepEqual(got, expectMore) {
-		t.Errorf(EXPECT_GOT_FMT, expectMore, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expectMore, got)
 	}
 
+}
+
+func TestRepoCreate(t *testing.T) {
+	tests{
+		{
+			Expect: nil,
+			Got:    RepoCreate(testConfig),
+		},
+		{
+			Label:  "files.json",
+			Expect: true,
+			Got:    file.Exists("testdata/plans/files.json"),
+		},
+		{
+			Label:  "repo.json",
+			Expect: true,
+			Got:    file.Exists("testdata/plans/repo.json"),
+		},
+	}.equals(t)
 }
 
 func TestRepo_Exists(t *testing.T) {
@@ -47,12 +80,12 @@ func TestRepo_Exists(t *testing.T) {
 	}{
 		{
 			"",
-			Repo("testdata/repo"),
+			Repo{"testdata/repo"},
 			true,
 		},
 		{
 			"",
-			Repo("testdata/false"),
+			Repo{"testdata/false"},
 			false,
 		},
 	}
@@ -73,7 +106,7 @@ func TestRepo_Expand(t *testing.T) {
 	}{
 		{
 			"",
-			Repo("$VIA_TEST/repo"),
+			Repo{"$VIA_TEST/repo"},
 			"testdata/repo",
 		},
 		// TODO: Add test cases.

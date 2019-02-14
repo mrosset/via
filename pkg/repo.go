@@ -2,44 +2,31 @@ package via
 
 import (
 	"fmt"
-	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
-	"os"
-	"path/filepath"
 	"sort"
 )
 
 // Repo provides repo path string. This is the path that binary
 // tarballs are downloaded and built too
-type Repo string
-
-// String provides stringer interface
-func (r Repo) String() string {
-	return string(r)
+type Repo struct {
+	Path
 }
 
-// Exists return true if the Repo path exists
-func (r Repo) Exists() bool {
-	return file.Exists(r.String())
-}
-
-// Ensure that the Repo directory path is created
-func (r Repo) Ensure() error {
-	if r.Exists() {
-		return nil
+// NewRepo returns a new initialized Repo
+func NewRepo(path string) Repo {
+	return Repo{
+		Path(path),
 	}
-	return os.MkdirAll(r.String(), 0755)
 }
 
-// Expand returns the Repo path as a string that has been its
-// environmental variables expanded.
-func (r Repo) Expand() string {
-	return os.ExpandEnv(string(r))
+// File returns the full path for repo.json file
+func (r Repo) File(config *Config) string {
+	return config.Plans.Join("repo.json")
 }
 
-// NewRepo returns a new Repo who's parent is joined with dir
-func NewRepo(parent, dir string) Repo {
-	return Repo(filepath.Join(parent, dir))
+// FilesFile returns the full path for files.json
+func (r Repo) FilesFile(config *Config) string {
+	return config.Plans.Join("files.json")
 }
 
 // RepoFiles provides plan files map hash
@@ -83,7 +70,7 @@ func (rf RepoFiles) Owners(file string) []string {
 // ReadRepoFiles reads files.json and returns a RepoFiles map hash
 func ReadRepoFiles(config *Config) (RepoFiles, error) {
 	files := RepoFiles{}
-	if err := json.Read(&files, join(config.Plans, "files.json")); err != nil {
+	if err := json.Read(&files, config.Repo.FilesFile(config)); err != nil {
 		return nil, err
 	}
 	return files, nil
@@ -99,8 +86,6 @@ func RepoCreate(config *Config) error {
 	var (
 		repo  = []string{}
 		files = map[string][]string{}
-		rfile = join(config.Plans, "repo.json")
-		ffile = join(config.Plans, "files.json")
 	)
 	e, err := PlanFiles(config)
 	if err != nil {
@@ -114,9 +99,9 @@ func RepoCreate(config *Config) error {
 		repo = append(repo, join(p.Group, p.Name+".json"))
 		files[p.Name] = p.Files
 	}
-	err = json.Write(repo, rfile)
+	err = json.Write(repo, config.Repo.File(config))
 	if err != nil {
 		return err
 	}
-	return json.Write(files, ffile)
+	return json.Write(files, config.Repo.FilesFile(config))
 }

@@ -21,7 +21,7 @@ type Config struct {
 	// Paths
 	Cache  Cache
 	DB     DB
-	Plans  string
+	Plans  Plans
 	Repo   Repo
 	Binary string
 	Prefix string

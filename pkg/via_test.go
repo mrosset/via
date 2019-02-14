@@ -2,14 +2,13 @@ package via
 
 import (
 	"bytes"
-	"github.com/mrosset/util/file"
 	"os"
 	"os/exec"
 	"testing"
 )
 
 //revive:disable
-const EXPECT_GOT_FMT = "expect '%v' got '%v'"
+const EXPECT_GOT_FMT = "%s: expect '%v' got '%v'"
 
 //revive:enable
 
@@ -18,13 +17,22 @@ func init() {
 }
 
 type test struct {
+	Label  string
 	Expect interface{}
 	Got    interface{}
 }
 
+type tests []test
+
+func (ts tests) equals(t *testing.T) {
+	for _, test := range ts {
+		test.equals(t.Errorf)
+	}
+}
+
 func (vt test) equals(fn func(format string, arg ...interface{})) {
 	if vt.Expect != vt.Got {
-		fn(EXPECT_GOT_FMT, vt.Expect, vt.Got)
+		fn(EXPECT_GOT_FMT, vt.Label, vt.Expect, vt.Got)
 	}
 }
 
@@ -40,24 +48,6 @@ func TestTestType(t *testing.T) {
 		Expect: "foo",
 		Got:    "foo",
 	}.equals(t.Errorf)
-}
-
-func TestRepoCreate(t *testing.T) {
-	var (
-		path = "testdata/plans/files.json"
-	)
-	defer os.Remove(path)
-
-	test{
-		Expect: nil,
-		Got:    RepoCreate(testConfig),
-	}.equals(t.Errorf)
-
-	test{
-		Expect: true,
-		Got:    file.Exists(path),
-	}.equals(t.Errorf)
-
 }
 
 func TestReadelf(t *testing.T) {
@@ -90,7 +80,7 @@ func TestOwns(t *testing.T) {
 		got    = files.Owns("libc.so.6")
 	)
 	if expect != got {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 
 }

@@ -151,7 +151,7 @@ This is useful for creating a new branch that either has another config or to bo
 				}
 				defer os.RemoveAll(root)
 				config.Root = root
-				config.Repo = via.Repo(filepath.Join(root, "repo"))
+				config.Repo = via.NewRepo(filepath.Join(root, "repo"))
 				if plan, err = via.NewPlan(config, "devel"); err != nil {
 					return err
 				}

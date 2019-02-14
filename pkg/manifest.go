@@ -73,6 +73,7 @@ func CreateManifest(ctx *PlanContext, dir string) (err error) {
 	plan.Date = time.Now()
 	plan.Size = size
 	if err := ctx.WritePlan(); err != nil {
+		elog.Println(err)
 		return err
 	}
 	// Remove the old Cid before writing the package tarball

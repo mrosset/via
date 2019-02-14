@@ -304,7 +304,7 @@ func mount(root string) error {
 		"/etc/passwd",
 		os.ExpandEnv("$HOME/.ccache"),
 		config.Cache.String(),
-		config.Plans,
+		config.Plans.String(),
 		config.Repo.String(),
 		config.Prefix,
 		viabin,

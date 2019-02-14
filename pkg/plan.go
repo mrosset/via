@@ -11,6 +11,16 @@ import (
 	"time"
 )
 
+// Plans proved type for Plan directory type
+type Plans struct {
+	Path
+}
+
+// ConfigFile returns config.json fullpath
+func (p Plans) ConfigFile() string {
+	return p.Expand()
+}
+
 // PlanSlice provides a slice of plans
 type PlanSlice []*Plan
 
@@ -121,12 +131,12 @@ func (p *Plan) NameVersion() string {
 // PlanFiles returns a string slice with the full path of all of all
 // plans
 func PlanFiles(config *Config) ([]string, error) {
-	return filepath.Glob(join(config.Plans, "*", "*.json"))
+	return filepath.Glob(config.Plans.Join("*", "*.json"))
 }
 
 // FindPlanPath returns the fullpath for a plan by it's given name
 func FindPlanPath(config *Config, name string) (string, error) {
-	glob := join(config.Plans, "*", name+".json")
+	glob := config.Plans.Join("*", name+".json")
 	e, err := filepath.Glob(glob)
 	if err != nil {
 		return "", err

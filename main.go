@@ -188,7 +188,7 @@ var (
 	ccreate = &cli.Command{
 		Name:   "create",
 		Usage:  "creates a plan from tarball URL",
-		Action: create,
+		Action: notimplemented,
 	}
 
 	cpack = &cli.Command{
@@ -297,8 +297,12 @@ func readconfig() error {
 	config.Cache = config.Cache.Expand()
 
 	config.Cache.Init()
-	config.Plans = os.ExpandEnv(config.Plans)
-	config.Repo = via.Repo(config.Repo.Expand())
+	config.Plans = via.Plans{
+		via.Path(config.Plans.ExpandToPath()),
+	}
+	config.Repo = via.Repo{
+		via.Path(config.Repo.Expand()),
+	}
 
 	for i, j := range config.Env {
 		os.Setenv(i, os.ExpandEnv(j))
@@ -346,7 +350,7 @@ func plugin(ctx *cli.Context) error {
 		return fmt.Errorf("plugin requires a 'plugin' argument. see: 'via help get'")
 	}
 	name := ctx.Args().First()
-	mod := filepath.Join(config.Plans, "../../plugins", name+".so")
+	mod := config.Plans.Join("..", "..", "plugins", name+".so")
 	plug, err := goplugin.Open(mod)
 	if err != nil {
 		elog.Fatal(err)
@@ -534,7 +538,7 @@ func edit(ctx *cli.Context) error {
 	var (
 		editor = os.Getenv("EDITOR")
 		arg0   = ctx.Args().First()
-		p      = filepath.Join(config.Plans, "config.json")
+		p      = config.Plans.ConfigFile()
 		err    error
 	)
 	if arg0 != "config" {
@@ -642,13 +646,13 @@ func diff(ctx *cli.Context) error {
 		return fmt.Errorf("diff requires a 'PLAN' argument. see: 'via help diff'")
 	}
 	for _, arg := range ctx.Args().Slice() {
-		glob := filepath.Join(config.Plans, "*", arg+".json")
+		glob := config.Plans.Join("*", arg+".json")
 		res, err := filepath.Glob(glob)
 		if err != nil {
 			return err
 		}
 		git := exec.Command("git", "diff", strings.Join(res, " "))
-		git.Dir = config.Plans
+		git.Dir = config.Plans.String()
 		git.Stdout = os.Stdout
 		git.Stderr = os.Stderr
 		err = git.Run()
@@ -685,16 +689,16 @@ func options(ctx *cli.Context) error {
 	return cmd.Run()
 }
 
-func create(ctx *cli.Context) error {
-	if !ctx.Args().Present() {
-		return fmt.Errorf("pack requires a 'URL' argument. see: 'via help create'")
-	}
-	err := via.Create(config, ctx.Args().First(), "core")
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func create(ctx *cli.Context) error {
+//	if !ctx.Args().Present() {
+//		return fmt.Errorf("pack requires a 'URL' argument. see: 'via help create'")
+//	}
+//	err := avia.Create(config, ctx.Args().First(), "core")
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+// }
 
 func pack(ctx *cli.Context) error {
 	via.Verbose(ctx.Bool("v"))

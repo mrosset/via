@@ -35,7 +35,7 @@ func TestPlanExpand(t *testing.T) {
 		got    = testPlan.Expand().Url
 	)
 	if expect != got {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 }
 
@@ -59,6 +59,7 @@ func TestPlanPackagePath(t *testing.T) {
 	var (
 		plan = &Plan{
 			Name:    "hello",
+			Group:   "core",
 			Version: "2.9",
 			Cid:     "QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4",
 		}
@@ -66,6 +67,6 @@ func TestPlanPackagePath(t *testing.T) {
 		expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz"
 	)
 	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 }

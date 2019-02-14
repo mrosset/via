@@ -34,9 +34,9 @@ func NewPlanContextByName(config *Config, name string) (*PlanContext, error) {
 	return NewPlanContext(config, plan), nil
 }
 
-// PlanPath returns the full path of this contexts Plan's json file
-func (c PlanContext) PlanPath() string {
-	return filepath.Join(c.Config.Plans, c.Plan.Group, c.Plan.Name+".json")
+// PlanFilePath returns the full path of this contexts Plan's json file
+func (c PlanContext) PlanFilePath() string {
+	return c.Config.Plans.Join(c.Plan.Group, c.Plan.Name+".json")
 }
 
 // BuildDir returns the full path of this context Plan's build directory
@@ -51,7 +51,7 @@ func (c PlanContext) BuildDir() string {
 // WritePlan saves the serialized go struct to it's json file. The
 // json file is pretty formatted so to keep consistency
 func (c PlanContext) WritePlan() error {
-	return json.Write(c.Plan, c.PlanPath())
+	return json.Write(c.Plan, c.PlanFilePath())
 }
 
 // StageDir returns the full path for the PlanContext staging

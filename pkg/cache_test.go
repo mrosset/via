@@ -13,6 +13,6 @@ func TestCacheString(t *testing.T) {
 	os.Setenv("VIA_CACHE_TEST", ".")
 	got := string(cache.String())
 	if expect != got {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 }

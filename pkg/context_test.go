@@ -15,7 +15,7 @@ func TestContextPackagePath(t *testing.T) {
 	expect := "testdata/repo/testplan-1.0.1-linux-x86_64.tar.gz"
 	got := PackagePath(testConfig, plan)
 	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 
 	plan.Cid = "QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH"
@@ -23,7 +23,7 @@ func TestContextPackagePath(t *testing.T) {
 	expect = "testdata/repo/QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH.tar.gz"
 	got = PackagePath(testConfig, plan)
 	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 
 	}
 }
@@ -34,7 +34,7 @@ func TestBuildDir(t *testing.T) {
 		got    = NewPlanContext(testConfig, testPlan).BuildDir()
 	)
 	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 }
 
@@ -44,7 +44,7 @@ func TestSourcPath(t *testing.T) {
 		got    = NewPlanContext(testConfig, testPlan).SourcePath()
 	)
 	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 }
 
@@ -54,6 +54,6 @@ func TestStageDir(t *testing.T) {
 		got    = NewPlanContext(testConfig, testPlan).StageDir()
 	)
 	if got != expect {
-		t.Errorf(EXPECT_GOT_FMT, expect, got)
+		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
 }

@@ -208,7 +208,9 @@ func Tarball(ctx *PlanContext, wr io.Writer) (err error) {
 		plan = ctx.Plan
 		dir  = join(ctx.Cache.Packages(), plan.NameVersion())
 	)
-	err = CreateManifest(ctx, dir)
+	if err := CreateManifest(ctx, dir); err != nil {
+		return err
+	}
 	if err != nil {
 		elog.Println(err)
 		return err

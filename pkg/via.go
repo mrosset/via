@@ -175,13 +175,13 @@ func doCommands(config *Config, dir string, cmds []string) (err error) {
 
 // Package calls each shell command in Plans package field
 func Package(ctx *PlanContext, bdir string) (err error) {
+	// Remove plans Cid it's assumed we'll be creating a new one
+	ctx.Plan.Cid = ""
 	var (
 		plan  = ctx.Plan
 		pack  = plan.Package
 		pfile = PackagePath(&ctx.Config, plan)
 	)
-	// Remove plans Cid it's assumed we'll be creating a new one
-	plan.Cid = ""
 	defer os.Remove(pfile)
 	pdir := join(ctx.Cache.Packages(), plan.NameVersion())
 	if bdir == "" {
@@ -244,7 +244,6 @@ func CreatePackage(ctx *PlanContext) (err error) {
 	var (
 		pfile = PackagePath(&ctx.Config, ctx.Plan)
 	)
-	os.MkdirAll(filepath.Dir(pfile), 0755)
 	fd, err := os.Create(pfile)
 	if err != nil {
 		elog.Println(err)
@@ -337,30 +336,30 @@ var (
 )
 
 // Create a new plan from a given Url
-func Create(config *Config, url, group string) (err error) {
-	var (
-		xfile   = filepath.Base(url)
-		name    = rexName.FindString(xfile)
-		triple  = rexTruple.FindString(xfile)
-		double  = rexDouble.FindString(xfile)
-		version string
-	)
-	switch {
-	case triple != "":
-		version = triple
-	case double != "":
-		version = double
-	default:
-		return fmt.Errorf("regex fail for %s", xfile)
-	}
-	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
-	plan.Inherit = "gnu"
-	ctx := NewPlanContext(config, plan)
-	if file.Exists(ctx.PlanPath()) {
-		return fmt.Errorf("%s already exists", ctx.PlanPath())
-	}
-	return ctx.WritePlan()
-}
+// func Create(config *Config, url, group string) (err error) {
+//	var (
+//		xfile   = filepath.Base(url)
+//		name    = rexName.FindString(xfile)
+//		triple  = rexTruple.FindString(xfile)
+//		double  = rexDouble.FindString(xfile)
+//		version string
+//	)
+//	switch {
+//	case triple != "":
+//		version = triple
+//	case double != "":
+//		version = double
+//	default:
+//		return fmt.Errorf("regex fail for %s", xfile)
+//	}
+//	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
+//	plan.Inherit = "gnu"
+//	ctx := NewPlanContext(config, plan)
+//	if file.Exists(ctx.PlanPath()) {
+//		return fmt.Errorf("%s already exists", ctx.PlanPath())
+//	}
+//	return ctx.WritePlan()
+// }
 
 // IsInstalled returns true if a plan is installed
 func IsInstalled(config *Config, name string) bool {

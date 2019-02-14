@@ -13,9 +13,9 @@ var (
 	wd, _      = os.Getwd()
 	testConfig = &Config{
 		Root:    "testdata/root",
-		Repo:    "testdata/repo",
+		Repo:    Repo{"testdata/repo"},
 		Cache:   "testdata/cache",
-		Plans:   "testdata/plans",
+		Plans:   Plans{"testdata/plans"},
 		OS:      "linux",
 		Arch:    "x86_64",
 		DB:      "",
