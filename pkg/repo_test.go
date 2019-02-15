@@ -73,29 +73,17 @@ func TestRepoCreate(t *testing.T) {
 }
 
 func TestRepo_Exists(t *testing.T) {
-	tests := []struct {
-		name string
-		r    Repo
-		want bool
-	}{
+	tests{
 		{
-			"",
-			Repo{"testdata/repo"},
-			true,
+			Expect: true,
+			Got:    Repo{"testdata/repo"}.Exists(),
 		},
 		{
-			"",
-			Repo{"testdata/false"},
-			false,
+			Expect: false,
+			Got:    Repo{"testdata/false"}.Exists(),
 		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.r.Exists(); got != tt.want {
-				t.Errorf("Repo.Exists() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	}.equals(t)
+
 }
 
 func TestRepo_Expand(t *testing.T) {
