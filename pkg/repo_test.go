@@ -75,6 +75,10 @@ func TestRepoCreate(t *testing.T) {
 func TestRepo_Exists(t *testing.T) {
 	tests{
 		{
+			Expect: nil,
+			Got:    Repo{"testdata/repo"}.Ensure(),
+		},
+		{
 			Expect: true,
 			Got:    Repo{"testdata/repo"}.Exists(),
 		},
