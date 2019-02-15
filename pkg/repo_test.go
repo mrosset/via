@@ -99,24 +99,12 @@ func TestRepo_Exists(t *testing.T) {
 }
 
 func TestRepo_Expand(t *testing.T) {
-	tests := []struct {
-		name string
-		r    Repo
-		want string
-	}{
+	os.Setenv("VIA_TEST_DATA", "testdata")
+	tests{
 		{
-			"",
-			Repo{"$VIA_TEST/repo"},
-			"testdata/repo",
+			Label:  "repo expand",
+			Expect: "testdata/repo",
+			Got:    Repo{"$VIA_TEST_DATA/repo"}.Expand(),
 		},
-		// TODO: Add test cases.
-	}
-	os.Setenv("VIA_TEST", "testdata")
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.r.Expand(); got != tt.want {
-				t.Errorf("Repo.Expand() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	}.equals(t)
 }
