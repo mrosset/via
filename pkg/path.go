@@ -41,13 +41,13 @@ func (p Path) Join(s ...string) string {
 	)
 }
 
-// Expand returns the Path as a string that has been its
-// environmental variables expanded.
+// Expand returns the Path as a string that has had its environment
+// variables expanded
 func (p Path) Expand() string {
 	return os.ExpandEnv(string(p))
 }
 
-// ExpandToPath like
+// ExpandToPath is like Expand but returns a Path type
 func (p Path) ExpandToPath() Path {
 	return Path(p.Expand())
 }

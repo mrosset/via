@@ -14,7 +14,7 @@ var (
 	testConfig = &Config{
 		Root:    "testdata/root",
 		Repo:    Repo{"testdata/repo"},
-		Cache:   "testdata/cache",
+		Cache:   NewCache("testdata/cache"),
 		Plans:   Plans{"testdata/plans"},
 		OS:      "linux",
 		Arch:    "x86_64",
@@ -81,21 +81,21 @@ func TestConfigExpand(t *testing.T) {
 	test{
 		Expect: "https://bitbucket.org/strings/publish/raw/x86_64-via-linux-gnu/repo",
 		Got:    c.Expand().Binary,
-	}.equals(t.Errorf)
+	}.equals(t)
 
 	test{
 		Expect: "/usr/local/via/include",
 		Got:    c.Expand().Env["C_INCLUDE_PATH"],
-	}.equals(t.Errorf)
+	}.equals(t)
 
 	test{
 		Expect: "--build=x86_64-via-linux-gnu",
 		Got:    c.Expand().Flags[0],
-	}.equals(t.Errorf)
+	}.equals(t)
 
 	test{
 		Expect: "-O2 -pipe",
 		Got:    c.Expand().Env["CXXFLAGS"],
-	}.equals(t.Errorf)
+	}.equals(t)
 
 }

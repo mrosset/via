@@ -2,6 +2,9 @@
 * TODO Offline multihash verification
 * TODO GPL3 license
 * TODO Go documentation
+** First pass complete
+** TODO Do another pass
+
 * TODO Global variables config/cache
 ** Problem
 Config and cache variables are global. Initializing in via init
@@ -15,10 +18,19 @@ functions produces side effects.
 **** DONE Convert existing code to use Plan context data structure to simplify config/cache/plan use
 **** DONE remove cache global instance
 **** DONE cleanup main init()
-**** TODO revive lint source tree
-**** TODO fix broken tests
-**** TODO Convert Config to values not pointers
+**** DONE revive lint source tree
+**** DONE fix broken tests
+**** DONE remove config field from Plan
+**** DONE fix revive exceptions
+**** DONE remove Path usage
+**** DONE rename Plans to PlanSlice
+**** DONE create Plans type for working with Plans path
+**** TODO use Path embedding where possible
+**** TODO move environment expand to environment file
+**** TODO convert Config to values not pointers
+**** TODO fix all file masks
+**** TODO 100% test converge
 * TODO Modify bind mounts to have a source and target
 * TODO Logger
-* TODO User type used for user defined configuration
+* TODO User type for user defined configuration
 * TODO System type used for system install/configuration

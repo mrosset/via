@@ -2,7 +2,6 @@ package via
 
 import (
 	"github.com/mrosset/util/file"
-	"os"
 	"reflect"
 	"testing"
 )
@@ -60,12 +59,12 @@ func TestRepoCreate(t *testing.T) {
 			Got:    RepoCreate(testConfig),
 		},
 		{
-			Label:  "files.json",
+			Name:   "files.json",
 			Expect: true,
 			Got:    file.Exists("testdata/plans/files.json"),
 		},
 		{
-			Label:  "repo.json",
+			Name:   "repo.json",
 			Expect: true,
 			Got:    file.Exists("testdata/plans/repo.json"),
 		},
@@ -75,28 +74,19 @@ func TestRepoCreate(t *testing.T) {
 func TestRepo_Exists(t *testing.T) {
 	tests{
 		{
+			Name:   "ensure",
 			Expect: nil,
 			Got:    Repo{"testdata/repo"}.Ensure(),
 		},
 		{
+			Name:   "exists",
 			Expect: true,
 			Got:    Repo{"testdata/repo"}.Exists(),
 		},
 		{
+			Name:   "fail",
 			Expect: false,
 			Got:    Repo{"testdata/false"}.Exists(),
-		},
-	}.equals(t)
-
-}
-
-func TestRepo_Expand(t *testing.T) {
-	os.Setenv("VIA_TEST_DATA", "testdata")
-	tests{
-		{
-			Label:  "repo expand",
-			Expect: "testdata/repo",
-			Got:    Repo{"$VIA_TEST_DATA/repo"}.Expand(),
 		},
 	}.equals(t)
 }

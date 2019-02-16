@@ -17,7 +17,7 @@ func init() {
 }
 
 type test struct {
-	Label  string
+	Name   string
 	Expect interface{}
 	Got    interface{}
 }
@@ -26,28 +26,23 @@ type tests []test
 
 func (ts tests) equals(t *testing.T) {
 	for _, test := range ts {
-		test.equals(t.Errorf)
+		test.equals(t)
 	}
 }
 
-func (vt test) equals(fn func(format string, arg ...interface{})) {
+func (vt test) equals(t *testing.T) bool {
 	if vt.Expect != vt.Got {
-		fn(EXPECT_GOT_FMT, vt.Label, vt.Expect, vt.Got)
+		t.Errorf(EXPECT_GOT_FMT, vt.Name, vt.Expect, vt.Got)
+		return false
 	}
-}
-
-func equals(expect, got string, fn func(format string, arg ...interface{})) {
-	test{
-		Expect: expect,
-		Got:    got,
-	}.equals(fn)
+	return true
 }
 
 func TestTestType(t *testing.T) {
 	test{
 		Expect: "foo",
 		Got:    "foo",
-	}.equals(t.Errorf)
+	}.equals(t)
 }
 
 func TestReadelf(t *testing.T) {

@@ -294,11 +294,11 @@ func readconfig() error {
 	}
 
 	config = config.Expand()
-	config.Cache = config.Cache.Expand()
+	config.Cache = via.NewCache(config.Cache.Expand())
 
 	config.Cache.Init()
 	config.Plans = via.Plans{
-		via.Path(config.Plans.ExpandToPath()),
+		via.Path(config.Plans.Expand()),
 	}
 	config.Repo = via.Repo{
 		via.Path(config.Repo.Expand()),

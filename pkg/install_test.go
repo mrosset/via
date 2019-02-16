@@ -28,7 +28,7 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	test{
 		Expect: nil,
 		Got:    NewInstaller(testConfig, plan).VerifyCid(),
-	}.equals(t.Errorf)
+	}.equals(t)
 
 	plan.Cid = ""
 	file.Touch(PackagePath(testConfig, testPlan))
@@ -36,7 +36,7 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	test{
 		Expect: "verify-0.0.1 Plans CID does not match tarballs got QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH",
 		Got:    NewInstaller(testConfig, plan).Install().Error(),
-	}.equals(t.Errorf)
+	}.equals(t)
 
 }
 
