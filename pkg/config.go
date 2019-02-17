@@ -1,6 +1,7 @@
 package via
 
 import (
+	"encoding/json"
 	"fmt"
 	mjson "github.com/mrosset/util/json"
 	"os"
@@ -36,6 +37,26 @@ type Config struct {
 
 	// Internal Fields
 	template *Config
+}
+
+// ConfigJSON provides json Marshal and Unmarshal interface for Config
+type ConfigJSON Config
+
+// UnmarshalJSON provides Unmarshal interface
+func (j *ConfigJSON) UnmarshalJSON(data []byte) error {
+	var c Config
+	if err := json.Unmarshal(data, &c); err != nil {
+		return err
+	}
+	sort.Strings(c.Flags)
+	*j = ConfigJSON(c)
+	return nil
+}
+
+// MarshalJSON provides Marshal interface
+func (j *ConfigJSON) MarshalJSON() ([]byte, error) {
+	sort.Strings(j.Flags)
+	return json.Marshal(*j)
 }
 
 // ReadConfig reads config path and returns a new initialized Config
@@ -115,23 +136,24 @@ func (f Flags) Join() string {
 }
 
 // DB provides string type for working with DB installed path
-type DB string
+type DB struct {
+	Path
+}
 
-// Installed returns the path string of the installed director under
-// root
-func (d DB) Installed(config *Config) string {
-	return join(config.Root, string(d), "installed")
+// Installed returns the path string of the installed directory
+func (d DB) Installed() string {
+	return d.Join("installed")
 }
 
 // Plans returns the plans directory under root
 func (d DB) Plans(config *Config) string {
-	return join(config.Root, string(d), "plans")
+	return join(config.Root, d.String(), "plans")
 }
 
 // InstalledFiles returns all of the json manifests for each install
 // package
 func (d DB) InstalledFiles(config *Config) ([]string, error) {
-	files, err := filepath.Glob(filepath.Join(d.Installed(config), "*", "*.json"))
+	files, err := filepath.Glob(filepath.Join(d.Installed(), "*", "*.json"))
 	if err != nil {
 		return nil, err
 	}
