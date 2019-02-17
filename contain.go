@@ -28,7 +28,8 @@ var (
 )
 
 func init() {
-	if err := readconfig(); err != nil {
+	var err error
+	if config, err = readconfig(); err != nil {
 		elog.Fatal(err)
 	}
 }

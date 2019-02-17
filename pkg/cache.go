@@ -20,27 +20,27 @@ func NewCache(path string) Cache {
 // packages. This directory is used to install the built package
 // before they are packaged into tarballs
 func (c Cache) Packages() string {
-	return c.Join("pkg")
+	return c.Join("packages")
 }
 
 // Sources returns the directory cache that contains the source
 // tarballs downloaded from upstream. This can also contain git
 // repositories though only portions of git support currently exists
 func (c Cache) Sources() string {
-	return c.Join("src")
+	return c.Join("sources")
 }
 
 // Builds returns the directory cache that contains plan builds. This
 // is where out of source tree builds are built. Not all build systems
 // support plans support out of source tree builds
 func (c Cache) Builds() string {
-	return c.Join("bld")
+	return c.Join("builds")
 }
 
 // Stages returns the stages directory cache. This directory is used
 // to cache decompressed source trees.
 func (c Cache) Stages() string {
-	return c.Join("stg")
+	return c.Join("stages")
 }
 
 // Init creates each cache directory ensuring it exists

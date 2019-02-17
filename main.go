@@ -276,38 +276,12 @@ func initvia() error {
 	return nil
 }
 
-func readconfig() error {
+func readconfig() (*via.Config, error) {
+	// FIXME: check this somewhere else maybe?
 	if os.Getenv("GOPATH") == "" {
 		elog.Fatal("GOPATH must be set")
 	}
-
-	if err := json.Read(&config, cfile); err != nil {
-		return err
-	}
-
-	// TODO: create a marshell command to sort these fields?
-	sort.Strings([]string(config.Flags))
-	sort.Strings(config.Remove)
-
-	if err := json.Write(&config, cfile); err != nil {
-		elog.Fatal(err)
-	}
-
-	config = config.Expand()
-	config.Cache = via.NewCache(config.Cache.Expand())
-
-	config.Cache.Init()
-	config.Plans = via.Plans{
-		via.Path(config.Plans.Expand()),
-	}
-	config.Repo = via.Repo{
-		via.Path(config.Repo.Expand()),
-	}
-
-	for i, j := range config.Env {
-		os.Setenv(i, os.ExpandEnv(j))
-	}
-	return nil
+	return via.ReadConfig(cfile)
 }
 
 func main() {

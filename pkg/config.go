@@ -2,9 +2,10 @@ package via
 
 import (
 	"fmt"
-	"github.com/mrosset/util/json"
+	mjson "github.com/mrosset/util/json"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -37,6 +38,39 @@ type Config struct {
 	template *Config
 }
 
+// ReadConfig reads config path and returns a new initialized Config
+func ReadConfig(path string) (*Config, error) {
+	var config *Config
+	if err := mjson.Read(&config, path); err != nil {
+		return nil, err
+	}
+
+	// TODO: create a marshal command to sort these fields?
+	sort.Strings([]string(config.Flags))
+	sort.Strings(config.Remove)
+
+	if err := mjson.Write(&config, path); err != nil {
+		return nil, err
+	}
+
+	config = config.Expand()
+	config.Cache = Cache{
+		Path(config.Cache.Expand()),
+	}
+	config.Cache.Init()
+	config.Plans = Plans{
+		Path(config.Plans.Expand()),
+	}
+	config.Repo = Repo{
+		Path(config.Repo.Expand()),
+	}
+
+	for i, j := range config.Env {
+		os.Setenv(i, os.ExpandEnv(j))
+	}
+	return config, nil
+}
+
 // SanitizeEnv returns an os.Environ() environment string slice that
 // keeps only white listed environment variables. This ensures when we
 // exec command calls nothing leaks from system environment
@@ -64,7 +98,7 @@ func (c *Config) Expand() *Config {
 		return c.template
 	}
 	o := new(Config)
-	err := json.Parse(o, c)
+	err := mjson.Parse(o, c)
 	if err != nil {
 		panic(err)
 	}
@@ -75,7 +109,8 @@ func (c *Config) Expand() *Config {
 // Flags provides a string slice type for working with flags
 type Flags []string
 
-func (f Flags) String() string {
+// Join joins flags into a string separated with a space
+func (f Flags) Join() string {
 	return strings.Join(f, " ")
 }
 

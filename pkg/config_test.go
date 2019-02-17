@@ -14,7 +14,7 @@ var (
 	testConfig = &Config{
 		Root:    "testdata/root",
 		Repo:    Repo{"testdata/repo"},
-		Cache:   NewCache("testdata/cache"),
+		Cache:   Cache{"testdata/cache"},
 		Plans:   Plans{"testdata/plans"},
 		OS:      "linux",
 		Arch:    "x86_64",

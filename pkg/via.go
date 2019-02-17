@@ -140,7 +140,7 @@ func Build(ctx *PlanContext) (err error) {
 	}
 	// FIXME: this should be set within exec.Cmd
 	os.Setenv("SRCDIR", ctx.StageDir())
-	os.Setenv("Flags", expand(flags.String()))
+	os.Setenv("Flags", expand(flags.Join()))
 	err = doCommands(&ctx.Config, ctx.BuildDir(), build)
 	if err != nil {
 		return fmt.Errorf("%s in %s", err.Error(), ctx.BuildDir())
