@@ -1,11 +1,12 @@
 package via
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/human"
-	"github.com/mrosset/util/json"
+	mjson "github.com/mrosset/util/json"
 	"path/filepath"
 	"sort"
 	"time"
@@ -79,7 +80,7 @@ func (ps PlanSlice) Contains(plan *Plan) bool {
 // names can be reference from other filed names
 func (p *Plan) Expand() *Plan {
 	o := new(Plan)
-	err := json.Parse(o, p)
+	err := mjson.Parse(o, p)
 	if err != nil {
 		panic(err)
 	}
@@ -128,6 +129,24 @@ func (p *Plan) NameVersion() string {
 	return fmt.Sprintf("%s-%s", p.Name, p.Version)
 }
 
+// PlanJSON provides json Marshal interface for Plan
+type PlanJSON Plan
+
+func (j *PlanJSON) sortFields() {
+	sort.Strings(j.SubPackages)
+	sort.Strings(j.Flags)
+	sort.Strings(j.Remove)
+	sort.Strings(j.AutoDepends)
+	sort.Strings(j.ManualDepends)
+	sort.Strings(j.BuildDepends)
+}
+
+// MarshalJSON provides Marshal interface
+func (j PlanJSON) MarshalJSON() ([]byte, error) {
+	j.sortFields()
+	return json.Marshal(Plan(j))
+}
+
 // PlanFiles returns a string slice with the full path of all of all
 // plans
 func PlanFiles(config *Config) ([]string, error) {
@@ -163,7 +182,7 @@ func NewPlan(config *Config, name string) (plan *Plan, err error) {
 // ReadPath reads a plan by path and return a Plan
 func ReadPath(path string) (plan *Plan, err error) {
 	plan = new(Plan)
-	err = json.Read(plan, path)
+	err = mjson.Read(plan, path)
 	if err != nil {
 		return nil, err
 	}
@@ -208,23 +227,23 @@ func (p Plan) stageDir() string {
 // known style isses. For example we can check that each upstream URL
 // is using https and not http
 func FmtPlans(config *Config) (err error) {
-	e, err := PlanFiles(config)
+	files, err := PlanFiles(config)
 	if err != nil {
 		return err
 	}
-	for _, j := range e {
-		plan, err := ReadPath(j)
+	for _, f := range files {
+		plan, err := ReadPath(f)
 		if err != nil {
-			err = fmt.Errorf("%s %s", j, err)
+			err = fmt.Errorf("%s %s", f, err)
 			elog.Println(err)
 			return err
 		}
 		// If Group is empty, we can set it
 		if plan.Group == "" {
-			plan.Group = baseDir(j)
+			plan.Group = baseDir(f)
 		}
 		if verbose {
-			console.Println("lint", plan.Name, plan.Version, plan.IsRebuilt)
+			console.Println("fmt", plan.Name, plan.Version, plan.IsRebuilt)
 		}
 		ctx := NewPlanContext(config, plan)
 		if err := ctx.WritePlan(); err != nil {

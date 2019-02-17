@@ -32,7 +32,6 @@ func (ts tests) equals(t *testing.T) {
 }
 
 func (vt test) equals(t *testing.T) bool {
-
 	if !reflect.DeepEqual(vt.Expect, vt.Got) {
 		t.Errorf(EXPECT_GOT_FMT, vt.Name, vt.Expect, vt.Got)
 		return false

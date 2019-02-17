@@ -1,6 +1,8 @@
 package via
 
 import (
+	"encoding/json"
+	mjson "github.com/mrosset/util/json"
 	"reflect"
 	"testing"
 )
@@ -69,4 +71,61 @@ func TestPlanPackagePath(t *testing.T) {
 	if got != expect {
 		t.Errorf(EXPECT_GOT_FMT, "", expect, got)
 	}
+}
+
+func TestPlanJSON_Encode(t *testing.T) {
+	var (
+		jplan = PlanJSON{
+			Flags: []string{"beta", "alpha"},
+		}
+		file = "testdata/plan.json"
+	)
+	test{
+		Expect: nil,
+		Got:    mjson.Write(jplan, file),
+	}.equals(t)
+}
+
+func TestPlanJSON_MarshalJSON(t *testing.T) {
+	var (
+		jplan = PlanJSON{
+			SubPackages:   []string{"beta", "alpha"},
+			Flags:         []string{"beta", "alpha"},
+			Remove:        []string{"beta", "alpha"},
+			AutoDepends:   []string{"beta", "alpha"},
+			ManualDepends: []string{"beta", "alpha"},
+			BuildDepends:  []string{"beta", "alpha"},
+		}
+		plan   Plan
+		expect = []string{"alpha", "beta"}
+	)
+	got, err := jplan.MarshalJSON()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = json.Unmarshal(got, &plan); err != nil {
+		t.Fatal(err)
+	}
+	tests{
+		{
+			Expect: expect,
+			Got:    plan.SubPackages,
+		},
+		{
+			Expect: Flags(expect),
+			Got:    plan.Flags,
+		},
+		{
+			Expect: expect,
+			Got:    plan.AutoDepends,
+		},
+		{
+			Expect: expect,
+			Got:    plan.ManualDepends,
+		},
+		{
+			Expect: expect,
+			Got:    plan.BuildDepends,
+		},
+	}.equals(t)
 }

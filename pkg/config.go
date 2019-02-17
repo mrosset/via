@@ -42,6 +42,12 @@ type Config struct {
 // ConfigJSON provides json Marshal and Unmarshal interface for Config
 type ConfigJSON Config
 
+// ToConfig returns Config type
+func (j ConfigJSON) ToConfig() *Config {
+	config := Config(j)
+	return &config
+}
+
 // UnmarshalJSON provides Unmarshal interface
 func (j *ConfigJSON) UnmarshalJSON(data []byte) error {
 	var c Config
@@ -61,20 +67,20 @@ func (j *ConfigJSON) MarshalJSON() ([]byte, error) {
 
 // ReadConfig reads config path and returns a new initialized Config
 func ReadConfig(path string) (*Config, error) {
-	var config *Config
-	if err := mjson.Read(&config, path); err != nil {
+	var jconfig ConfigJSON
+	if err := mjson.Read(&jconfig, path); err != nil {
 		return nil, err
 	}
 
 	// TODO: create a marshal command to sort these fields?
-	sort.Strings([]string(config.Flags))
-	sort.Strings(config.Remove)
+	// sort.Strings([]string(config.Flags))
+	// sort.Strings(config.Remove)
 
-	if err := mjson.Write(&config, path); err != nil {
+	if err := mjson.Write(&jconfig, path); err != nil {
 		return nil, err
 	}
 
-	config = config.Expand()
+	config := jconfig.ToConfig().Expand()
 	config.Cache = Cache{
 		Path(config.Cache.Expand()),
 	}

@@ -97,43 +97,43 @@ func TestConfigGetenv(t *testing.T) {
 	}
 }
 
-// func TestConfigExpand(t *testing.T) {
-//	var (
-//		c = &Config{
-//			Branch: "x86_64-via-linux-gnu",
-//			Arch:   "x86_64",
-//			OS:     "linux",
-//			Prefix: "/usr/local/via",
-//			Binary: "https://bitbucket.org/strings/publish/raw/{{.Branch}}/repo",
-//			Flags: []string{
-//				"--build={{.Arch}}-via-{{.OS}}-gnu",
-//			},
-//			Env: map[string]string{
-//				"CFLAGS":         "-O2 -pipe",
-//				"CXXFLAGS":       "{{.Env.CFLAGS}}",
-//				"C_INCLUDE_PATH": "{{.Prefix}}/include",
-//			},
-//		}
-//	)
+func TestConfigExpand(t *testing.T) {
+	var (
+		c = &Config{
+			Branch: "x86_64-via-linux-gnu",
+			Arch:   "x86_64",
+			OS:     "linux",
+			Prefix: "/usr/local/via",
+			Binary: "https://bitbucket.org/strings/publish/raw/{{.Branch}}/repo",
+			Flags: []string{
+				"--build={{.Arch}}-via-{{.OS}}-gnu",
+			},
+			Env: map[string]string{
+				"CFLAGS":         "-O2 -pipe",
+				"CXXFLAGS":       "{{.Env.CFLAGS}}",
+				"C_INCLUDE_PATH": "{{.Prefix}}/include",
+			},
+		}
+	)
 
-//	test{
-//		Expect: "https://bitbucket.org/strings/publish/raw/x86_64-via-linux-gnu/repo",
-//		Got:    c.Expand().Binary,
-//	}.equals(t)
+	test{
+		Expect: "https://bitbucket.org/strings/publish/raw/x86_64-via-linux-gnu/repo",
+		Got:    c.Expand().Binary,
+	}.equals(t)
 
-//	test{
-//		Expect: "/usr/local/via/include",
-//		Got:    c.Expand().Env["C_INCLUDE_PATH"],
-//	}.equals(t)
+	test{
+		Expect: "/usr/local/via/include",
+		Got:    c.Expand().Env["C_INCLUDE_PATH"],
+	}.equals(t)
 
-//	test{
-//		Expect: "--build=x86_64-via-linux-gnu",
-//		Got:    c.Expand().Flags[0],
-//	}.equals(t)
+	test{
+		Expect: "--build=x86_64-via-linux-gnu",
+		Got:    c.Expand().Flags[0],
+	}.equals(t)
 
-//	test{
-//		Expect: "-O2 -pipe",
-//		Got:    c.Expand().Env["CXXFLAGS"],
-//	}.equals(t)
+	test{
+		Expect: "-O2 -pipe",
+		Got:    c.Expand().Env["CXXFLAGS"],
+	}.equals(t)
 
-// }
+}

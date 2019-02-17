@@ -48,10 +48,10 @@ func (c PlanContext) BuildDir() string {
 	return bdir
 }
 
-// WritePlan saves the serialized go struct to it's json file. The
+// WritePlan writes the serialized go struct to it's json file. The
 // json file is pretty formatted so to keep consistency
 func (c PlanContext) WritePlan() error {
-	return json.Write(c.Plan, c.PlanFilePath())
+	return json.Write(PlanJSON(*c.Plan), c.PlanFilePath())
 }
 
 // StageDir returns the full path for the PlanContext staging
