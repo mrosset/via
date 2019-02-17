@@ -277,7 +277,7 @@ func Remove(config *Config, name string) (err error) {
 			elog.Println(err)
 		}
 	}
-	return os.RemoveAll(join(config.DB.Installed(config), name))
+	return os.RemoveAll(join(config.DB.Installed(), name))
 }
 
 // func BuildDeps(config *Config, plan *Plan) (err error) {
@@ -363,7 +363,7 @@ var (
 
 // IsInstalled returns true if a plan is installed
 func IsInstalled(config *Config, name string) bool {
-	return file.Exists(join(config.DB.Installed(config), name))
+	return file.Exists(join(config.DB.Installed(), name))
 }
 
 // Lint walks all plans and formats it sorting fields
