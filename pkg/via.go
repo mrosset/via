@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/mrosset/gurl"
-	"github.com/mrosset/util/console"
 	"github.com/mrosset/util/file"
 	"log"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"sort"
 )
 
 var (
@@ -364,47 +362,6 @@ var (
 // IsInstalled returns true if a plan is installed
 func IsInstalled(config *Config, name string) bool {
 	return file.Exists(join(config.DB.Installed(), name))
-}
-
-// Lint walks all plans and formats it sorting fields
-//
-// FIXME: this should be renamed to Format and a new Lint function
-// created. Lint function should have no side effects just look for
-// known style isses. For example we can check that each upstream URL
-// is using https and not http
-func Lint(config *Config) (err error) {
-	e, err := PlanFiles(config)
-	if err != nil {
-		return err
-	}
-	for _, j := range e {
-		plan, err := ReadPath(j)
-		if err != nil {
-			err = fmt.Errorf("%s %s", j, err)
-			elog.Println(err)
-			return err
-		}
-		// If Group is empty, we can set it
-		if plan.Group == "" {
-			plan.Group = baseDir(j)
-		}
-		if verbose {
-			console.Println("lint", plan.Name, plan.Version, plan.IsRebuilt)
-		}
-		sort.Strings(plan.SubPackages)
-		sort.Strings(plan.Flags)
-		sort.Strings(plan.Remove)
-		sort.Strings(plan.AutoDepends)
-		sort.Strings(plan.ManualDepends)
-		sort.Strings(plan.BuildDepends)
-		ctx := NewPlanContext(config, plan)
-		if err := ctx.WritePlan(); err != nil {
-			elog.Println(err)
-			return err
-		}
-	}
-	console.Flush()
-	return nil
 }
 
 func fatal(err error) {

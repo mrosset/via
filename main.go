@@ -147,9 +147,9 @@ var (
 
 	// lint command
 	clint = &cli.Command{
-		Name:   "lint",
-		Usage:  "lint and format plans",
-		Action: lint,
+		Name:   "fmt",
+		Usage:  "format plans",
+		Action: fmtplans,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "v",
@@ -531,7 +531,7 @@ func edit(ctx *cli.Context) error {
 	}
 	elog.Println("linting...")
 	via.Verbose(false)
-	return via.Lint(config)
+	return via.FmtPlans(config)
 }
 
 func list(ctx *cli.Context) error {
@@ -548,9 +548,9 @@ func list(ctx *cli.Context) error {
 	return nil
 }
 
-func lint(ctx *cli.Context) error {
+func fmtplans(ctx *cli.Context) error {
 	via.Verbose(ctx.Bool("v"))
-	return via.Lint(config)
+	return via.FmtPlans(config)
 }
 
 func show(ctx *cli.Context) error {

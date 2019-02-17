@@ -200,3 +200,38 @@ func (p Plan) stageDir() string {
 	}
 	return p.NameVersion()
 }
+
+// FmtPlans walks all plans and formats it sorting fields
+//
+// FIXME: this should be renamed to Format and a new Lint function
+// created. Lint function should have no side effects just look for
+// known style isses. For example we can check that each upstream URL
+// is using https and not http
+func FmtPlans(config *Config) (err error) {
+	e, err := PlanFiles(config)
+	if err != nil {
+		return err
+	}
+	for _, j := range e {
+		plan, err := ReadPath(j)
+		if err != nil {
+			err = fmt.Errorf("%s %s", j, err)
+			elog.Println(err)
+			return err
+		}
+		// If Group is empty, we can set it
+		if plan.Group == "" {
+			plan.Group = baseDir(j)
+		}
+		if verbose {
+			console.Println("lint", plan.Name, plan.Version, plan.IsRebuilt)
+		}
+		ctx := NewPlanContext(config, plan)
+		if err := ctx.WritePlan(); err != nil {
+			elog.Println(err)
+			return err
+		}
+	}
+	console.Flush()
+	return nil
+}
