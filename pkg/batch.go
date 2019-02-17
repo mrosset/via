@@ -146,7 +146,7 @@ func (b *Batch) DownloadInstall(plan *Plan) {
 	b.pm.Working(plan.Name, "install", fmt.Sprintf("%-*s", 19, ""))
 	if err := NewInstaller(b.config, plan).Install(); err != nil {
 		b.pm.Error(plan.Name, err.Error())
-		elog.Fatal(err)
+		elog.Fatalf("%s: %s", plan.Name, err)
 		return
 	}
 

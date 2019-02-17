@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	config  = new(via.Config)
 	cfile   = filepath.Join(viapath, "plans/config.json")
+	config  = readconfig()
 	viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
 	viaURL  = "https://github.com/mrosset/via"
 	planURL = "https://github.com/mrosset/plans"
@@ -276,12 +276,16 @@ func initvia() error {
 	return nil
 }
 
-func readconfig() (*via.Config, error) {
+func readconfig() *via.Config {
 	// FIXME: check this somewhere else maybe?
 	if os.Getenv("GOPATH") == "" {
 		elog.Fatal("GOPATH must be set")
 	}
-	return via.ReadConfig(cfile)
+	config, err := via.ReadConfig(cfile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return config
 }
 
 func main() {
@@ -434,7 +438,12 @@ func batch(ctx *cli.Context) error {
 }
 
 func remove(ctx *cli.Context) error {
-	return via.Remove(config, ctx.Args().First())
+	for _, arg := range ctx.Args().Slice() {
+		if err := via.Remove(config, arg); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func build(ctx *cli.Context) error {
@@ -564,7 +573,7 @@ func show(ctx *cli.Context) error {
 	if ctx.String("t") != "" {
 		tmpl, err := template.New("stdout").Parse(ctx.String("t") + "\n")
 		if err != nil {
-			panic(err)
+			return err
 		}
 		return tmpl.Execute(os.Stdout, plan)
 	}

@@ -74,6 +74,7 @@ func install(ctx *cli.Context) error {
 	config.Root = ctx.String("r")
 	if !file.Exists(ctx.String("r")) {
 		if err := os.MkdirAll(ctx.String("r"), 0755); err != nil {
+			elog.Printf("could not create '%s'. %s", config.Root, err)
 			return err
 		}
 	}

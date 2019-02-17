@@ -28,13 +28,6 @@ var (
 )
 
 func init() {
-	var err error
-	if config, err = readconfig(); err != nil {
-		elog.Fatal(err)
-	}
-}
-
-func init() {
 	reexec.Register("init", initialize)
 	if reexec.Init() {
 		os.Exit(0)

@@ -1,36 +1,45 @@
-* DONE Rootless container build
-* TODO Offline multihash verification
-* TODO GPL3 license
-* TODO Go documentation
-** First pass complete
-** TODO Do another pass
-
-* TODO Global variables config/cache
-** Problem
+* Completed
+** DONE Rootless container build
+** DONE Global variables config/cache
+*** Problem
 Config and cache variables are global. Initializing in via init
 functions produces side effects.
-** Solution
-*** Phase one
-**** DONE Move all init functions and global variables to via.go
-**** DONE Design structure to encapsulate config/cache/plan
+*** Solution
+**** Phase one
+***** DONE Move all init functions and global variables to via.go
+***** DONE Design structure to encapsulate config/cache/plan
 
-*** Phase two
-**** DONE Convert existing code to use Plan context data structure to simplify config/cache/plan use
-**** DONE remove cache global instance
-**** DONE cleanup main init()
-**** DONE revive lint source tree
-**** DONE fix broken tests
-**** DONE remove config field from Plan
-**** DONE fix revive exceptions
-**** DONE remove Path usage
-**** DONE rename Plans to PlanSlice
-**** DONE create Plans type for working with Plans path
-**** TODO use Path embedding where possible
-**** TODO move environment expand to environment file
-**** TODO convert Config to values not pointers
-**** TODO fix all file masks
-**** TODO 100% test converge
-* TODO Modify bind mounts to have a source and target
-* TODO Logger
-* TODO User type for user defined configuration
-* TODO System type used for system install/configuration
+**** Phase two
+***** DONE Convert existing code to use Plan context data structure to simplify config/cache/plan use
+***** DONE remove cache global instance
+** DONE cleanup main init()
+** DONE revive lint source tree
+** DONE fix broken tests
+** DONE remove config field from Plan
+** DONE fix revive exceptions
+** DONE remove Path usage
+** DONE rename Plans to PlanSlice
+** DONE create Plans type for working with Plans path
+* Inprogess
+** DONE sort Plan when encoding json
+
+** TODO use Path embedding where possible
+** TODO Expand Config using UnMarshal and Marshal?
+** TODO Config field scopexo
+*** Problem
+Is needed to join paths to lower level objects. For example we have a top level Config
+*** Solution
+* Todo
+** TODO move environment expand to environment file
+** TODO Offline multihash verification
+** TODO Go documentation
+*** DONE First pass complete
+*** TODO Do another pass
+** TODO GPL3 license
+** TODO convert Config to values not pointers
+** TODO fix all file masks
+** TODO 100% test converge
+** TODO Modify bind mounts to have a source and target
+** TODO Logger
+** TODO User type for user defined configuration
+** TODO System type used for system install/configuration
