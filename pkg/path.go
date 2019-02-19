@@ -20,6 +20,11 @@ func (p Path) String() string {
         return string(p)
 }
 
+// Base returns the Path's base
+func (p Path) Base() Path {
+        return Path(filepath.Base(string(p)))
+}
+
 // Exists return true if the Path path exists
 func (p Path) Exists() bool {
         return file.Exists(p.String())
@@ -35,10 +40,9 @@ func (p Path) Ensure() error {
 
 // Join path arguments with the Path as parent. This is like
 // filepath.Join but with this Path type as the parent
-func (p Path) Join(s ...string) string {
-        return filepath.Join(
-                append([]string{string(p)}, s...)...,
-        )
+func (p Path) Join(s ...string) Path {
+        join := append([]string{string(p)}, s...)
+        return Path(filepath.Join(join...))
 }
 
 // Expand returns the Path as a string that has had its environment

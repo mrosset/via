@@ -19,9 +19,9 @@ import (
 // FIXME: this is temporary used to handle some corner cases with long
 // file names which could now be resolved with go upstream. Revisit
 // this when we rework our untar functions
-func GNUUntar(dest string, file string) error {
+func GNUUntar(dest Path, file string) error {
         tar := exec.Command("tar", "-xf", file)
-        tar.Dir = dest
+        tar.Dir = dest.String()
         tar.Stdout = os.Stdout
         tar.Stderr = os.Stdout
         return tar.Run()

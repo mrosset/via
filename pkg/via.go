@@ -64,7 +64,7 @@ func Remove(config *Config, name string) (err error) {
                         elog.Println(err)
                 }
         }
-        return os.RemoveAll(join(config.DB.Installed(), name))
+        return config.DB.Installed().Join(name).RemoveAll()
 }
 
 // func BuildDeps(config *Config, plan *Plan) (err error) {
@@ -150,7 +150,7 @@ var (
 
 // IsInstalled returns true if a plan is installed
 func IsInstalled(config *Config, name string) bool {
-        return file.Exists(join(config.DB.Installed(), name))
+        return config.DB.Installed().Join(name).Exists()
 }
 
 func fatal(err error) {
@@ -165,14 +165,12 @@ func Clean(config *Config, plan *Plan) error {
                 cache = config.Cache
         )
         fmt.Printf(lfmt, "clean", plan.NameVersion())
-        dir := join(cache.Builds(), plan.NameVersion())
-        if err := os.RemoveAll(dir); err != nil {
+        err := cache.Builds().Join(plan.NameVersion()).RemoveAll()
+        if err != nil {
                 return err
         }
-
         if plan.BuildInStage {
-                dir = join(cache.Stages(), plan.stageDir())
-                return os.RemoveAll(dir)
+                return cache.Stages().Join(plan.stageDir()).RemoveAll()
         }
         return nil
 }

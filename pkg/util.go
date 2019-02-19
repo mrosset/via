@@ -84,12 +84,13 @@ func printSlice(s []string) {
 }
 
 // PlanFilePath returns the full path of the Plan's json file
-func PlanFilePath(config *Config, plan *Plan) string {
+func PlanFilePath(config *Config, plan *Plan) Path {
         return config.Plans.Join(plan.Group, plan.Name+".json")
 }
 
 // WritePlan writes the serialized go struct to it's json file. The
 // json file is pretty formatted so to keep consistency
 func WritePlan(config *Config, plan *Plan) error {
-        return json.Write(PlanJSON(*plan), PlanFilePath(config, plan))
+        file := PlanFilePath(config, plan).String()
+        return json.Write(PlanJSON(*plan), file)
 }

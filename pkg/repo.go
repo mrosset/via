@@ -20,7 +20,7 @@ func NewRepo(path string) Repo {
 }
 
 // File returns the full path for repo.json file
-func (r Repo) File(config *Config) string {
+func (r Repo) File(config *Config) Path {
         return config.Plans.Join("repo.json")
 }
 
@@ -99,7 +99,7 @@ func RepoCreate(config *Config) error {
                 repo = append(repo, join(p.Group, p.Name+".json"))
                 files[p.Name] = p.Files
         }
-        if err := json.Write(repo, config.Repo.File(config)); err != nil {
+        if err := json.Write(repo, config.Repo.File(config).String()); err != nil {
                 return err
         }
         return json.Write(files, config.Repo.FilesFile(config).String())

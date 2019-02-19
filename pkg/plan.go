@@ -150,12 +150,14 @@ func (j PlanJSON) MarshalJSON() ([]byte, error) {
 // PlanFiles returns a string slice with the full path of all of all
 // plans
 func PlanFiles(config *Config) ([]string, error) {
-        return filepath.Glob(config.Plans.Join("*", "*.json"))
+        return filepath.Glob(
+                config.Plans.Join("*", "*.json").String(),
+        )
 }
 
 // FindPlanPath returns the fullpath for a plan by it's given name
 func FindPlanPath(config *Config, name string) (string, error) {
-        glob := config.Plans.Join("*", name+".json")
+        glob := config.Plans.Join("*", name+".json").String()
         e, err := filepath.Glob(glob)
         if err != nil {
                 return "", err

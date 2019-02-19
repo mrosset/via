@@ -8,7 +8,7 @@ import (
 func TestRepoFilePaths(t *testing.T) {
         tests{
                 {
-                        Expect: "testdata/plans/repo.json",
+                        Expect: Path("testdata/plans/repo.json"),
                         Got:    testConfig.Repo.File(testConfig),
                 },
                 {

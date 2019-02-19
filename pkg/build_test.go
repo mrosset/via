@@ -14,7 +14,7 @@ func TestBuilder_PathMethods(t *testing.T) {
         )
         tests{
                 {
-                        Expect: filepath.Join(wd, "testdata/cache/stages/hello-2.9"),
+                        Expect: Path(wd).Join("testdata/cache/stages/hello-2.9"),
                         Got:    builder.StageDir(),
                 },
                 {

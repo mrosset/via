@@ -257,7 +257,7 @@ func initvia() error {
         // TODO rework this to error and suggest user use 'via init'
         if !file.Exists(viapath) {
                 elog.Println("cloning via")
-                if err := via.Clone(viapath, viaURL); err != nil {
+                if err := via.Clone(via.Path(viapath), viaURL); err != nil {
                         return err
                 }
         }
@@ -268,7 +268,7 @@ func initvia() error {
         pdir := filepath.Dir(cfile)
         if !file.Exists(pdir) {
                 elog.Println("cloning plans")
-                if err := via.Clone(pdir, planURL); err != nil {
+                if err := via.Clone(via.Path(pdir), planURL); err != nil {
                         return err
                 }
         }
@@ -328,7 +328,7 @@ func plugin(ctx *cli.Context) error {
         }
         name := ctx.Args().First()
         mod := config.Plans.Join("..", "..", "plugins", name+".so")
-        plug, err := goplugin.Open(mod)
+        plug, err := goplugin.Open(mod.String())
         if err != nil {
                 elog.Fatal(err)
         }
@@ -611,8 +611,9 @@ func plog(ctx *cli.Context) error {
         if err != nil {
                 return err
         }
-        f := filepath.Join(b.BuildDir(), "config.log")
-        return file.Cat(os.Stdout, f)
+        return file.Cat(os.Stdout,
+                b.BuildDir().Join("config.log").String(),
+        )
 }
 
 func elf(ctx *cli.Context) error {
@@ -625,7 +626,7 @@ func diff(ctx *cli.Context) error {
                 return fmt.Errorf("diff requires a 'PLAN' argument. see: 'via help diff'")
         }
         for _, arg := range ctx.Args().Slice() {
-                glob := config.Plans.Join("*", arg+".json")
+                glob := config.Plans.Join("*", arg+".json").String()
                 res, err := filepath.Glob(glob)
                 if err != nil {
                         return err
@@ -659,8 +660,7 @@ func options(ctx *cli.Context) error {
         if err != nil {
                 return err
         }
-        c := filepath.Join(b.StageDir(), "configure")
-        fmt.Println(c)
+        c := b.StageDir().Join("configure").String()
         cmd := exec.Command("sh", c, "--help")
         cmd.Stdout = os.Stdout
         cmd.Stdin = os.Stdin

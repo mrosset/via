@@ -4,7 +4,6 @@ import (
         "compress/gzip"
         "fmt"
         "github.com/mrosset/gurl"
-        "github.com/mrosset/util/file"
         "io"
         "net/url"
         "os"
@@ -71,9 +70,9 @@ func (b Builder) Download() error {
         case "ftp":
                 wget(b.Cache.Sources(), b.SourceURL())
         case "http", "https":
-                return gurl.Download(b.Cache.Sources(), b.SourceURL())
+                return gurl.Download(b.Cache.Sources().String(), b.SourceURL())
         case "git":
-                spath := filepath.Join(b.Cache.Sources(), b.Plan.Name)
+                spath := b.Cache.Sources().Join(b.Plan.Name)
                 giturl := "https" + b.SourceURL()[3:]
                 if err := Clone(spath, giturl); err != nil {
                         return err
@@ -86,7 +85,7 @@ func (b Builder) Download() error {
 
 // Stage the Plans source files into it's staging directory
 func (b Builder) Stage() error {
-        if b.Plan.Url == "" || file.Exists(b.StageDir()) {
+        if b.Plan.Url == "" || b.StageDir().Exists() {
                 return nil
         }
         url, err := url.Parse(b.SourceURL())
@@ -139,7 +138,7 @@ func (b Builder) Build() error {
                 flags = append(flags, parent.Flags...)
         }
         // FIXME: this should be set within exec.Cmd
-        os.Setenv("SRCDIR", b.StageDir())
+        os.Setenv("SRCDIR", b.StageDir().String())
         os.Setenv("Flags", expand(flags.Join()))
         if err := doCommands(b.Config, b.BuildDir(), build); err != nil {
                 return fmt.Errorf("%s in %s", err, b.BuildDir())
@@ -238,33 +237,30 @@ func (b Builder) SourceURL() string {
 
 // SourcePath returns the full path of the Plans source file
 func (b Builder) SourcePath() Path {
-        return Path(filepath.Join(
-                b.Cache.Sources(),
-                filepath.Base(b.Plan.Expand().Url),
-        ))
+        file := filepath.Base(b.Plan.Expand().Url)
+        return b.Cache.Sources().Join(file)
 }
 
 // PackageDir return the full path for Builder's package directory
 func (b Builder) PackageDir() Path {
-        return Path(
-                filepath.Join(b.Cache.Packages(), b.Plan.NameVersion()))
+        return b.Cache.Packages().Join(b.Plan.NameVersion())
 }
 
 // BuildDir returns the full path for the Builder's build directory
-func (b Builder) BuildDir() string {
-        bdir := filepath.Join(b.Cache.Builds(), b.Plan.NameVersion())
+func (b Builder) BuildDir() Path {
+        bdir := b.Cache.Builds().Join(b.Plan.NameVersion())
         if b.Plan.BuildInStage {
-                bdir = filepath.Join(b.Cache.Stages(), b.Plan.stageDir())
+                bdir = b.Cache.Stages().Join(b.Plan.stageDir())
         }
         return bdir
 }
 
 // StageDir returns the Plans stage directory
-func (b Builder) StageDir() string {
-        return filepath.Join(b.Cache.Stages(), b.Plan.stageDir())
+func (b Builder) StageDir() Path {
+        return b.Cache.Stages().Join(b.Plan.stageDir())
 }
 
-func doCommands(config *Config, dir string, cmds []string) (err error) {
+func doCommands(config *Config, dir Path, cmds []string) (err error) {
         bash, err := exec.LookPath("bash")
         if err != nil {
                 return err
@@ -275,7 +271,7 @@ func doCommands(config *Config, dir string, cmds []string) (err error) {
                         Args:   []string{"bash", "-c", j},
                         Stdin:  os.Stdin,
                         Stderr: os.Stderr,
-                        Dir:    dir,
+                        Dir:    dir.String(),
                         Env:    config.SanitizeEnv(),
                 }
                 if verbose {

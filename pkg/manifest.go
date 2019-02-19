@@ -133,8 +133,8 @@ func needs(file string) []string {
 // ReadManifest returns an installed Plan's manifest by name
 func ReadManifest(config *Config, name string) (*Plan, error) {
         man := new(Plan)
-        err := json.Read(man, join(config.DB.Installed(), name, "manifest.json"))
-        if err != nil {
+        file := config.DB.Installed().Join(name, "manifest.json")
+        if err := json.Read(man, file.String()); err != nil {
                 return nil, err
         }
         return man, nil
