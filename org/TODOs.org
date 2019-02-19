@@ -25,7 +25,7 @@ functions produces side effects.
 
 ** DONE use Path embedding where possible
 ** DONE use Path as function arguments and return Path arguments
-** TODO use Path in main
+** DONE use Path in main
 ** TODO Expand Config using UnMarshal and Marshal?
 ** TODO create Default config
 * Todo
@@ -35,7 +35,6 @@ functions produces side effects.
 *** DONE First pass complete
 *** TODO Do another pass
 ** TODO GPL3 license
-** TODO convert Config to values not pointers
 ** TODO fix all file masks
 ** TODO 100% test converge
 ** TODO Modify bind mounts to have a source and target
