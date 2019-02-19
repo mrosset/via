@@ -18,15 +18,14 @@ func NewUpgrader(config *Config) *Upgrader {
 }
 
 func isUpgradable(installed *Plan, git *Plan) bool {
-	if installed.Cid != git.Cid {
+	if git.Cid != "" && installed.Cid != git.Cid {
 		return true
 	}
 	return false
 }
 
-// Check will compared all installed plans against the git repository
-// of plans. And returns a strings slice of plan names that can be
-// upgraded
+// Check compares all installed plans against the git repository of
+// plans. And returns a slice of plan names that can be upgraded
 func (u *Upgrader) Check() ([]string, error) {
 	files, err := u.config.DB.InstalledFiles(u.config)
 	if err != nil {
