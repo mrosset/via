@@ -2,8 +2,9 @@ package via
 
 import (
         "encoding/json"
-        mjson "github.com/mrosset/util/json"
         "testing"
+
+        mjson "github.com/mrosset/util/json"
 )
 
 var (
@@ -120,5 +121,12 @@ func TestPlanJSON_MarshalJSON(t *testing.T) {
                         Expect: expect,
                         Got:    plan.BuildDepends,
                 },
+        }.equals(t)
+}
+
+func TestPlans_ConfigFile(t *testing.T) {
+        test{
+                Expect: Path("testdata/plans/config.json"),
+                Got:    testConfig.Plans.ConfigFile(),
         }.equals(t)
 }

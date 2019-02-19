@@ -42,6 +42,6 @@ func (c Cache) Stages() Path {
 // Init creates each cache directory ensuring it exists
 func (c Cache) Init() {
         for _, path := range []Path{c.Packages(), c.Sources(), c.Builds(), c.Stages()} {
-                fatal(path.Ensure())
+                path.Ensure()
         }
 }

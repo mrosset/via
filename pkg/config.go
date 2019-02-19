@@ -26,7 +26,7 @@ type Config struct {
         Plans  Plans
         Repo   Repo
         Binary string
-        Prefix string
+        Prefix Path
 
         // Toolchain
         Flags Flags
@@ -66,9 +66,9 @@ func (j *ConfigJSON) MarshalJSON() ([]byte, error) {
 }
 
 // ReadConfig reads config path and returns a new initialized Config
-func ReadConfig(path string) (*Config, error) {
+func ReadConfig(path Path) (*Config, error) {
         var jconfig ConfigJSON
-        if err := mjson.Read(&jconfig, path); err != nil {
+        if err := mjson.Read(&jconfig, path.String()); err != nil {
                 return nil, err
         }
 
@@ -76,7 +76,7 @@ func ReadConfig(path string) (*Config, error) {
         // sort.Strings([]string(config.Flags))
         // sort.Strings(config.Remove)
 
-        if err := mjson.Write(&jconfig, path); err != nil {
+        if err := mjson.Write(&jconfig, path.String()); err != nil {
                 return nil, err
         }
 

@@ -18,6 +18,7 @@ type test struct {
         Name   string
         Expect interface{}
         Got    interface{}
+        GotFn  func(interface{}) (interface{}, error)
 }
 
 type tests []test

@@ -40,9 +40,7 @@ func Download(config *Config, plan *Plan) error {
         if file.Exists(pfile) {
                 return nil
         }
-        if err := config.Repo.Ensure(); err != nil {
-                return err
-        }
+        config.Repo.Ensure()
         return gurl.NameDownload(config.Repo.String(), url, PackageFile(config, plan))
 }
 
@@ -112,9 +110,7 @@ func (i Installer) Install() error {
                 elog.Println(err)
                 return err
         }
-        if err := db.Ensure(); err != nil {
-                return err
-        }
+        db.Ensure()
         man.Cid = i.plan.Cid
         err = json.Write(man, db.Join("manifest.json").String())
         if err != nil {

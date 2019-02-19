@@ -73,7 +73,7 @@ func TestRepo_Exists(t *testing.T) {
                 {
                         Name:   "ensure",
                         Expect: nil,
-                        Got:    Repo{"testdata/repo"}.Ensure(),
+                        Got:    Repo{"testdata/repo"}.MkdirAll(),
                 },
                 {
                         Name:   "exists",

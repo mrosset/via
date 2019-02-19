@@ -20,16 +20,15 @@ import (
 )
 
 var (
-        cfile   = filepath.Join(viapath, "plans/config.json")
+        viapath = via.NewPath(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
         config  = readconfig()
-        viapath = filepath.Join(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
+        cfile   = viapath.Join("plans/config.json")
         viaURL  = "https://github.com/mrosset/via"
         planURL = "https://github.com/mrosset/plans"
-        viabin  = filepath.Join(os.Getenv("GOPATH"), "bin/via")
-
-        elog = log.New(os.Stderr, "", log.Lshortfile)
-        lfmt = "%-20.20s %v\n"
-        app  = &cli.App{
+        viabin  = via.NewPath(os.Getenv("GOPATH")).Join("bin", "via")
+        elog    = log.New(os.Stderr, "", log.Lshortfile)
+        lfmt    = "%-20.20s %v\n"
+        app     = &cli.App{
                 Name:                  "via",
                 Usage:                 "a systems package manager",
                 EnableShellCompletion: true,
@@ -224,7 +223,7 @@ var (
 
         cget = &cli.Command{
                 Name:          "get",
-                Usage:         "downloads 'plans' sources from upstream into current directory",
+                Usage:         "download sources from upstream",
                 Action:        get,
                 ShellComplete: planArgCompletion,
         }
@@ -255,9 +254,9 @@ var (
 
 func initvia() error {
         // TODO rework this to error and suggest user use 'via init'
-        if !file.Exists(viapath) {
+        if !viapath.Exists() {
                 elog.Println("cloning via")
-                if err := via.Clone(via.Path(viapath), viaURL); err != nil {
+                if err := viapath.Clone(viaURL); err != nil {
                         return err
                 }
         }
@@ -265,10 +264,9 @@ func initvia() error {
         // This should not actually run, though it should be used
         // instead of cloning the above via path though is should be
         // used instead of
-        pdir := filepath.Dir(cfile)
-        if !file.Exists(pdir) {
+        if !config.Plans.Exists() {
                 elog.Println("cloning plans")
-                if err := via.Clone(via.Path(pdir), planURL); err != nil {
+                if err := config.Plans.Clone(planURL); err != nil {
                         return err
                 }
         }
@@ -521,7 +519,7 @@ func edit(ctx *cli.Context) error {
         var (
                 editor = os.Getenv("EDITOR")
                 arg0   = ctx.Args().First()
-                p      = config.Plans.ConfigFile()
+                p      = config.Plans.ConfigFile().String()
                 err    error
         )
         if arg0 != "config" {
@@ -772,104 +770,3 @@ func cd(ctx *cli.Context) error {
         }
         return fmt.Errorf("cd requires either -s or -b flag")
 }
-
-/*
-func add() error {
-        if len(command.Args()) < 1 {
-                return errors.New("no plans specified")
-        }
-        for _, arg := range command.Args() {
-                glob := filepath.Join(config.Plans, "*", arg+".json")
-                res, err := filepath.Glob(glob)
-                if err != nil {
-                        return err
-                }
-                git := exec.Command("git", "add", strings.Join(res, " "))
-                git.Dir = config.Plans
-                git.Stdout = os.Stdout
-                git.Stderr = os.Stderr
-                err = git.Run()
-                if err != nil {
-                        return err
-                }
-        }
-*/
-
-/*
-
-        return nil
-}
-
-func checkout() error {
-        if len(command.Args()) < 1 {
-                return errors.New("git branch needs to be specified")
-        }
-        arg := command.Args()[0]
-        git := exec.Command("git", "checkout", arg)
-        git.Dir = config.Plans
-        git.Stdout = os.Stdout
-        git.Stderr = os.Stderr
-        return git.Run()
-}
-
-func branch() error {
-        git := exec.Command("git", "branch")
-        git.Dir = config.Plans
-        git.Stdout = os.Stdout
-        git.Stderr = os.Stderr
-        return git.Run()
-
-}
-
-func sync() error {
-        return via.PlanSync()
-}
-
-func oldCommands() {
-        // Old Flags
-        root     = flag.String("r", "/", "root directory")
-        verbose  = flag.Bool("v", false, "verbose output")
-        finstall = flag.Bool("i", true, "install package after build (default true)")
-        fdebug   = flag.Bool("d", false, "debug output")
-        fclean   = flag.Bool("c", false, "clean before build")
-        fupdate  = flag.Bool("u", false, "force download source")
-        fdeps    = flag.Bool("deps", false, "build depends if needed")
-
-        // Old Commands
-        flag.Parse()
-        via.Verbose(*verbose)
-        via.Update(*fupdate)
-        via.Deps(*fdeps)
-
-        via.Root(*root)
-        util.Verbose = *verbose
-        via.Debug(*fdebug)
-        command.Add("add", add, "add plan/s to git index")
-        command.Add("branch", branch, "prints plan branch to stdout")
-        command.Add("cd", cd, "returns a bash evaluable cd path")
-        command.Add("checkout", checkout, "changes plan branch")
-        command.Add("clean", clean, "clean build dir")
-        command.Add("create", create, "create plan from URL")
-        command.Add("diff", diff, "prints git diff for plan(s)")
-        command.Add("elf", elf, "prints elf information to stdout")
-        command.Add("ipfs", ipfs, "test ipfs connection")
-        command.Add("lint", lint, "lint plans")
-        command.Add("log", plog, "print config log for plan")
-        command.Add("owns", owns, "finds which package owns a file")
-        command.Add("options", options, "prints the GNU configure options for a package")
-        command.Add("pack", pack, "package plan")
-        command.Add("remove", remove, "remove package")
-        command.Add("repo", repo, "update repo")
-        command.Add("search", search, "search for plans (currently lists all use grep)")
-        command.Add("sync", sync, "fetch remote repo data")
-        command.Add("synchashs", synchashs, "DEV ONLY sync the plans Oid with binary banch")
-        if *fdebug {
-                pdebug()
-        }
-        err = command.Run()
-        if err != nil {
-                elog.Fatal(err)
-        }
-        return
-}
-*/

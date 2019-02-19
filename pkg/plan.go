@@ -17,9 +17,9 @@ type Plans struct {
         Path
 }
 
-// ConfigFile returns config.json fullpath
-func (p Plans) ConfigFile() string {
-        return p.Expand()
+// ConfigFile returns config.json Path
+func (p Plans) ConfigFile() Path {
+        return p.Expand().Join("config.json")
 }
 
 // PlanSlice provides a slice of plans

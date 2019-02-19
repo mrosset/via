@@ -156,10 +156,10 @@ func (b Builder) Package() error {
                 // TODO: use temp file here
                 pfile = PackagePath(b.Config, plan)
         )
+
         b.PackageDir().RemoveAll()
-        if err := b.PackageDir().Ensure(); err != nil {
-                return err
-        }
+        b.PackageDir().Ensure()
+
         os.Setenv("PKGDIR", b.PackageDir().String())
         if plan.Inherit != "" {
                 parent, _ := NewPlan(b.Config, plan.Inherit)
@@ -203,9 +203,9 @@ func (b Builder) CreatePackage() error {
         var (
                 pfile = PackagePath(b.Config, b.Plan)
         )
-        if err := b.Config.Repo.Ensure(); err != nil {
-                return err
-        }
+
+        b.Config.Repo.Ensure()
+
         fd, err := os.Create(pfile)
         if err != nil {
                 elog.Println(err)

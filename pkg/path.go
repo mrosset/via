@@ -20,6 +20,25 @@ func (p Path) String() string {
         return string(p)
 }
 
+// NewPath returns a new Path with paths joined. If the new path does not exist panic
+func NewPath(paths ...string) Path {
+        np := Path(filepath.Join(paths...))
+        if !np.Exists() {
+                panic(os.ErrNotExist)
+        }
+        return np
+}
+
+// ToPath Converts to Path
+func (p Path) ToPath() Path {
+        return Path(p)
+}
+
+// Clone url to this Path
+func (p Path) Clone(url string) error {
+        return Clone(p, url)
+}
+
 // Base returns the Path's base
 func (p Path) Base() Path {
         return Path(filepath.Base(string(p)))
@@ -31,7 +50,19 @@ func (p Path) Exists() bool {
 }
 
 // Ensure that the Path directory path is created
-func (p Path) Ensure() error {
+func (p Path) Ensure() {
+        if err := p.MkdirAll(); err != nil {
+                panic(err)
+        }
+}
+
+// Touch Path
+func (p Path) Touch() error {
+        return file.Touch(p.String())
+}
+
+// MkdirAll recursively makes Path directory
+func (p Path) MkdirAll() error {
         if p.Exists() {
                 return nil
         }
@@ -47,8 +78,8 @@ func (p Path) Join(s ...string) Path {
 
 // Expand returns the Path as a string that has had its environment
 // variables expanded
-func (p Path) Expand() string {
-        return os.ExpandEnv(string(p))
+func (p Path) Expand() Path {
+        return Path(os.ExpandEnv(string(p)))
 }
 
 // Ext returns the Path's file extension
