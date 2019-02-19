@@ -26,6 +26,16 @@ var (
                         Action:  contain,
                 },
         }
+
+        defaultEnv = via.Env{
+                "TERM":    os.Getenv("TERM"),
+                "HOME":    os.Getenv("HOME"),
+                "GOPATH":  os.Getenv("GOPATH"),
+                "CLFAGS":  config.Env["CLFAGS"],
+                "LDFLAGS": config.Env["LDFLAGS"],
+                "PATH":    config.Env["PATH"],
+                "PS1":     "-[via-build]- $ ",
+        }
 )
 
 func init() {
@@ -112,9 +122,13 @@ func initialize() {
         if err := pivot(via.Path(root)); err != nil {
                 elog.Fatal(err)
         }
-        run()
+        if err := enter(); err != nil {
+                elog.Fatal(err)
+        }
 }
-func run() {
+
+// Enter names space and either runs build or a shell
+func enter() error {
         var (
                 path = via.NewPath("/bin/sh")
                 args = []string{}
@@ -128,7 +142,7 @@ func run() {
                 path = "/bin/sh"
                 args = []string{}
         default:
-                elog.Fatalf("can not handle arguments %v", os.Args)
+                return fmt.Errorf("can not handle arguments %v", os.Args)
         }
 
         cmd := &exec.Cmd{
@@ -137,15 +151,7 @@ func run() {
                 Stdin:  os.Stdin,
                 Stdout: os.Stdout,
                 Stderr: os.Stderr,
-                Env: []string{
-                        fmt.Sprintf("TERM=%s", os.Getenv("TERM")),
-                        fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
-                        fmt.Sprintf("GOPATH=%s", os.Getenv("GOPATH")),
-                        fmt.Sprintf("CFLAGS=%s", config.Env["CFLAGS"]),
-                        fmt.Sprintf("LDFLAGS=%s", config.Env["LDFLAGS"]),
-                        fmt.Sprintf("PATH=%s/bin:/bin:/home/mrosset/gocode/bin", config.Prefix),
-                        "PS1=-[via-build]- # ",
-                },
+                Env:    defaultEnv.KeyValue(),
                 SysProcAttr: &syscall.SysProcAttr{
                         Cloneflags: syscall.CLONE_NEWUSER,
                         UidMappings: []syscall.SysProcIDMap{
@@ -165,9 +171,7 @@ func run() {
                 },
                 Dir: os.Getenv("HOME"),
         }
-        if err := cmd.Run(); err != nil {
-                elog.Fatal(err)
-        }
+        return cmd.Run()
 }
 
 func contain(ctx *cli.Context) error {
