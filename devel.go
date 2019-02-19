@@ -10,7 +10,6 @@ import (
         "net"
         "net/url"
         "os"
-        "path/filepath"
         "strings"
         "time"
 )
@@ -150,7 +149,7 @@ This is useful for creating a new branch that either has another config or to bo
                                 }
                                 defer os.RemoveAll(root)
                                 config.Root = root
-                                config.Repo = via.NewRepo(filepath.Join(root, "repo"))
+                                config.Repo = via.Path(root).Join("repo").ToRepo()
                                 if plan, err = via.NewPlan(config, "devel"); err != nil {
                                         return err
                                 }

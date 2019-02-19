@@ -29,14 +29,38 @@ func NewPath(paths ...string) Path {
         return np
 }
 
+// Stat Path
+func (p Path) Stat() (os.FileInfo, error) {
+        return os.Stat(p.String())
+}
+
+// IsDir returns true if Path is a directory
+func (p Path) IsDir() (bool, error) {
+        fi, err := p.Stat()
+        if err != nil {
+                return false, err
+        }
+        return fi.IsDir(), nil
+}
+
 // ToPath Converts to Path
 func (p Path) ToPath() Path {
         return Path(p)
 }
 
+// ToRepo Convert Path to Repo
+func (p Path) ToRepo() Repo {
+        return Repo{p}
+}
+
 // Clone url to this Path
 func (p Path) Clone(url string) error {
         return Clone(p, url)
+}
+
+// Dir returns the Path's parent directory
+func (p Path) Dir() Path {
+        return Path(filepath.Dir(p.String()))
 }
 
 // Base returns the Path's base

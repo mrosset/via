@@ -9,7 +9,6 @@ import (
         "io/ioutil"
         "os"
         "os/exec"
-        "path/filepath"
         "syscall"
 )
 
@@ -39,14 +38,14 @@ func init() {
 
 func linksh(root string) error {
         var (
-                source = config.Prefix.Join("bin", "bash").String()
-                bin    = filepath.Join(root, "bin")
-                target = filepath.Join(bin, "sh")
+                source = config.Prefix.Join("bin", "bash")
+                bin    = via.Path(root).Join("bin")
+                target = bin.Join("sh")
         )
-        if err := os.MkdirAll(bin, 0755); err != nil {
+        if err := bin.MkdirAll(); err != nil {
                 return err
         }
-        return os.Link(source, target)
+        return os.Link(source.String(), target.String())
 }
 
 func bindbin(root string) error {
@@ -102,7 +101,7 @@ func initialize() {
                 elog.Fatal(err)
         }
         // setup all our mounts
-        if err := mount(root); err != nil {
+        if err := mount(via.Path(root)); err != nil {
                 elog.Fatal(err)
         }
         // setup busybox and links
@@ -110,7 +109,7 @@ func initialize() {
                 elog.Fatal(err)
         }
         // finally pivot our root
-        if err := pivot(root); err != nil {
+        if err := pivot(via.Path(root)); err != nil {
                 elog.Fatal(err)
         }
         run()
@@ -224,13 +223,13 @@ type fileSystem struct {
 }
 
 func (fs fileSystem) Mount(root string) error {
-        target := filepath.Join(root, fs.Target)
-        if err := os.MkdirAll(target, 0755); err != nil {
+        target := via.Path(root).Join(fs.Target)
+        if err := target.MkdirAll(); err != nil {
                 return err
         }
         return syscall.Mount(
                 fs.Source,
-                target,
+                target.String(),
                 fs.Type,
                 uintptr(fs.Flags),
                 fs.Data,
@@ -265,46 +264,49 @@ func busybox(root via.Path) error {
         return file.Copy(out, bpath.String())
 }
 
-func bind(source, root string) error {
+func bind(source, root via.Path) error {
         if source == "" {
                 return fmt.Errorf("source can not be ''")
         }
-        target := filepath.Join(root, source)
-        stat, err := os.Stat(source)
+        var (
+                target = root.Join(source.String())
+        )
+        stat, err := source.Stat()
         if err != nil {
                 return fmt.Errorf("bind %s to %s with error %s", source, target, err)
         }
         if stat.IsDir() {
-                os.MkdirAll(target, 0755)
+                target.Ensure()
         } else {
-                dir := filepath.Dir(target)
-                os.MkdirAll(dir, 0755)
-                if err := file.Touch(target); err != nil {
+                if err := target.Dir().MkdirAll(); err != nil {
+                        return err
+                }
+                if err := target.Touch(); err != nil {
                         return err
                 }
         }
         return syscall.Mount(
-                source,
-                target,
+                source.String(),
+                target.String(),
                 "",
                 bindRO,
                 "",
         )
 }
 
-func mount(root string) error {
+func mount(root via.Path) error {
         // our binds
-        binds := []string{
+        binds := []via.Path{
                 "/dev",
                 "/etc/resolv.conf",
                 "/etc/ssl",
                 "/etc/passwd",
-                os.ExpandEnv("$HOME/.ccache"),
-                config.Cache.String(),
-                config.Plans.String(),
-                config.Repo.String(),
-                config.Prefix.String(),
-                viabin.String(),
+                via.Path("$HOME/.ccache").Expand(),
+                config.Cache.ToPath(),
+                config.Plans.ToPath(),
+                config.Repo.ToPath(),
+                config.Prefix,
+                viabin,
         }
         // our filesystems
         fs := []fileSystem{
@@ -322,28 +324,26 @@ func mount(root string) error {
         // mount our binds
         for _, source := range binds {
                 if err := bind(source, root); err != nil {
-                        elog.Printf("binding %s to %s", source, filepath.Join(root, source))
                         return err
                 }
         }
         // mount our filesystems
         for _, m := range fs {
-                if err := m.Mount(root); err != nil {
-                        elog.Printf("mounting %s to %s", m.Source, filepath.Join(root, m.Source))
+                if err := m.Mount(root.String()); err != nil {
                         return err
                 }
         }
         return nil
 }
 
-func pivot(newroot string) error {
-        oldroot := filepath.Join(newroot, "/.root")
+func pivot(newroot via.Path) error {
+        oldroot := newroot.Join("/.root")
 
         // bind mount newroot to itself - this is a slight hack
         // needed to work around a pivot_root requirement
         if err := syscall.Mount(
-                newroot,
-                newroot,
+                newroot.String(),
+                newroot.String(),
                 "",
                 bindRO,
                 "",
@@ -352,12 +352,12 @@ func pivot(newroot string) error {
         }
 
         // create oldroot directory
-        if err := os.MkdirAll(oldroot, 0700); err != nil {
+        if err := os.MkdirAll(oldroot.String(), 0700); err != nil {
                 return err
         }
 
         // call pivot_root
-        if err := syscall.PivotRoot(newroot, oldroot); err != nil {
+        if err := syscall.PivotRoot(newroot.String(), oldroot.String()); err != nil {
                 return err
         }
 
@@ -370,5 +370,5 @@ func pivot(newroot string) error {
         if err := syscall.Unmount("/.root", syscall.MNT_DETACH); err != nil {
                 return err
         }
-        return os.RemoveAll(oldroot)
+        return oldroot.RemoveAll()
 }

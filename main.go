@@ -727,8 +727,8 @@ func which(cmds ...string) {
         for _, c := range cmds {
                 fmt.Printf("%s:\n", strings.ToUpper(c))
                 for _, p := range paths {
-                        j := filepath.Join(p, c)
-                        if file.Exists(j) {
+                        j := via.Path(p).Join(c)
+                        if j.Exists() {
                                 fmt.Println(j)
                         }
                 }
