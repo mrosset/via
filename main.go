@@ -745,11 +745,12 @@ func owns(ctx *cli.Context) error {
         for _, arg := range ctx.Args().Slice() {
                 owners := files.Owners(arg)
                 if len(owners) == 0 {
-                        fmt.Println(arg+":", "owner not found.")
+                        console.Println("file:", arg, "owner not found")
                         continue
                 }
-                fmt.Println(owners)
+                console.Println("file:", arg, "owners:", owners)
         }
+        console.Flush()
         return nil
 }
 

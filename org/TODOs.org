@@ -23,12 +23,8 @@ functions produces side effects.
 * Inprogess
 ** DONE sort Plan when encoding json
 
-** TODO use Path embedding where possible
+** DONE use Path embedding where possible
 ** TODO Expand Config using UnMarshal and Marshal?
-** TODO Config field scopexo
-*** Problem
-Is needed to join paths to lower level objects. For example we have a top level Config
-*** Solution
 * Todo
 ** TODO move environment expand to environment file
 ** TODO Offline multihash verification
