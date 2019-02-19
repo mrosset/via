@@ -24,8 +24,10 @@ functions produces side effects.
 ** DONE sort Plan when encoding json
 
 ** DONE use Path embedding where possible
-** TODO use Path as function arguments and return arguments
+** DONE use Path as function arguments and return Path arguments
+** TODO use Path in main
 ** TODO Expand Config using UnMarshal and Marshal?
+** TODO create Default config
 * Todo
 ** TODO move environment expand to environment file
 ** TODO Offline multihash verification

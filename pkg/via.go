@@ -10,22 +10,19 @@ import (
 )
 
 var (
-        cache Cache
-
-        client = new(http.Client)
-        debug  = false
-        deps   = false
-        elog   = log.New(os.Stderr, "", log.Lshortfile)
-        expand = os.ExpandEnv
-        lfmt   = "%-20.20s %v\n"
-
+        client  = new(http.Client)
+        debug   = false
+        deps    = false
+        elog    = log.New(os.Stderr, "", log.Lshortfile)
+        expand  = os.ExpandEnv
+        lfmt    = "%-20.20s %v\n"
         update  = false
         verbose = false
 )
 
 // Verbose sets the global verbosity level
 //
-// FIXME: this should be set via PlanContext
+// FIXME: this should be set via Builder or Installer
 func Verbose(b bool) {
         verbose = b
 }
@@ -91,29 +88,6 @@ func Remove(config *Config, name string) (err error) {
 //		return err
 //	}
 //	return NewInstaller(config, plan).Install()
-// }
-
-// BuildSteps runs all of the functions required to build a package
-// func BuildSteps(ctx *PlanContext) (err error) {
-//         if err := DownloadSrc(ctx); err != nil {
-//                 elog.Println(err)
-//                 return err
-//         }
-//         if err := Stage(ctx); err != nil {
-//                 elog.Println(err)
-//                 return err
-//         }
-//         fmt.Printf(lfmt, "build", ctx.Plan.NameVersion())
-//         if err := Build(ctx); err != nil {
-//                 elog.Println(err)
-//                 return err
-//         }
-//         fmt.Printf(lfmt, "package", ctx.Plan.NameVersion())
-//         if err := Package(ctx, ""); err != nil {
-//                 elog.Println(err)
-//                 return err
-//         }
-//         return RepoCreate(&ctx.Config)
 // }
 
 var (
