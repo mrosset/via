@@ -180,6 +180,12 @@ func (b Builder) Package() error {
                         return err
                 }
         }
+        // If repo.json and files.json do not exist create them
+        if !b.Config.Repo.FilesFile(b.Config).Exists() {
+                if err := RepoCreate(b.Config); err != nil {
+                        return err
+                }
+        }
         // Create the tarball
         if err := b.CreatePackage(); err != nil {
                 return err

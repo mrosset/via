@@ -24,6 +24,7 @@ functions produces side effects.
 ** DONE sort Plan when encoding json
 
 ** DONE use Path embedding where possible
+** TODO use Path as function arguments and return arguments
 ** TODO Expand Config using UnMarshal and Marshal?
 * Todo
 ** TODO move environment expand to environment file
