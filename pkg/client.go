@@ -5,8 +5,9 @@ import (
 	"net/rpc"
 )
 
+// Connect dials the rpc daemon
 func Connect() (*rpc.Client, error) {
-	l, err := net.Dial("unix", SOCKET_FILE)
+	l, err := net.Dial("unix", SocketFile)
 	if err != nil {
 		return nil, err
 	}

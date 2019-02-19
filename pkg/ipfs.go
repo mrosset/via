@@ -16,10 +16,13 @@ import (
 )
 
 const (
-	DOCKERENV = "/.dockerenv"
-	DOCKERAPI = "172.17.0.1:5001"
+	// DockerEnv is the docker environment file
+	DockerEnv = "/.dockerenv"
+	// DockerAPI is the internal docker address used for ipfs API calls
+	DockerAPI = "172.17.0.1:5001"
 )
 
+// IpfsStat provides type that contains file stat information
 type IpfsStat struct {
 	Path    string
 	Mode    os.FileMode
@@ -27,19 +30,20 @@ type IpfsStat struct {
 }
 
 func isDocker() bool {
-	return file.Exists(DOCKERENV)
+	return file.Exists(DockerEnv)
 }
 
-func whichApi(config *Config) string {
+func whichAPI(config *Config) string {
 	if isDocker() {
-		return DOCKERAPI
+		return DockerAPI
 	}
-	return config.IpfsApi
+	return config.IpfsAPI
 }
 
-func IpfsAdd(config *Config, path Path) (string, error) {
-	s := shell.NewShell(whichApi(config))
-	fd, err := os.Open(path.String())
+// IpfsAdd add a file to ipfs and returns the ipfs multihash
+func IpfsAdd(config *Config, path string) (string, error) {
+	s := shell.NewShell(whichAPI(config))
+	fd, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
@@ -47,9 +51,10 @@ func IpfsAdd(config *Config, path Path) (string, error) {
 	return s.Add(fd)
 }
 
-func HashOnly(config *Config, path Path) (string, error) {
-	s := shell.NewShell(whichApi(config))
-	fd, err := os.Open(path.String())
+// HashOnly returns the ipfs multihash for a file at path
+func HashOnly(config *Config, path string) (string, error) {
+	s := shell.NewShell(whichAPI(config))
+	fd, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
@@ -84,43 +89,43 @@ func HashOnly(config *Config, path Path) (string, error) {
 //	return fn.Cid().String(), nil
 // }
 
-// Walk 'path' and creates a stat.json file with each files permissions
-func MakeStat(path Path) error {
+// MakeStat walks path and creates a stat.json file with each files permissions
+func MakeStat(path string) error {
 	var (
 		files = []IpfsStat{}
-		sfile = path.JoinS("stat.json")
+		sfile = filepath.Join(path, "stat.json")
 	)
 	fn := func(p string, info os.FileInfo, err error) error {
 		// if this is root the directory or the stat file do nothing
-		if p == path.String() || p == sfile.String() {
+		if p == path || p == sfile {
 			return nil
 		}
-		p = strings.Replace(p, path.String()+"/", "", 1)
+		p = strings.Replace(p, path+"/", "", 1)
 		files = append(files, IpfsStat{Path: p, Mode: info.Mode(), ModTime: info.ModTime()})
 		return nil
 	}
-	filepath.Walk(path.String(), fn)
-	return json.Write(files, sfile.String())
+	filepath.Walk(path, fn)
+	return json.Write(files, sfile)
 }
 
-// Sets each files Mode in 'path' to mode contained in the paths stat.json file
-func SetStat(path Path) error {
+// SetStat each files Mode in path to mode contained in the paths stat.json file
+func SetStat(path string) error {
 	var (
 		files = []IpfsStat{}
-		sfile = path.JoinS("stat.json")
+		sfile = filepath.Join(path, "stat.json")
 	)
-	if !sfile.Exists() {
+	if !file.Exists(sfile) {
 		return fmt.Errorf("%s: does not have a stat.json file", path)
 	}
-	if err := json.Read(&files, sfile.String()); err != nil {
+	if err := json.Read(&files, sfile); err != nil {
 		return err
 	}
 	for _, f := range files {
-		fpath := path.JoinS(f.Path)
+		fpath := filepath.Join(path, f.Path)
 		if err := os.Chmod(string(fpath), f.Mode); err != nil {
 			return err
 		}
-		os.Chtimes(fpath.String(), time.Now(), f.ModTime)
+		os.Chtimes(fpath, time.Now(), f.ModTime)
 	}
 	return nil
 }

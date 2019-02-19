@@ -1,95 +1,68 @@
 package via
 
 import (
-	"os"
-	"testing"
+        "bytes"
+        "os"
+        "os/exec"
+        "reflect"
+        "testing"
 )
 
-const EXPECT_GOT_FMT = "expect '%v' got '%v'"
+const ExpectGotFmt = "%s: expect '%v' got '%v'"
 
 func init() {
-	Verbose(false)
+        Verbose(false)
 }
 
 type test struct {
-	Expect interface{}
-	Got    interface{}
+        Name   string
+        Expect interface{}
+        Got    interface{}
+        GotFn  func(interface{}) (interface{}, error)
 }
 
-func (vt test) equals(fn func(format string, arg ...interface{})) {
-	if vt.Expect == "" && vt.Got == "" {
-		fn("expect and got will always be equal")
-	}
-	if vt.Expect != vt.Got {
-		fn(EXPECT_GOT_FMT, vt.Expect, vt.Got)
-	}
+type tests []test
+
+func (ts tests) equals(t *testing.T) {
+        for _, test := range ts {
+                test.equals(t)
+        }
 }
 
-func equals(expect, got string, fn func(format string, arg ...interface{})) {
-	test{
-		Expect: expect,
-		Got:    got,
-	}.equals(fn)
+func (vt test) equals(t *testing.T) bool {
+        if !reflect.DeepEqual(vt.Expect, vt.Got) {
+                t.Errorf(ExpectGotFmt, vt.Name, vt.Expect, vt.Got)
+                return false
+        }
+        return true
 }
 
 func TestTestType(t *testing.T) {
-	test{
-		Expect: "foo",
-		Got:    "foo",
-	}.equals(t.Errorf)
-}
-
-func TestLint(t *testing.T) {
-	if err := Lint(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func testCreate(t *testing.T) {
-	var (
-		expect = "2.9"
-	)
-	os.Remove(testPlan.Path())
-	err := Create(testPlan.Expand().Url, "core")
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = NewPlan(config, testPlan.Name)
-	if err != nil {
-		t.Error(err)
-	}
-	got := testPlan.Version
-	if expect != testPlan.Version {
-
-		t.Errorf("expected '%s' got '%s'", expect, got)
-	}
-	os.Remove(testPlan.Path())
-}
-
-func TestRepoCreate(t *testing.T) {
-	t.Parallel()
-	err := RepoCreate(config)
-	if err != nil {
-		t.Error(err)
-	}
+        test{
+                Expect: "foo",
+                Got:    "foo",
+        }.equals(t)
 }
 
 func TestReadelf(t *testing.T) {
-	t.Parallel()
-	err := Readelf(join(cache.Packages(), "ccache-3.1.7/bin/ccache"))
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func TestOwns(t *testing.T) {
-	var (
-		files, _ = ReadRepoFiles()
-		expect   = "glibc"
-		got      = files.Owns("libc.so.6")
-	)
-	if expect != got {
-		t.Errorf("expected %s got %s.", expect, got)
-	}
-
+        t.Parallel()
+        var (
+                out = "testdata/a.out"
+        )
+        defer os.Remove(out)
+        bin, err := exec.LookPath("gcc")
+        if err != nil {
+                t.Fatal(err)
+        }
+        gcc := &exec.Cmd{
+                Path:  bin,
+                Args:  []string{"gcc", "-o", out, "-xc", "-"},
+                Stdin: bytes.NewBufferString("int main() {}\n"),
+        }
+        if err := gcc.Start(); err != nil {
+                t.Fatal(err)
+        }
+        if err = Readelf(out); err != nil {
+                t.Error(err)
+        }
 }

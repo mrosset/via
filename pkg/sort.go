@@ -1,6 +1,7 @@
 package via
 
-type Size Plans
+// Size provides sorter interface for Plans slice type
+type Size PlanSlice
 
 func (s Size) Len() int {
 	return len(s)

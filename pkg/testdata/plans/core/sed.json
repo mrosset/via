@@ -1,0 +1,32 @@
+{
+    "Name"         : "sed",
+    "Version"      : "4.7",
+    "Url"          : "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
+    "Group"        : "core",
+    "StageDir"     : "",
+    "Inherit"      : "gnu",
+    "Cid"          : "QmTpBXDRH3fi3qfeLMBaLjcYWsnLQS1ojaxh9AQbUSUA2m",
+    "BuildInStage" : false,
+    "IsRebuilt"    : true,
+    "BuildTime"    : 0,
+    "Date"         : "2019-02-04T06:48:43.467126035-08:00",
+    "Size"         : 179504,
+    "SubPackages"  : null,
+    "AutoDepends"  : [
+                   "glibc"
+    ],
+    "ManualDepends" : null,
+    "BuildDepends"  : null,
+    "Flags"         : [
+                    "--disable-acl",
+                    "--without-selinux"
+    ],
+    "Patch"       : null,
+    "Build"       : null,
+    "Package"     : null,
+    "PostInstall" : null,
+    "Remove"      : null,
+    "Files"       : [
+                  "opt/via/bin/sed"
+    ]
+}

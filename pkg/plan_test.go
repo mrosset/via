@@ -1,94 +1,132 @@
 package via
 
 import (
-	"path/filepath"
-	"reflect"
-	"testing"
+        "encoding/json"
+        "testing"
+
+        mjson "github.com/mrosset/util/json"
 )
 
 var (
-	testPlan = &Plan{
-		Name:          "hello",
-		Version:       "2.9",
-		Url:           "http://mirrors.kernel.org/gnu/hello/hello-{{.Version}}.tar.gz",
-		ManualDepends: []string{"libgomp"},
-		BuildInStage:  false,
-		Build:         []string{"touch a.out"},
-		Package:       []string{"install -m775 -D a.out $PKGDIR/$PREFIX/bin/a.out"},
-		Files:         []string{"a.out"},
-		Group:         "core",
-		config:        testConfig,
-	}
+        testPlan = &Plan{
+                Name:          "hello",
+                Version:       "2.9",
+                Url:           "http://mirrors.kernel.org/gnu/hello/hello-{{.Version}}.tar.gz",
+                ManualDepends: []string{"libgomp"},
+                BuildInStage:  false,
+                Build:         []string{"touch hello"},
+                Package:       []string{"install -m755 -D hello $PKGDIR/$PREFIX/bin/hello"},
+                Files:         []string{"a.out"},
+                Group:         "core",
+        }
 )
 
 func TestPlanDepends(t *testing.T) {
-	var (
-		expect = []string{"libgomp"}
-		got    = testPlan.Depends()
-	)
-	if !reflect.DeepEqual(expect, got) {
-		t.Errorf("expect %v got %v", expect, got)
-	}
+        test{
+                Expect: []string{"libgomp"},
+                Got:    testPlan.Depends(),
+        }.equals(t)
 }
 
 func TestPlanExpand(t *testing.T) {
-	var (
-		expect = "http://mirrors.kernel.org/gnu/hello/hello-2.9.tar.gz"
-		got    = testPlan.Expand().Url
-	)
-	if expect != got {
-		t.Errorf("expected %s got %s", expect, got)
-	}
+        test{
+                Expect: "http://mirrors.kernel.org/gnu/hello/hello-2.9.tar.gz",
+                Got:    testPlan.Expand().Url,
+        }.equals(t)
+
 }
 
 func TestFindPlan(t *testing.T) {
-	var (
-		expect = &Plan{
-			Name: "sed",
-			Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
-		}
-	)
-	got, err := NewPlan(config, "sed")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if expect.Name != got.Name || got.Url != expect.Url {
-		t.Errorf("expected %s got %s", expect.Url, got.Url)
-	}
-}
-
-func TestBuildDir(t *testing.T) {
-	var (
-		expect = filepath.Join(wd, "testdata/cache/bld/hello-2.9")
-		got    = testPlan.BuildDir()
-	)
-	if got != expect {
-		t.Errorf("expect '%s' -> got '%s'", expect, got)
-	}
-}
-
-func TestStageDir(t *testing.T) {
-	var (
-		expect = filepath.Join(wd, "testdata/cache/stg/hello-2.9")
-		got    = testPlan.GetStageDir()
-	)
-	if got != expect {
-		t.Errorf("expect '%s' -> got '%s'", expect, got)
-	}
+        var (
+                expect = &Plan{
+                        Name: "sed",
+                        Url:  "http://mirrors.kernel.org/gnu/sed/sed-{{.Version}}.tar.xz",
+                }
+        )
+        got, err := NewPlan(testConfig, "sed")
+        if err != nil {
+                t.Fatal(err)
+        }
+        if expect.Name != got.Name || got.Url != expect.Url {
+                t.Errorf("expected %s got %s", expect.Url, got.Url)
+        }
 }
 
 func TestPlanPackagePath(t *testing.T) {
-	var (
-		plan = &Plan{
-			Name:    "hello",
-			Version: "2.9",
-			Cid:     "QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4",
-			config:  testConfig,
-		}
-		got    = plan.PackagePath()
-		expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz"
-	)
-	if got != expect {
-		t.Errorf("expect '%s' -> got %s", expect, got)
-	}
+        var (
+                plan = &Plan{
+                        Name:    "hello",
+                        Group:   "core",
+                        Version: "2.9",
+                        Cid:     "QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4",
+                }
+        )
+        test{
+                Got:    PackagePath(testConfig, plan),
+                Expect: "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz",
+        }.equals(t)
+}
+
+func TestPlanJSON_Encode(t *testing.T) {
+        var (
+                jplan = PlanJSON{
+                        Flags: []string{"beta", "alpha"},
+                }
+                file = "testdata/plan.json"
+        )
+        test{
+                Expect: nil,
+                Got:    mjson.Write(jplan, file),
+        }.equals(t)
+}
+
+func TestPlanJSON_MarshalJSON(t *testing.T) {
+        var (
+                jplan = PlanJSON{
+                        SubPackages:   []string{"beta", "alpha"},
+                        Flags:         []string{"beta", "alpha"},
+                        Remove:        []string{"beta", "alpha"},
+                        AutoDepends:   []string{"beta", "alpha"},
+                        ManualDepends: []string{"beta", "alpha"},
+                        BuildDepends:  []string{"beta", "alpha"},
+                }
+                plan   Plan
+                expect = []string{"alpha", "beta"}
+        )
+        got, err := jplan.MarshalJSON()
+        if err != nil {
+                t.Fatal(err)
+        }
+        if err = json.Unmarshal(got, &plan); err != nil {
+                t.Fatal(err)
+        }
+        tests{
+                {
+                        Expect: expect,
+                        Got:    plan.SubPackages,
+                },
+                {
+                        Expect: Flags(expect),
+                        Got:    plan.Flags,
+                },
+                {
+                        Expect: expect,
+                        Got:    plan.AutoDepends,
+                },
+                {
+                        Expect: expect,
+                        Got:    plan.ManualDepends,
+                },
+                {
+                        Expect: expect,
+                        Got:    plan.BuildDepends,
+                },
+        }.equals(t)
+}
+
+func TestPlans_ConfigFile(t *testing.T) {
+        test{
+                Expect: Path("testdata/plans/config.json"),
+                Got:    testConfig.Plans.ConfigFile(),
+        }.equals(t)
 }
