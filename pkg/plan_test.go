@@ -28,13 +28,11 @@ func TestPlanDepends(t *testing.T) {
 }
 
 func TestPlanExpand(t *testing.T) {
-        var (
-                expect = "http://mirrors.kernel.org/gnu/hello/hello-2.9.tar.gz"
-                got    = testPlan.Expand().Url
-        )
-        if expect != got {
-                t.Errorf(EXPECT_GOT_FMT, "", expect, got)
-        }
+        test{
+                Expect: "http://mirrors.kernel.org/gnu/hello/hello-2.9.tar.gz",
+                Got:    testPlan.Expand().Url,
+        }.equals(t)
+
 }
 
 func TestFindPlan(t *testing.T) {
@@ -61,12 +59,11 @@ func TestPlanPackagePath(t *testing.T) {
                         Version: "2.9",
                         Cid:     "QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4",
                 }
-                got    = PackagePath(testConfig, plan)
-                expect = "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz"
         )
-        if got != expect {
-                t.Errorf(EXPECT_GOT_FMT, "", expect, got)
-        }
+        test{
+                Got:    PackagePath(testConfig, plan),
+                Expect: "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz",
+        }.equals(t)
 }
 
 func TestPlanJSON_Encode(t *testing.T) {

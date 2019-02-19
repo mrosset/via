@@ -3,8 +3,6 @@
 package via
 
 import (
-        "github.com/mrosset/util/file"
-        "path/filepath"
         "testing"
 )
 
@@ -18,7 +16,7 @@ func TestBuilder_PathMethods(t *testing.T) {
                         Got:    builder.StageDir(),
                 },
                 {
-                        Expect: Path(filepath.Join(wd, "testdata/cache/sources/hello-2.9.tar.gz")),
+                        Expect: Path(wd).Join("testdata/cache/sources/hello-2.9.tar.gz"),
                         Got:    builder.SourcePath(),
                 },
         }.equals(t)
@@ -53,11 +51,11 @@ func TestBuilder_Stage(t *testing.T) {
                 },
                 {
                         Expect: true,
-                        Got:    Path(filepath.Join(wd, "testdata/cache/stages/hello-2.9")).Exists(),
+                        Got:    Path(wd).Join("testdata/cache/stages/hello-2.9").Exists(),
                 },
                 {
                         Expect: true,
-                        Got:    file.Exists("testdata/cache/stages/hello-2.9/configure"),
+                        Got:    Path("testdata/cache/stages/hello-2.9/configure").Exists(),
                 },
         }.equals(t)
 }

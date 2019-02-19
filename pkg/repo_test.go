@@ -1,7 +1,6 @@
 package via
 
 import (
-        "reflect"
         "testing"
 )
 
@@ -19,7 +18,6 @@ func TestRepoFilePaths(t *testing.T) {
 }
 
 func TestRepoFilesOwns(t *testing.T) {
-
         var (
                 tfile = "libc.so"
                 repo  = RepoFiles{
@@ -35,20 +33,20 @@ func TestRepoFilesOwns(t *testing.T) {
         )
 
         for i := 0; i <= 100; i++ {
-                got := repo.Owns(tfile)
-                if expectOne != got {
-                        t.Errorf(EXPECT_GOT_FMT, "", expectOne, got)
-                }
-                got = inverse.Owns(tfile)
-                if expectOne != got {
-                        t.Errorf(EXPECT_GOT_FMT, "", expectOne, got)
-                }
+                test{
+                        Expect: expectOne,
+                        Got:    repo.Owns(tfile),
+                }.equals(t)
+                test{
+                        Expect: expectOne,
+                        Got:    inverse.Owns(tfile),
+                }.equals(t)
         }
 
-        if got := repo.Owners(tfile); !reflect.DeepEqual(got, expectMore) {
-                t.Errorf(EXPECT_GOT_FMT, "", expectMore, got)
-        }
-
+        test{
+                Expect: expectMore,
+                Got:    repo.Owners(tfile),
+        }.equals(t)
 }
 
 func TestRepoCreate(t *testing.T) {

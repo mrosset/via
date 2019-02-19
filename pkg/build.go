@@ -246,7 +246,7 @@ func (b Builder) PackageDir() Path {
         return b.Cache.Packages().Join(b.Plan.NameVersion())
 }
 
-// BuildDir returns the full path for the Builder's build directory
+// BuildDir returns the path for the Builder's build directory
 func (b Builder) BuildDir() Path {
         bdir := b.Cache.Builds().Join(b.Plan.NameVersion())
         if b.Plan.BuildInStage {
@@ -255,11 +255,12 @@ func (b Builder) BuildDir() Path {
         return bdir
 }
 
-// StageDir returns the Plans stage directory
+// StageDir returns the Builders stage directory
 func (b Builder) StageDir() Path {
         return b.Cache.Stages().Join(b.Plan.stageDir())
 }
 
+// doCommands runs in cmd in dir Path
 func doCommands(config *Config, dir Path, cmds []string) (err error) {
         bash, err := exec.LookPath("bash")
         if err != nil {
