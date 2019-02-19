@@ -9,7 +9,7 @@ import (
 )
 
 //revive:disable
-const EXPECT_GOT_FMT = "%s: expect '%s' got '%s'"
+const EXPECT_GOT_FMT = "%s: expect '%v' got '%v'"
 
 //revive:enable
 

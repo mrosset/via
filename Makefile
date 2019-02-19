@@ -19,7 +19,7 @@ devel: default
 	du -hs $(PREFIX)/
 
 run: default
-	$(BIN) help
+	$(BIN) help install
 
 $(BIN): $(SRC)
 	go build -o $(BIN)
@@ -59,7 +59,6 @@ test.context:
 test:
 	go test -v -tags=online ./...
 	revive ./...
-	# go test -run TestI* -v ./pkg/...
 
 .NOTPARALLEL:
 
