@@ -248,8 +248,7 @@ var (
                                 return err
                         }
                         plan.Version = ctx.String("ver")
-                        pctx := via.NewPlanContext(config, plan)
-                        return pctx.WritePlan()
+                        return via.WritePlan(config, plan)
                 },
         }
 )
@@ -608,16 +607,12 @@ func plog(ctx *cli.Context) error {
         if !ctx.Args().Present() {
                 return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help log'")
         }
-        pctx, err := via.NewPlanContextByName(config, ctx.Args().First())
+        b, err := via.NewBuilderByName(config, ctx.Args().First())
         if err != nil {
                 return err
         }
-        f := filepath.Join(pctx.BuildDir(), "config.log")
-        err = file.Cat(os.Stdout, f)
-        if err != nil {
-                log.Fatal(err)
-        }
-        return nil
+        f := filepath.Join(b.BuildDir(), "config.log")
+        return file.Cat(os.Stdout, f)
 }
 
 func elf(ctx *cli.Context) error {
@@ -660,11 +655,11 @@ func options(ctx *cli.Context) error {
         if !ctx.Args().Present() {
                 return fmt.Errorf("options requires a 'PLAN' argument. see: 'via help options'")
         }
-        pctx, err := via.NewPlanContextByName(config, ctx.Args().First())
+        b, err := via.NewBuilderByName(config, ctx.Args().First())
         if err != nil {
                 return err
         }
-        c := filepath.Join(pctx.StageDir(), "configure")
+        c := filepath.Join(b.StageDir(), "configure")
         fmt.Println(c)
         cmd := exec.Command("sh", c, "--help")
         cmd.Stdout = os.Stdout
@@ -762,16 +757,16 @@ func cd(ctx *cli.Context) error {
         if !ctx.Args().Present() {
                 return fmt.Errorf("cd requires a 'PLAN' argument. see: 'via help cd'")
         }
-        pctx, err := via.NewPlanContextByName(config, ctx.Args().First())
+        b, err := via.NewBuilderByName(config, ctx.Args().First())
         if err != nil {
                 return err
         }
         if ctx.Bool("s") {
-                fmt.Printf("cd %s", pctx.StageDir())
+                fmt.Printf("cd %s", b.StageDir())
                 return nil
         }
         if ctx.Bool("b") {
-                fmt.Printf("cd %s", pctx.BuildDir())
+                fmt.Printf("cd %s", b.BuildDir())
                 return nil
         }
         return fmt.Errorf("cd requires either -s or -b flag")

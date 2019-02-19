@@ -28,6 +28,15 @@ func NewBuilder(config *Config, plan *Plan) Builder {
         }
 }
 
+// NewBuilderByName returns a new builder looking Plan by name
+func NewBuilderByName(config *Config, name string) (Builder, error) {
+        plan, err := NewPlan(config, name)
+        if err != nil {
+                return Builder{}, err
+        }
+        return NewBuilder(config, plan), nil
+}
+
 // BuildSteps calls all of the methods required to build a Plan
 func (b Builder) BuildSteps() error {
         fmt.Printf(lfmt, "download", b.Plan.NameVersion())

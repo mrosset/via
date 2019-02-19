@@ -2,13 +2,10 @@ package via
 
 import (
         "fmt"
-        "github.com/mrosset/gurl"
         "github.com/mrosset/util/file"
         "log"
         "net/http"
-        "net/url"
         "os"
-        "path/filepath"
         "regexp"
 )
 
@@ -43,105 +40,6 @@ func Update(b bool) {
 // Debug sets the global debugging level
 func Debug(b bool) {
         debug = b
-}
-
-// DownloadSrc downloads the PlanContext Plans upstream source
-func DownloadSrc(ctx *PlanContext) (err error) {
-        if file.Exists(ctx.SourcePath()) && !update {
-                return nil
-        }
-        fmt.Printf(lfmt, "download", ctx.Plan.NameVersion())
-        eurl := ctx.Plan.Expand().Url
-        u, err := url.Parse(eurl)
-        if err != nil {
-                return err
-        }
-        switch u.Scheme {
-        case "ftp":
-                wget(ctx.Cache.Sources(), eurl)
-        case "http", "https":
-                return gurl.Download(ctx.Cache.Sources(), eurl)
-        case "git":
-                spath := filepath.Join(ctx.Cache.Sources(), ctx.Plan.Name)
-                if err := Clone(spath, "https"+eurl[3:]); err != nil {
-                        elog.Println(err)
-                        return err
-                }
-        default:
-                return fmt.Errorf("%s: URL scheme is not supported", u.Scheme)
-        }
-        return nil
-}
-
-// Stage the downloaded source in via's cache directory the stage only
-// happens once unless BuilInStage is used
-func Stage(ctx *PlanContext) (err error) {
-        if ctx.Plan.Url == "" || file.Exists(ctx.StageDir()) {
-                // nothing to stage
-                return nil
-        }
-        fmt.Printf(lfmt, "stage", ctx.Plan.NameVersion())
-        u, err := url.Parse(ctx.Plan.Expand().Url)
-        if err != nil {
-                elog.Println(err)
-                return err
-        }
-        //FIXME: move this down to switch statement so avoid goto
-        if u.Scheme == "git" {
-                fmt.Println(ctx.SourcePath())
-                fmt.Println(ctx.StageDir())
-                if err := Clone(ctx.StageDir(), ctx.SourcePath()); err != nil {
-                        return err
-                }
-                goto patch
-        }
-        switch filepath.Ext(ctx.Plan.SourceFile()) {
-        case ".zip":
-                unzip(ctx.Cache.Stages(), ctx.SourcePath())
-        default:
-                GNUUntar(ctx.Cache.Stages(), ctx.SourcePath())
-        }
-patch:
-        fmt.Printf(lfmt, "patch", ctx.Plan.NameVersion())
-        return doCommands(&ctx.Config, join(ctx.Cache.Stages(), ctx.Plan.stageDir()), ctx.Plan.Patch)
-}
-
-// Build calls each shell command in the plans Build field.
-func Build(ctx *PlanContext) (err error) {
-        var (
-                plan  = ctx.Plan
-                build = plan.Build
-        )
-        for _, p := range plan.BuildDepends {
-                if IsInstalled(&ctx.Config, p) {
-                        continue
-                }
-                dp, err := NewPlan(&ctx.Config, p)
-                if err != nil {
-                        return err
-                }
-                if err := NewInstaller(&ctx.Config, dp).Install(); err != nil {
-                        return err
-                }
-        }
-        // FIXME: flags should not be merged should have a ConfigFLags
-        // and PlanFlags environment variable
-        flags := append(ctx.Config.Flags, plan.Flags...)
-        os.MkdirAll(ctx.BuildDir(), 0755)
-        // Parent plan Build is run first this plans is added at the end.
-        if plan.Inherit != "" {
-                parent, _ := NewPlan(&ctx.Config, plan.Inherit)
-                build = append(parent.Build, plan.Build...)
-                flags = append(flags, parent.Flags...)
-        }
-        // FIXME: this should be set within exec.Cmd
-        os.Setenv("SRCDIR", ctx.StageDir())
-        os.Setenv("Flags", expand(flags.Join()))
-        err = doCommands(&ctx.Config, ctx.BuildDir(), build)
-        if err != nil {
-                return fmt.Errorf("%s in %s", err.Error(), ctx.BuildDir())
-        }
-        return nil
 }
 
 // PostInstall calls each of the Plans PostInstall commands
