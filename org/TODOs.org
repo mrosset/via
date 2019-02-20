@@ -20,12 +20,13 @@ functions produces side effects.
 ** DONE remove Path usage
 ** DONE rename Plans to PlanSlice
 ** DONE create Plans type for working with Plans path
-* Inprogess
+* Inprogress
 ** DONE sort Plan when encoding json
 
 ** DONE use Path embedding where possible
 ** DONE use Path as function arguments and return Path arguments
 ** DONE use Path in main
+** TODO Add prefix flag to enter
 ** TODO Expand Config using UnMarshal and Marshal?
 ** TODO create Default config
 * Todo
