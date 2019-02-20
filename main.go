@@ -358,44 +358,6 @@ func daemon(_ *cli.Context) error {
 	return via.StartDaemon(config)
 }
 
-// func strap(ctx *cli.Context) error {
-
-//	dplan, err := via.NewPlan(config, "devel")
-
-//	if err != nil {
-//		return err
-//	}
-
-//	via.Debug(ctx.Bool("d"))
-
-//	for _, p := range dplan.ManualDepends {
-//		plan, err := via.NewPlan(config, p)
-//		if err != nil {
-//			return err
-//		}
-//		if ctx.Bool("m") {
-//			plan.IsRebuilt = false
-//			plan.Save()
-//			continue
-//		}
-//		if plan.IsRebuilt {
-//			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
-//			continue
-//		}
-//		via.Clean(plan.Name)
-
-//		if err := via.BuildSteps(config, plan); err != nil {
-//			return err
-//		}
-//		batch := via.NewBatch(config)
-//		batch.Add(plan)
-//		if errs := batch.Install(); len(errs) != 0 {
-//			return errs[0]
-//		}
-//	}
-//	return nil
-// }
-
 // TODO: move this to install.go
 func batch(ctx *cli.Context) error {
 	var errors []error

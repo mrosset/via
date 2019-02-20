@@ -27,6 +27,11 @@ var (
 		},
 	}
 
+	defaultPaths = fmt.Sprintf("%s:%s:/opt/via/bin:/bin",
+		config.Env["PATH"],
+		via.Path(os.Getenv("GOPATH")).Join("bin"),
+	)
+
 	defaultEnv = via.Env{
 		"INSIDE_VIA": "true",
 		"TERM":       os.Getenv("TERM"),
@@ -34,7 +39,7 @@ var (
 		"GOPATH":     os.Getenv("GOPATH"),
 		"CLFAGS":     config.Env["CLFAGS"],
 		"LDFLAGS":    config.Env["LDFLAGS"],
-		"PATH":       fmt.Sprintf("%s:%s:/bin", config.Env["PATH"], via.Path(os.Getenv("GOPATH")).Join("bin")),
+		"PATH":       os.ExpandEnv(defaultPaths),
 		"PS1":        "-[via-build]- $ ",
 	}
 )
@@ -131,7 +136,7 @@ func initialize() {
 // Enter names space and either runs build or a shell
 func enter() error {
 	var (
-		path = via.NewPath("/bin/sh")
+		path = via.Path("/bin/sh")
 		args = []string{}
 	)
 
@@ -246,27 +251,35 @@ func mkdir(path string) error {
 }
 
 func busybox(root via.Path) error {
-	bin := via.Path.Join(root, "bin")
-	bpath := config.Prefix.Join("bin", "busybox")
+	var (
+		bin    = via.Path.Join(root, "bin")
+		source = ""
+		target = bin.Join("busybox")
+	)
+	source, err := exec.LookPath("busybox")
+	if err != nil {
+		return err
+	}
 	if err := bin.MkdirAll(); err != nil {
 		return err
 	}
-	cmd := exec.Cmd{
-		Path:   bpath.String(),
-		Args:   []string{"busybox", "--install", "-s", bin.String()},
-		Stderr: os.Stderr,
-		Stdout: os.Stdout,
-	}
-	if err := cmd.Run(); err != nil {
-		return err
-	}
 
-	out, err := os.OpenFile(bpath.String(), os.O_RDWR|os.O_CREATE, 0755)
+	out, err := os.OpenFile(target.String(), os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
-	return file.Copy(out, bpath.String())
+	if err := file.Copy(out, source); err != nil {
+		return err
+	}
+	out.Close()
+	cmd := exec.Cmd{
+		Path:   target.String(),
+		Args:   []string{"busybox", "--install", bin.String()},
+		Stderr: os.Stderr,
+		Stdout: os.Stdout,
+	}
+	return cmd.Run()
 }
 
 func bind(source, root via.Path) error {
@@ -310,7 +323,7 @@ func mount(root via.Path) error {
 		config.Cache.ToPath(),
 		config.Plans.ToPath(),
 		config.Repo.ToPath(),
-		config.Prefix,
+		"/opt/via",
 		viabin,
 	}
 	// our filesystems

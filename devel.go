@@ -48,9 +48,7 @@ var develCommand = &cli.Command{
 					Usage: "debug output",
 				},
 			},
-			Action: func(ctx *cli.Context) error {
-				return fmt.Errorf("strap command is not implemented")
-			},
+			Action: strap,
 		},
 		&cli.Command{
 			Name:   "daemon",
@@ -232,6 +230,46 @@ func cupstream(ctx *cli.Context) error {
 			if err := via.WritePlan(config, plan); err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+func strap(ctx *cli.Context) error {
+
+	dplan, err := via.NewPlan(config, "devel")
+
+	if err != nil {
+		return err
+	}
+
+	via.Debug(ctx.Bool("d"))
+
+	for _, p := range dplan.ManualDepends {
+		plan, err := via.NewPlan(config, p)
+		if err != nil {
+			return err
+		}
+		if ctx.Bool("m") {
+			plan.IsRebuilt = false
+			via.WritePlan(config, plan)
+			continue
+		}
+		if plan.IsRebuilt {
+			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
+			continue
+		}
+
+		via.Clean(config, plan)
+
+		b := via.NewBuilder(config, plan)
+		if err := b.BuildSteps(); err != nil {
+			return err
+		}
+		batch := via.NewBatch(config)
+		batch.Add(plan)
+		if errs := batch.Install(); len(errs) != 0 {
+			return errs[0]
 		}
 	}
 	return nil
