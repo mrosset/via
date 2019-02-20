@@ -146,7 +146,7 @@ This is useful for creating a new branch that either has another config or to bo
 					return err
 				}
 				defer os.RemoveAll(root)
-				config.Root = root
+				config.Root = via.Path(root)
 				config.Repo = via.Path(root).Join("repo").ToRepo()
 				if plan, err = via.NewPlan(config, "devel"); err != nil {
 					return err

@@ -31,8 +31,8 @@ func GNUUntar(dest Path, file string) error {
 // used for install via packages
 //
 // FIXME: rewrite this hackfest
-func Untar(dest string, r io.Reader) error {
-	if !file.Exists(dest) {
+func Untar(dest Path, r io.Reader) error {
+	if !dest.Exists() {
 		return fmt.Errorf("%s does not exist", dest)
 	}
 	tr := tar.NewReader(r)
@@ -49,7 +49,7 @@ func Untar(dest string, r io.Reader) error {
 			continue
 		}
 		//fmt.Printf("%c %s\n", hdr.Typeflag, hdr.Name)
-		path := join(dest, hdr.Name)
+		path := dest.Join(hdr.Name).String()
 		// Switch through header Typeflag and handle tar entry accordingly
 		switch hdr.Typeflag {
 		case tar.TypeDir:
@@ -61,11 +61,11 @@ func Untar(dest string, r io.Reader) error {
 			lfile := new(bytes.Buffer)
 			// Get longlink path from tar file data
 			lfile.ReadFrom(tr)
-			fpath := join(dest, lfile.String())
+			fpath := dest.Join(lfile.String())
 			// Read next iteration for file data
 			hdr, err := tr.Next()
 			if hdr.Typeflag == tar.TypeDir {
-				err := mkDir(fpath, hdr.Mode)
+				err := mkDir(fpath.String(), hdr.Mode)
 				if err != nil {
 					return err
 				}
@@ -75,7 +75,7 @@ func Untar(dest string, r io.Reader) error {
 				return err
 			}
 			// Write long file data to disk
-			if err := writeFile(fpath, hdr, tr); err != nil {
+			if err := writeFile(fpath.String(), hdr, tr); err != nil {
 				return err
 			}
 		case tar.TypeSymlink:

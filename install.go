@@ -22,7 +22,7 @@ var (
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "r",
-					Value: config.Root,
+					Value: config.Root.String(),
 					Usage: "use `\"DIR\"` as root",
 				},
 				&cli.BoolFlag{
@@ -64,14 +64,13 @@ var (
 
 // FIXME: this function is deprecated and should be replaced with batch
 func install(ctx *cli.Context) error {
+	config.Root = via.Path(ctx.String("r"))
 	if ctx.Bool("b") {
 		return batch(ctx)
 	}
 	if !ctx.Args().Present() {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
-
-	config.Root = ctx.String("r")
 	if !file.Exists(ctx.String("r")) {
 		if err := os.MkdirAll(ctx.String("r"), 0755); err != nil {
 			elog.Printf("could not create '%s'. %s", config.Root, err)

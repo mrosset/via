@@ -12,13 +12,14 @@ import (
 var (
 	wd, _      = os.Getwd()
 	testConfig = &Config{
-		Root:    "testdata/root",
-		Repo:    Repo{"testdata/repo"},
-		Cache:   Cache{"testdata/cache"},
-		Plans:   Plans{"testdata/plans"},
-		OS:      "linux",
-		Arch:    "x86_64",
-		DB:      DB{"testdata/db"},
+		Root:  Path(wd).Join("testdata/root"),
+		DB:    Path("/var/lib/via/db").ToDB(),
+		Repo:  Repo{"testdata/repo"},
+		Cache: Path(wd).Join("testdata/cache").ToCache(),
+		Plans: Plans{"testdata/plans"},
+		OS:    "linux",
+		Arch:  "x86_64",
+
 		Binary:  "http://localhost:8080/ipfs/",
 		Threads: 8,
 		IpfsAPI: "localhost:5001",
@@ -32,9 +33,6 @@ var (
 
 // init
 func init() {
-	testConfig.DB = DB{
-		Path(wd).Join("testdata/root/db"),
-	}
 	testConfig.Cache = Cache{
 		Path(wd).Join("testdata/cache"),
 	}
@@ -138,6 +136,16 @@ func TestConfigExpand(t *testing.T) {
 	test{
 		Expect: "-O2 -pipe",
 		Got:    c.Expand().Env["CXXFLAGS"],
+	}.equals(t)
+
+}
+
+func TestDB_Installed(t *testing.T) {
+	tests{
+		{
+			Expect: Path(wd).Join("testdata/root/var/lib/via/db/installed"),
+			Got:    testConfig.DB.Installed(testConfig),
+		},
 	}.equals(t)
 
 }

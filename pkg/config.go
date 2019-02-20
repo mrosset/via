@@ -16,7 +16,7 @@ type Config struct {
 	Identity  string
 	Arch      string
 	OS        string
-	Root      string
+	Root      Path
 	PlansRepo string
 	Threads   int
 	IpfsAPI   string
@@ -147,20 +147,15 @@ type DB struct {
 }
 
 // Installed returns the path string of the installed directory
-func (d DB) Installed() Path {
-	return d.Join("installed")
-}
-
-// Plans returns the plans directory under root
-func (d DB) Plans(config *Config) string {
-	return join(config.Root, d.String(), "plans")
+func (d DB) Installed(config *Config) Path {
+	return config.Root.Join(d.String(), "installed")
 }
 
 // InstalledFiles returns all of the json manifests for each install
 // package
 func (d DB) InstalledFiles(config *Config) ([]string, error) {
 	files, err := filepath.Glob(
-		d.Installed().Join("*", "*.json").String(),
+		d.Installed(config).Join("*", "*.json").String(),
 	)
 	if err != nil {
 		return nil, err

@@ -2,7 +2,6 @@ package via
 
 import (
 	"fmt"
-	"github.com/mrosset/util/file"
 	"log"
 	"net/http"
 	"os"
@@ -56,12 +55,12 @@ func Remove(config *Config, name string) (err error) {
 		return err
 	}
 	for _, f := range man.Files {
-		fpath := join(config.Root, f)
-		if err := os.Remove(fpath); err != nil {
+		fpath := config.Root.Join(f)
+		if err := os.Remove(fpath.String()); err != nil {
 			elog.Println(err)
 		}
 	}
-	return config.DB.Installed().Join(name).RemoveAll()
+	return config.DB.Installed(config).Join(name).RemoveAll()
 }
 
 // func BuildDeps(config *Config, plan *Plan) (err error) {
@@ -124,7 +123,7 @@ var (
 
 // IsInstalled returns true if a plan is installed
 func IsInstalled(config *Config, name string) bool {
-	return config.DB.Installed().Join(name).Exists()
+	return config.DB.Installed(config).Join(name).Exists()
 }
 
 func fatal(err error) {
@@ -151,8 +150,7 @@ func Clean(config *Config, plan *Plan) error {
 
 func conflicts(config *Config, man *Plan) (errs []error) {
 	for _, f := range man.Files {
-		fpath := join(config.Root, f)
-		if file.Exists(fpath) {
+		if config.Root.Join(f).Exists() {
 			errs = append(errs, fmt.Errorf("%s already exists", f))
 		}
 	}

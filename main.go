@@ -368,7 +368,7 @@ func batch(ctx *cli.Context) error {
 		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
 	}
 
-	config.Root = ctx.String("r")
+	config.Root = via.Path(ctx.String("r"))
 
 	batch := via.NewBatch(config)
 	for _, a := range ctx.Args().Slice() {

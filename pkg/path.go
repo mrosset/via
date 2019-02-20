@@ -53,6 +53,16 @@ func (p Path) ToRepo() Repo {
 	return Repo{p}
 }
 
+// ToDB Convert Path to DB
+func (p Path) ToDB() DB {
+	return DB{p}
+}
+
+// ToCache Convert Path to Cache
+func (p Path) ToCache() Cache {
+	return Cache{p}
+}
+
 // Clone url to this Path
 func (p Path) Clone(url string) error {
 	return Clone(p, url)

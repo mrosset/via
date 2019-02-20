@@ -74,7 +74,7 @@ func (i Installer) Install() error {
 			return err
 		}
 	}
-	db := i.config.DB.Installed().Join(name)
+	db := i.config.DB.Installed(i.config).Join(name)
 	if db.Exists() {
 		return fmt.Errorf("%s is already installed", name)
 	}
@@ -105,7 +105,7 @@ func (i Installer) Install() error {
 		return err
 	}
 	defer gz.Close()
-	os.MkdirAll(i.config.Root, 0755)
+	i.config.Root.Ensure()
 	if err = Untar(i.config.Root, gz); err != nil {
 		elog.Println(err)
 		return err
