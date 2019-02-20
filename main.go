@@ -457,7 +457,7 @@ func build(ctx *cli.Context) error {
 		}
 	}
 	// if we don't have a real flag then we need to enter a contain
-	if !ctx.Bool("real") && !ctx.Bool("l") {
+	if !ctx.Bool("real") && !ctx.Bool("l") && os.Getenv("INSIDE_VIA") != "true" {
 		return contain(ctx)
 	}
 	// if r flag build package with RPC daemon

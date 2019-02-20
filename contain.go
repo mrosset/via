@@ -28,13 +28,14 @@ var (
 	}
 
 	defaultEnv = via.Env{
-		"TERM":    os.Getenv("TERM"),
-		"HOME":    os.Getenv("HOME"),
-		"GOPATH":  os.Getenv("GOPATH"),
-		"CLFAGS":  config.Env["CLFAGS"],
-		"LDFLAGS": config.Env["LDFLAGS"],
-		"PATH":    config.Env["PATH"],
-		"PS1":     "-[via-build]- $ ",
+		"INSIDE_VIA": "true",
+		"TERM":       os.Getenv("TERM"),
+		"HOME":       os.Getenv("HOME"),
+		"GOPATH":     os.Getenv("GOPATH"),
+		"CLFAGS":     config.Env["CLFAGS"],
+		"LDFLAGS":    config.Env["LDFLAGS"],
+		"PATH":       fmt.Sprintf("%s:%s:/bin", config.Env["PATH"], via.Path(os.Getenv("GOPATH")).Join("bin")),
+		"PS1":        "-[via-build]- $ ",
 	}
 )
 
