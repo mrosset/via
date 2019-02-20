@@ -315,7 +315,7 @@ func bind(source, root via.Path) error {
 func mount(root via.Path) error {
 	// our binds
 	binds := []via.Path{
-		"/dev",
+		"/dev", // TODO: don not bind all of dev. mknod's?
 		"/etc/resolv.conf",
 		"/etc/ssl",
 		"/etc/passwd",
