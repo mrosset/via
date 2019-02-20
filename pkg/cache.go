@@ -39,6 +39,12 @@ func (c Cache) Stages() Path {
 	return c.Join("stages")
 }
 
+// Root returns the namespace root. This is used to build packages in
+// isolation
+func (c Cache) Root() Path {
+	return c.Join("root")
+}
+
 // Init creates each cache directory ensuring it exists
 func (c Cache) Init() {
 	for _, path := range []Path{c.Packages(), c.Sources(), c.Builds(), c.Stages()} {

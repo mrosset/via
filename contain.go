@@ -6,7 +6,6 @@ import (
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"syscall"
@@ -105,27 +104,28 @@ func bindsh(root string) error {
 }
 
 func initialize() {
-	root, err := ioutil.TempDir("", "via-build")
-	if err != nil {
-		elog.Fatal(err)
-	}
+	root := config.Cache.Root()
+	// root, err := ioutil.TempDir("", "via-build")
+	// if err != nil {
+	//	elog.Fatal(err)
+	// }
 	// set hostname
 	if err := syscall.Sethostname([]byte("via-build")); err != nil {
 		elog.Fatalf("could not set hostname: %s", err)
 	}
-	if err := os.MkdirAll(root, 0700); err != nil {
+	if err := root.MkdirAll(); err != nil {
 		elog.Fatal(err)
 	}
 	// setup all our mounts
-	if err := mount(via.Path(root)); err != nil {
+	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
 	// setup busybox and links
-	if err := busybox(via.Path(root)); err != nil {
+	if err := busybox(root); err != nil {
 		elog.Fatal(err)
 	}
 	// finally pivot our root
-	if err := pivot(via.Path(root)); err != nil {
+	if err := pivot(root); err != nil {
 		elog.Fatal(err)
 	}
 	if err := enter(); err != nil {
@@ -323,7 +323,6 @@ func mount(root via.Path) error {
 		config.Cache.ToPath(),
 		config.Plans.ToPath(),
 		config.Repo.ToPath(),
-		"/opt/via",
 		viabin,
 	}
 	// our filesystems
