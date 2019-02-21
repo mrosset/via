@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	viapath = via.NewPath(os.Getenv("GOPATH"), "src/github.com/mrosset/via")
+	viapath = via.Path(os.Getenv("GOPATH")).Join("src/github.com/mrosset/via")
 	config  = readconfig()
 	cfile   = viapath.Join("plans/config.json")
 	viaURL  = "https://github.com/mrosset/via"
