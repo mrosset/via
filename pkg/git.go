@@ -3,9 +3,9 @@ package via
 import (
 	"fmt"
 	"gopkg.in/src-d/go-git.v4"
-	"io/ioutil"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"os"
-	"strings"
+	gpath "path"
 )
 
 // Clone remote URL into directory.
@@ -13,30 +13,39 @@ func Clone(dir Path, url string) error {
 	_, err := git.PlainClone(dir.String(), false, &git.CloneOptions{
 		URL:               url,
 		Progress:          os.Stdout,
+		Depth:             1,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	return err
 }
 
-// Branch returns the currently checked out branch for a .git directory
-func Branch(path Path) (string, error) {
-	var (
-		head = path.Join(".git/HEAD")
-		dir  = path.Base()
-		sub  = path.Join("..", ".git", "modules", dir.String(), "HEAD")
+// gitref returns git branch reference
+func gitref(branch string) plumbing.ReferenceName {
+	return plumbing.ReferenceName(
+		fmt.Sprintf("refs/heads/%s", branch),
 	)
-	if sub.Exists() {
-		head = sub
-	}
-	b, err := ioutil.ReadFile(head.String())
+}
+
+// CloneBranch clone remove URL with branch to directory
+func CloneBranch(dir Path, url, branch string) error {
+	_, err := git.PlainClone(dir.String(), false, &git.CloneOptions{
+		URL:           url,
+		Progress:      os.Stdout,
+		Depth:         1,
+		ReferenceName: gitref(branch),
+	})
+	return err
+}
+
+// Branch returns the currently checked out branch for a git directory
+func Branch(path Path) (string, error) {
+	r, err := git.PlainOpen(path.String())
 	if err != nil {
 		return "", err
 	}
-	in := strings.Split(string(b), "/")
-	branch := in[len(in)-1]
-	branch = strings.Trim(branch, "\n\r")
-	if branch == "" {
-		return "", fmt.Errorf("No branch found")
+	head, err := r.Head()
+	if err != nil {
+		return "", err
 	}
-	return branch, nil
+	return gpath.Base(head.Name().String()), nil
 }
