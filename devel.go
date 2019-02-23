@@ -24,6 +24,11 @@ var develCommand = &cli.Command{
 	Aliases: []string{"dev"},
 	Subcommands: []*cli.Command{
 		&cli.Command{
+			Name:   "env",
+			Usage:  "prints out via build env in shell format",
+			Action: env,
+		},
+		&cli.Command{
 			Name:   "repo",
 			Usage:  "recreates file db",
 			Action: repo,
@@ -266,6 +271,14 @@ func strap(ctx *cli.Context) error {
 		if errs := batch.Install(); len(errs) != 0 {
 			return errs[0]
 		}
+	}
+	return nil
+
+}
+
+func env(ctx *cli.Context) error {
+	for _, k := range []string{"CFLAGS", "LDFLAGS", "CXXFLAGS"} {
+		fmt.Printf("export \"%s\"\n", config.Expand().Env.Value(k))
 	}
 	return nil
 }

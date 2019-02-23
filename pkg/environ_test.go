@@ -12,8 +12,14 @@ func TestEnv_KeyValue(t *testing.T) {
 		}
 	)
 
-	test{
-		Expect: []string{"OS=linux", "TERM=dumb"},
-		Got:    env.KeyValue(),
+	tests{
+		{
+			Expect: []string{"OS=linux", "TERM=dumb"},
+			Got:    env.KeyValue(),
+		},
+		{
+			Expect: "OS=linux",
+			Got:    env.Value("OS"),
+		},
 	}.equals(t)
 }

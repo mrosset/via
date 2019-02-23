@@ -17,10 +17,15 @@ func (env Env) keys() (keys []string) {
 	return
 }
 
+// Value returns key=value for maps key
+func (env Env) Value(key string) string {
+	return fmt.Sprintf("%s=%s", key, env[key])
+}
+
 // KeyValue return Env as key=value sorted alphabetically by key
 func (env Env) KeyValue() (kv []string) {
 	for _, k := range env.keys() {
-		kv = append(kv, fmt.Sprintf("%s=%v", k, env[k]))
+		kv = append(kv, env.Value(k))
 	}
 	return
 }
