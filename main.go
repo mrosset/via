@@ -134,6 +134,11 @@ var (
 				Value: false,
 				Usage: "output depends",
 			},
+			&cli.BoolFlag{
+				Name:  "v",
+				Value: false,
+				Usage: "output version",
+			},
 		},
 	}
 
@@ -231,7 +236,7 @@ var (
 
 	cget = &cli.Command{
 		Name:          "get",
-		Usage:         "download sources from upstream",
+		Usage:         "download source from upstream",
 		Action:        get,
 		ShellComplete: planArgCompletion,
 	}
@@ -527,6 +532,17 @@ func fmtplans(ctx *cli.Context) error {
 	return via.FmtPlans(config)
 }
 
+func parse(input string, plan *via.Plan) error {
+	var (
+		t = fmt.Sprintf("%s\n", input)
+	)
+	tmpl, err := template.New("stdout").Parse(t)
+	if err != nil {
+		return err
+	}
+	return tmpl.Execute(os.Stdout, plan)
+}
+
 func show(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return fmt.Errorf("show requires a 'PLAN' argument. see: 'via help show'")
@@ -536,24 +552,15 @@ func show(ctx *cli.Context) error {
 		elog.Fatal(err)
 	}
 	if ctx.String("t") != "" {
-		tmpl, err := template.New("stdout").Parse(ctx.String("t") + "\n")
-		if err != nil {
-			return err
-		}
-		return tmpl.Execute(os.Stdout, plan)
+		return parse(ctx.String("t"), plan)
 	}
 	if ctx.Bool("d") {
-		tmpl, err := template.New("stdout").Parse("{{.AutoDepends}}\n")
-		if err != nil {
-			panic(err)
-		}
-		return tmpl.Execute(os.Stdout, plan)
+		return parse("{{.AutoDepends}}", plan)
 	}
-	err = json.WritePretty(&plan, os.Stdout)
-	if err != nil {
-		fmt.Println(err)
+	if ctx.Bool("v") {
+		return parse("{{.Version}}", plan)
 	}
-	return nil
+	return json.WritePretty(&plan, os.Stdout)
 }
 
 func fconfig(_ *cli.Context) error {
