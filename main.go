@@ -201,7 +201,7 @@ var (
 	cpack = &cli.Command{
 		Name:   "pack",
 		Usage:  "package plan",
-		Action: notimplemented,
+		Action: pack,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "v",
