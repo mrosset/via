@@ -41,9 +41,10 @@ var (
 		},
 		Commands: []*cli.Command{
 			{
-				Name:   "edit",
-				Usage:  "calls EDITOR to edit plan",
-				Action: edit,
+				Name:          "edit",
+				Usage:         "calls EDITOR to edit plan",
+				Action:        edit,
+				ShellComplete: planArgCompletion,
 			},
 		},
 	}

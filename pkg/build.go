@@ -225,10 +225,6 @@ func (b Builder) Tarball(wr io.Writer) (err error) {
 	if err := CreateManifest(b.Config, b.Plan, b.PackageDir().String()); err != nil {
 		return err
 	}
-	if err != nil {
-		elog.Println(err)
-		return err
-	}
 	return archive(wr, b.PackageDir().String())
 }
 
