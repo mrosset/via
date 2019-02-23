@@ -38,6 +38,7 @@ func CloneBranch(dir Path, url, branch string) error {
 }
 
 // Branch returns the currently checked out branch for a git directory
+// FIXME: this will probably fail with a detached head
 func Branch(path Path) (string, error) {
 	r, err := git.PlainOpen(path.String())
 	if err != nil {

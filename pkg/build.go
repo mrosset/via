@@ -106,8 +106,7 @@ func (b Builder) Stage() error {
 			}
 		}
 	}
-
-	return nil
+	return doCommands(b.Config, b.StageDir(), b.Plan.Patch)
 }
 
 // Build runs the Plans Build section
@@ -133,7 +132,10 @@ func (b Builder) Build() error {
 	Path(b.BuildDir()).Ensure()
 	// Parent plan Build is run first this plans is added at the end.
 	if b.Plan.Inherit != "" {
-		parent, _ := NewPlan(b.Config, b.Plan.Inherit)
+		parent, err := NewPlan(b.Config, b.Plan.Inherit)
+		if err != nil {
+			return err
+		}
 		build = append(parent.Build, b.Plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}

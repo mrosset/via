@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"regexp"
 )
 
@@ -63,31 +64,40 @@ func Remove(config *Config, name string) (err error) {
 	return config.DB.Installed(config).Join(name).RemoveAll()
 }
 
-// func BuildDeps(config *Config, plan *Plan) (err error) {
-//	for _, d := range plan.Depends() {
-//		if IsInstalled(config, d) {
-//			continue
-//		}
-//		p, _ := NewPlan(config, d)
-//		if file.Exists(p.PackagePath()) {
-//			if err := NewInstaller(config, plan).Install(); err != nil {
-//				return err
-//			}
-//			continue
-//		}
-//		fmt.Println("building", d, "for", plan.NameVersion())
-//		err := BuildDeps(config, p)
-//		if err != nil {
-//			elog.Println(err)
-//			return err
-//		}
-//	}
-//	err = BuildSteps(config, plan)
-//	if err != nil {
-//		return err
-//	}
-//	return NewInstaller(config, plan).Install()
-// }
+// BuildDeps build's all of a packages dependency's are build if they
+// are not built already
+func BuildDeps(config *Config, plan *Plan) (err error) {
+	for _, d := range plan.Depends() {
+		if IsInstalled(config, d) {
+			continue
+		}
+		p, _ := NewPlan(config, d)
+		if p.IsRebuilt {
+			b := NewBatch(config)
+			b.Walk(p)
+			if err := b.Install(); err != nil {
+				return err[0]
+			}
+			continue
+		}
+		fmt.Println("building", d, "for", plan.NameVersion())
+		err := BuildDeps(config, p)
+		if err != nil {
+			elog.Println(err)
+			return err
+		}
+	}
+	bd := NewBuilder(config, plan)
+	if err := bd.BuildSteps(); err != nil {
+		return err
+	}
+	b := NewBatch(config)
+	b.Walk(plan)
+	if err := b.Install(); err != nil {
+		return err[0]
+	}
+	return nil
+}
 
 var (
 	rexName   = regexp.MustCompile("[A-Za-z]+")
@@ -96,30 +106,31 @@ var (
 )
 
 // Create a new plan from a given Url
-// func Create(config *Config, url, group string) (err error) {
-//	var (
-//		xfile   = filepath.Base(url)
-//		name    = rexName.FindString(xfile)
-//		triple  = rexTruple.FindString(xfile)
-//		double  = rexDouble.FindString(xfile)
-//		version string
-//	)
-//	switch {
-//	case triple != "":
-//		version = triple
-//	case double != "":
-//		version = double
-//	default:
-//		return fmt.Errorf("regex fail for %s", xfile)
-//	}
-//	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
-//	plan.Inherit = "gnu"
-//	ctx := NewPlanContext(config, plan)
-//	if file.Exists(ctx.PlanPath()) {
-//		return fmt.Errorf("%s already exists", ctx.PlanPath())
-//	}
-//	return ctx.WritePlan()
-// }
+func Create(config *Config, url, group string) (err error) {
+	var (
+		xfile   = path.Base(url)
+		name    = rexName.FindString(xfile)
+		triple  = rexTruple.FindString(xfile)
+		double  = rexDouble.FindString(xfile)
+		version string
+	)
+	switch {
+	case triple != "":
+		version = triple
+	case double != "":
+		version = double
+	default:
+		return fmt.Errorf("regex fail for %s", xfile)
+	}
+	plan := &Plan{Name: name, Version: version, Url: url, Group: group}
+	plan.Inherit = "gnu"
+
+	pfile := PlanFilePath(config, plan)
+	if pfile.Exists() {
+		return fmt.Errorf("%s already exists", pfile)
+	}
+	return WritePlan(config, plan)
+}
 
 // IsInstalled returns true if a plan is installed
 func IsInstalled(config *Config, name string) bool {

@@ -156,7 +156,7 @@ func PlanFiles(config *Config) ([]string, error) {
 }
 
 // FindPlanPath returns the fullpath for a plan by it's given name
-func FindPlanPath(config *Config, name string) (string, error) {
+func FindPlanPath(config *Config, name string) (Path, error) {
 	glob := config.Plans.Join("*", name+".json").String()
 	e, err := filepath.Glob(glob)
 	if err != nil {
@@ -165,7 +165,7 @@ func FindPlanPath(config *Config, name string) (string, error) {
 	if len(e) != 1 {
 		return "", fmt.Errorf("%s: expected 1 plan found %d", name, len(e))
 	}
-	return e[0], nil
+	return Path(e[0]), nil
 }
 
 // NewPlan returns a new Plan that has been initialized
@@ -174,7 +174,7 @@ func NewPlan(config *Config, name string) (plan *Plan, err error) {
 	if err != nil {
 		return nil, err
 	}
-	plan, err = ReadPath(path)
+	plan, err = ReadPath(path.String())
 	if err != nil {
 		return nil, err
 	}
