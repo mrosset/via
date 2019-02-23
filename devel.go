@@ -23,22 +23,22 @@ var develCommand = &cli.Command{
 	Usage:   "experimental and development commands",
 	Aliases: []string{"dev"},
 	Subcommands: []*cli.Command{
-		&cli.Command{
+		{
 			Name:   "env",
 			Usage:  "prints out via build env in shell format",
 			Action: env,
 		},
-		&cli.Command{
+		{
 			Name:   "repo",
 			Usage:  "recreates file db",
 			Action: repo,
 		},
-		&cli.Command{
+		{
 			Name:   "diff",
 			Usage:  "diff's plan working directory against git HEAD",
 			Action: diff,
 		},
-		&cli.Command{
+		{
 			Name:  "strap",
 			Usage: "rebuilds each package in the devel group",
 			Flags: []cli.Flag{
@@ -55,17 +55,17 @@ var develCommand = &cli.Command{
 			},
 			Action: strap,
 		},
-		&cli.Command{
+		{
 			Name:   "daemon",
 			Usage:  "starts build daemon",
 			Action: daemon,
 		},
-		&cli.Command{
+		{
 			Name:   "hash",
 			Usage:  "DEV ONLY sync the plans Oid with binary banch",
 			Action: notimplemented,
 		},
-		&cli.Command{
+		{
 			Name:  "cd",
 			Usage: "prints out shell evaluate-able command to change directory. eg. eval $(via cd -s bash)",
 			Flags: []cli.Flag{
@@ -82,7 +82,7 @@ var develCommand = &cli.Command{
 			},
 			Action: cd,
 		},
-		&cli.Command{
+		{
 			Name:   "plugin",
 			Usage:  "execute plugin",
 			Action: plugin,
@@ -94,12 +94,12 @@ var develCommand = &cli.Command{
 				},
 			},
 		},
-		&cli.Command{
+		{
 			Name:   "fix",
 			Usage:  "DEV ONLY used to mass modify plans",
 			Action: notimplemented,
 		},
-		&cli.Command{
+		{
 			Name:  "reset",
 			Usage: "resets entire branch's plans",
 			Description: `Resets an entire Branch's dynamic plan meta data. This Essential puts the branch in a state as if no plans were built. Its also resets any repo data.
@@ -132,7 +132,7 @@ This is useful for creating a new branch that either has another config or to bo
 				return via.RepoCreate(config)
 			},
 		},
-		&cli.Command{
+		{
 			Name:  "test",
 			Usage: "installs devel group into a temp directory",
 			Action: func(ctx *cli.Context) error {
@@ -161,7 +161,7 @@ This is useful for creating a new branch that either has another config or to bo
 				return nil
 			},
 		},
-		&cli.Command{
+		{
 			Name:  "upstream",
 			Usage: "manage upstream versions and urls",
 			Flags: []cli.Flag{

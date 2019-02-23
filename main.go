@@ -39,235 +39,213 @@ var (
 				Value: "/path/to/some",
 			},
 		},
-		Commands: []*cli.Command{
-			{
-				Name:          "edit",
-				Usage:         "calls EDITOR to edit plan",
-				Action:        edit,
-				ShellComplete: planArgCompletion,
+	}
+	commands = []*cli.Command{
+		{
+			Name:          "edit",
+			Usage:         "calls EDITOR to edit plan",
+			Action:        edit,
+			ShellComplete: planArgCompletion,
+		},
+		{
+			Name:          "build",
+			Usage:         "builds a plan locally",
+			Aliases:       []string{"b"},
+			Action:        build,
+			ShellComplete: planArgCompletion,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "c",
+					Value: false,
+					Usage: "clean build directory before building",
+				},
+				&cli.BoolFlag{
+					Name:   "real",
+					Value:  false,
+					Hidden: true,
+				},
+				&cli.BoolFlag{
+					Name:  "v",
+					Value: true,
+					Usage: "displays more information when building",
+				},
+				&cli.BoolFlag{
+					Name:  "dd",
+					Value: false,
+					Usage: "build depends aswell",
+				},
+				&cli.BoolFlag{
+					Name:  "d",
+					Value: false,
+					Usage: "displays debugging information when building",
+				},
+				&cli.BoolFlag{
+					Name:  "i",
+					Value: false,
+					Usage: "install package after building",
+				},
+				&cli.BoolFlag{
+					Name:  "f",
+					Value: false,
+					Usage: "force rebuilding",
+				},
+				&cli.BoolFlag{
+					Name:  "u",
+					Value: false,
+					Usage: "force downloading of sources",
+				},
+				&cli.BoolFlag{
+					Name:  "l",
+					Value: false,
+					Usage: "builds plan locally",
+				},
+				&cli.BoolFlag{
+					Name:  "r",
+					Value: false,
+					Usage: "builds plan using daemon",
+				},
 			},
 		},
-	}
-
-	// build command
-	cbuild = &cli.Command{
-		Name:          "build",
-		Usage:         "builds a plan locally",
-		Aliases:       []string{"b"},
-		Action:        build,
-		ShellComplete: planArgCompletion,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "c",
-				Value: false,
-				Usage: "clean build directory before building",
-			},
-			&cli.BoolFlag{
-				Name:   "real",
-				Value:  false,
-				Hidden: true,
-			},
-			&cli.BoolFlag{
-				Name:  "v",
-				Value: true,
-				Usage: "displays more information when building",
-			},
-			&cli.BoolFlag{
-				Name:  "dd",
-				Value: false,
-				Usage: "build depends aswell",
-			},
-			&cli.BoolFlag{
-				Name:  "d",
-				Value: false,
-				Usage: "displays debugging information when building",
-			},
-			&cli.BoolFlag{
-				Name:  "i",
-				Value: false,
-				Usage: "install package after building",
-			},
-			&cli.BoolFlag{
-				Name:  "f",
-				Value: false,
-				Usage: "force rebuilding",
-			},
-			&cli.BoolFlag{
-				Name:  "u",
-				Value: false,
-				Usage: "force downloading of sources",
-			},
-			&cli.BoolFlag{
-				Name:  "l",
-				Value: false,
-				Usage: "builds plan locally",
-			},
-			&cli.BoolFlag{
-				Name:  "r",
-				Value: false,
-				Usage: "builds plan using daemon",
+		{
+			Name:          "remove",
+			Usage:         "uninstall package",
+			Action:        remove,
+			ShellComplete: planArgCompletion,
+		},
+		{
+			Name:          "show",
+			Usage:         "prints plan to stdout",
+			Action:        show,
+			ShellComplete: planArgCompletion,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "t",
+					Value: "",
+					Usage: "use go template",
+				},
+				&cli.BoolFlag{
+					Name:  "d",
+					Value: false,
+					Usage: "output depends",
+				},
+				&cli.BoolFlag{
+					Name:  "v",
+					Value: false,
+					Usage: "output version",
+				},
 			},
 		},
-	}
-
-	// remove command
-	cremove = &cli.Command{
-		Name:          "remove",
-		Usage:         "uninstall package",
-		Action:        remove,
-		ShellComplete: planArgCompletion,
-	}
-
-	// show command
-	cshow = &cli.Command{
-		Name:          "show",
-		Usage:         "prints plan to stdout",
-		Action:        show,
-		ShellComplete: planArgCompletion,
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "t",
-				Value: "",
-				Usage: "use go template",
-			},
-			&cli.BoolFlag{
-				Name:  "d",
-				Value: false,
-				Usage: "output depends",
-			},
-			&cli.BoolFlag{
-				Name:  "v",
-				Value: false,
-				Usage: "output version",
+		{
+			Name:   "config",
+			Usage:  "prints config to stdout",
+			Action: fconfig,
+		},
+		{
+			Name:          "list",
+			Usage:         "list files for `PLAN`",
+			Action:        list,
+			ShellComplete: planArgCompletion,
+		},
+		{
+			Name:   "fmt",
+			Usage:  "format plans",
+			Action: fmtplans,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "v",
+					Value: false,
+					Usage: "verbose information",
+				},
 			},
 		},
-	}
-
-	// config command
-	cconfig = &cli.Command{
-		Name:   "config",
-		Usage:  "prints config to stdout",
-		Action: fconfig,
-	}
-
-	// list command
-	clist = &cli.Command{
-		Name:          "list",
-		Usage:         "list files for `PLAN`",
-		Action:        list,
-		ShellComplete: planArgCompletion,
-	}
-
-	// lint command
-	clint = &cli.Command{
-		Name:   "fmt",
-		Usage:  "format plans",
-		Action: fmtplans,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "v",
-				Value: false,
-				Usage: "verbose information",
+		{
+			Name:          "log",
+			Usage:         "output's config.log for build",
+			ShellComplete: planArgCompletion,
+			Action:        plog,
+		},
+		{
+			Name:   "elf",
+			Usage:  "prints elf information to stdout",
+			Action: elf,
+		},
+		{
+			Name:   "search",
+			Usage:  "lists all of the available packages",
+			Action: search,
+		},
+		{
+			Name:          "options",
+			Usage:         "prints the GNU configure options for a package",
+			Action:        options,
+			ShellComplete: planArgCompletion,
+		},
+		{
+			Name:   "create",
+			Usage:  "creates a plan from tarball URL",
+			Action: create,
+		},
+		{
+			Name:   "pack",
+			Usage:  "package plan",
+			Action: pack,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:  "v",
+					Value: false,
+					Usage: "displays more information when packing",
+				},
 			},
 		},
-	}
-
-	clog = &cli.Command{
-		Name:          "log",
-		Usage:         "output's config.log for build",
-		ShellComplete: planArgCompletion,
-		Action:        plog,
-	}
-
-	celf = &cli.Command{
-		Name:   "elf",
-		Usage:  "prints elf information to stdout",
-		Action: elf,
-	}
-
-	csearch = &cli.Command{
-		Name:   "search",
-		Usage:  "lists all of the available packages",
-		Action: search,
-	}
-
-	coptions = &cli.Command{
-		Name:          "options",
-		Usage:         "prints the GNU configure options for a package",
-		Action:        options,
-		ShellComplete: planArgCompletion,
-	}
-
-	ccreate = &cli.Command{
-		Name:   "create",
-		Usage:  "creates a plan from tarball URL",
-		Action: create,
-	}
-
-	cpack = &cli.Command{
-		Name:   "pack",
-		Usage:  "package plan",
-		Action: pack,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:  "v",
-				Value: false,
-				Usage: "displays more information when packing",
-			},
+		{
+			Name:   "debug",
+			Usage:  "displays enviroment and PATH details",
+			Action: debug,
 		},
-	}
-
-	cdebug = &cli.Command{
-		Name:   "debug",
-		Usage:  "displays enviroment and PATH details",
-		Action: debug,
-	}
-
-	cowns = &cli.Command{
-		Name:   "owns",
-		Usage:  "find which plans owns 'file'",
-		Action: owns,
-	}
-
-	cclean = &cli.Command{
-		Name:   "clean",
-		Usage:  "cleans cache directory",
-		Action: notimplemented,
-	}
-
-	cget = &cli.Command{
-		Name:          "get",
-		Usage:         "download source from upstream",
-		Action:        get,
-		ShellComplete: planArgCompletion,
-	}
-
-	cbump = &cli.Command{
-		Name:  "bump",
-		Usage: "update version for 'PLAN'",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "ver",
-				Usage: "new version",
-			},
+		{
+			Name:   "owns",
+			Usage:  "find which plans owns 'file'",
+			Action: owns,
 		},
-		ShellComplete: planArgCompletion,
-		Action: func(ctx *cli.Context) error {
-			if ctx.String("ver") == "" {
-				return fmt.Errorf("you must specify new version with -ver")
-			}
-			plan, err := via.NewPlan(config, ctx.Args().First())
-			if err != nil {
-				return err
-			}
-			plan.Version = ctx.String("ver")
-			return via.WritePlan(config, plan)
+		{
+			Name:   "clean",
+			Usage:  "cleans cache directory",
+			Action: notimplemented,
+		},
+		{
+			Name:          "get",
+			Usage:         "download source from upstream",
+			Action:        get,
+			ShellComplete: planArgCompletion,
+		},
+		{
+			Name:  "bump",
+			Usage: "update version for 'PLAN'",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "ver",
+					Usage: "new version",
+				},
+			},
+			ShellComplete: planArgCompletion,
+			Action: func(ctx *cli.Context) error {
+				if ctx.String("ver") == "" {
+					return fmt.Errorf("you must specify new version with -ver")
+				}
+				plan, err := via.NewPlan(config, ctx.Args().First())
+				if err != nil {
+					return err
+				}
+				plan.Version = ctx.String("ver")
+				return via.WritePlan(config, plan)
+			},
 		},
 	}
 )
 
 func cloneplans() error {
 	// This should not actually run, though it should be used
+
 	// instead of cloning the above via path though is should be
 	// used instead of
 	if planpath.Exists() {
@@ -293,28 +271,9 @@ func readconfig() *via.Config {
 }
 
 func main() {
-	app.Commands = append(app.Commands, []*cli.Command{
-		cremove,
-		cbuild,
-		clist,
-		cconfig,
-		cshow,
-		clint,
-		clog,
-		celf,
-		csearch,
-		coptions,
-		ccreate,
-		cpack,
-		cdebug,
-		cowns,
-		cclean,
-		cget,
-		cbump,
-	}...)
-
-	sort.Sort(cli.FlagsByName(app.Flags))
-	sort.Sort(cli.CommandsByName(app.Commands))
+	app.Commands = append(app.Commands, commands...)
+	// sort.Sort(cli.FlagsByName(app.Flags))
+	// sort.Sort(cli.CommandsByName(app.Commands))
 
 	if err := app.Run(os.Args); err != nil {
 		elog.Fatal(err)
