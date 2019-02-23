@@ -6,6 +6,7 @@ import (
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/via/pkg"
 	"gopkg.in/urfave/cli.v2"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"syscall"
@@ -38,6 +39,7 @@ var (
 		"GOPATH":     os.Getenv("GOPATH"),
 		"CLFAGS":     config.Env["CLFAGS"],
 		"LDFLAGS":    config.Env["LDFLAGS"],
+		"CDPATH":     viapath.Dir().String(),
 		"PATH":       os.ExpandEnv(defaultPaths),
 		"PS1":        "-[via-build]- $ ",
 	}
@@ -131,25 +133,31 @@ func initialize() {
 	if err := pivot(root); err != nil {
 		elog.Fatal(err)
 	}
-	if err := enter(); err != nil {
+	if err := enter(root); err != nil {
 		elog.Fatal(err)
 	}
 }
 
 // Enter names space and either runs build or a shell
-func enter() error {
+func enter(root via.Path) error {
 	var (
-		path = via.Path("/bin/sh")
-		args = []string{}
+		path     = config.Prefix.Join("bin/bash")
+		args     = []string{"--login"}
+		profile  = root.Join("etc", "profile")
+		complete = []byte("eval $(via --init-completion bash)\n")
 	)
+
+	if !profile.Exists() {
+		if err := ioutil.WriteFile(profile.String(), complete, 0644); err != nil {
+			return err
+		}
+	}
 
 	switch {
 	case len(os.Args) >= 2 && os.Args[1] == "build":
 		path = viabin
 		args = append([]string{"via"}, os.Args[1:]...)
 	case len(os.Args) >= 2 && os.Args[1] == "contain":
-		path = "/bin/bash"
-		args = []string{"--login"}
 	default:
 		return fmt.Errorf("can not handle arguments %v", os.Args)
 	}
