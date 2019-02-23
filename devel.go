@@ -90,11 +90,6 @@ var develCommand = &cli.Command{
 			},
 		},
 		&cli.Command{
-			Name:   "edit",
-			Usage:  "calls EDITOR to edit plan",
-			Action: edit,
-		},
-		&cli.Command{
 			Name:   "fix",
 			Usage:  "DEV ONLY used to mass modify plans",
 			Action: notimplemented,

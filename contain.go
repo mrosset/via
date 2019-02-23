@@ -63,10 +63,10 @@ func linksh(root string) error {
 	return os.Link(source.String(), target.String())
 }
 
-func bindbin(root string) error {
+func bindbin(root via.Path) error {
 	var (
 		source = config.Prefix.Join("bin")
-		target = via.Path(root).Join("bin")
+		target = root.Join("bin")
 	)
 	if err := target.MkdirAll(); err != nil {
 		return err
@@ -120,10 +120,13 @@ func initialize() {
 	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
-	// setup busybox and links
-	if err := busybox(root); err != nil {
+	if err := bindbin(root); err != nil {
 		elog.Fatal(err)
 	}
+	// setup busybox and links
+	// if err := busybox(root); err != nil {
+	//	elog.Fatal(err)
+	// }
 	// finally pivot our root
 	if err := pivot(root); err != nil {
 		elog.Fatal(err)
@@ -145,8 +148,8 @@ func enter() error {
 		path = viabin
 		args = append([]string{"via"}, os.Args[1:]...)
 	case len(os.Args) >= 2 && os.Args[1] == "contain":
-		path = "/bin/sh"
-		args = []string{}
+		path = "/bin/bash"
+		args = []string{"--login"}
 	default:
 		return fmt.Errorf("can not handle arguments %v", os.Args)
 	}
@@ -319,6 +322,7 @@ func mount(root via.Path) error {
 		"/etc/resolv.conf",
 		"/etc/ssl",
 		"/etc/passwd",
+		"/etc/group",
 		via.Path("$HOME/.ccache").Expand(),
 		config.Cache.ToPath(),
 		config.Plans.ToPath(),

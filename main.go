@@ -20,15 +20,16 @@ import (
 )
 
 var (
-	viapath = via.Path(os.Getenv("GOPATH")).Join("src/github.com/mrosset/via")
-	config  = readconfig()
-	cfile   = viapath.Join("plans/config.json")
-	viaURL  = "https://github.com/mrosset/via"
-	planURL = "https://github.com/mrosset/plans"
-	viabin  = via.NewPath(os.Getenv("GOPATH")).Join("bin", "via")
-	elog    = log.New(os.Stderr, "", log.Lshortfile)
-	lfmt    = "%-20.20s %v\n"
-	app     = &cli.App{
+	viapath  = via.Path(os.Getenv("GOPATH")).Join("src/github.com/mrosset/via")
+	planpath = viapath.Join("plans")
+	config   = readconfig()
+	cfile    = viapath.Join("plans/config.json")
+	viaURL   = "https://github.com/mrosset/via"
+	planURL  = "https://github.com/mrosset/plans"
+	viabin   = via.NewPath(os.Getenv("GOPATH")).Join("bin", "via")
+	elog     = log.New(os.Stderr, "", log.Lshortfile)
+	lfmt     = "%-20.20s %v\n"
+	app      = &cli.App{
 		Name:                  "via",
 		Usage:                 "a systems package manager",
 		EnableShellCompletion: true,
@@ -36,6 +37,13 @@ var (
 			&cli.StringFlag{
 				Name:  "config",
 				Value: "/path/to/some",
+			},
+		},
+		Commands: []*cli.Command{
+			{
+				Name:   "edit",
+				Usage:  "calls EDITOR to edit plan",
+				Action: edit,
 			},
 		},
 	}
@@ -187,7 +195,7 @@ var (
 	ccreate = &cli.Command{
 		Name:   "create",
 		Usage:  "creates a plan from tarball URL",
-		Action: notimplemented,
+		Action: create,
 	}
 
 	cpack = &cli.Command{
@@ -252,25 +260,15 @@ var (
 	}
 )
 
-func initvia() error {
-	// TODO rework this to error and suggest user use 'via init'
-	if !viapath.Exists() {
-		elog.Println("cloning via")
-		if err := viapath.Clone(viaURL); err != nil {
-			return err
-		}
-	}
-
+func cloneplans() error {
 	// This should not actually run, though it should be used
 	// instead of cloning the above via path though is should be
 	// used instead of
-	if !config.Plans.Exists() {
-		elog.Println("cloning plans")
-		if err := config.Plans.Clone(planURL); err != nil {
-			return err
-		}
+	if planpath.Exists() {
+		return nil
 	}
-	return nil
+	elog.Println("cloning plans")
+	return via.CloneBranch(planpath, planURL, "x86_64-via-linux-gnu-release")
 }
 
 func readconfig() *via.Config {
@@ -278,9 +276,12 @@ func readconfig() *via.Config {
 	if os.Getenv("GOPATH") == "" {
 		elog.Fatal("GOPATH must be set")
 	}
+	if err := cloneplans(); err != nil {
+		elog.Fatal(err)
+	}
 	config, err := via.ReadConfig(cfile)
 	if err != nil {
-		log.Fatal(err)
+		elog.Fatal(err)
 	}
 	return config
 }
@@ -446,17 +447,21 @@ func build(ctx *cli.Context) error {
 			via.Clean(config, plan)
 		}
 		if ctx.Bool("dd") {
-			return fmt.Errorf("flag -dd is not implemented need BuildDeps()")
+			if err := via.BuildDeps(config, plan); err != nil {
+				return err
+			}
 		}
 		builder := via.NewBuilder(config, plan)
 		if err := builder.BuildSteps(); err != nil {
 			return err
 		}
 
-		if ctx.Bool("i") {
+		if ctx.Bool("i") || os.Getenv("INSIDE_VIA") == "true" {
 			fmt.Printf(lfmt, "install", plan.NameVersion())
-			if err := via.NewInstaller(config, plan).Install(); err != nil {
-				return err
+			b := via.NewBatch(config)
+			b.Walk(plan)
+			if err := b.Install(); err != nil {
+				return err[0]
 			}
 		}
 	}
@@ -481,7 +486,7 @@ func edit(ctx *cli.Context) error {
 	var (
 		editor = os.Getenv("EDITOR")
 		arg0   = ctx.Args().First()
-		p      = config.Plans.ConfigFile().String()
+		p      = config.Plans.ConfigFile()
 		err    error
 	)
 	if arg0 != "config" {
@@ -490,7 +495,7 @@ func edit(ctx *cli.Context) error {
 			return err
 		}
 	}
-	cmd := exec.Command(editor, p)
+	cmd := exec.Command(editor, p.String())
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -628,16 +633,16 @@ func options(ctx *cli.Context) error {
 	return cmd.Run()
 }
 
-// func create(ctx *cli.Context) error {
-//	if !ctx.Args().Present() {
-//		return fmt.Errorf("pack requires a 'URL' argument. see: 'via help create'")
-//	}
-//	err := avia.Create(config, ctx.Args().First(), "core")
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-// }
+func create(ctx *cli.Context) error {
+	if !ctx.Args().Present() {
+		return fmt.Errorf("pack requires a 'URL' argument. see: 'via help create'")
+	}
+	err := via.Create(config, ctx.Args().First(), "extra")
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func pack(ctx *cli.Context) error {
 	via.Verbose(ctx.Bool("v"))
