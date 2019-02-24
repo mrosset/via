@@ -320,44 +320,6 @@ func daemon(_ *cli.Context) error {
 	return via.StartDaemon(config)
 }
 
-// TODO: move this to install.go
-func batch(ctx *cli.Context) error {
-	var errors []error
-	if ctx.Bool("s") {
-		return install(ctx)
-	}
-	if !ctx.Args().Present() {
-		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
-	}
-
-	config.Root = via.Path(ctx.String("r"))
-
-	batch := via.NewBatch(config)
-	for _, a := range ctx.Args().Slice() {
-		p, err := via.NewPlan(config, a)
-		if err != nil {
-			return err
-		}
-		if p.Cid == "" {
-			return fmt.Errorf("plan '%s' does not have a Cid. Has the plan been built?", p.Name)
-		}
-		if err := batch.Walk(p); err != nil {
-			return err
-		}
-	}
-	switch ctx.Bool("y") {
-	case false:
-		errors = batch.PromptInstall()
-	case true:
-		errors = batch.Install()
-
-	}
-	if len(errors) > 0 {
-		log.Fatal(errors)
-	}
-	return nil
-}
-
 func remove(ctx *cli.Context) error {
 	for _, arg := range ctx.Args().Slice() {
 		if err := via.Remove(config, arg); err != nil {

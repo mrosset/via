@@ -48,6 +48,42 @@ var (
 	}
 )
 
+func batch(ctx *cli.Context) error {
+	var errors []error
+	if ctx.Bool("s") {
+		return install(ctx)
+	}
+	if !ctx.Args().Present() {
+		return fmt.Errorf("install requires a 'PLAN' argument. see: 'via help install'")
+	}
+
+	config.Root = via.Path(ctx.String("r"))
+
+	batch := via.NewBatch(config)
+	for _, a := range ctx.Args().Slice() {
+		p, err := via.NewPlan(config, a)
+		if err != nil {
+			return err
+		}
+		if p.Cid == "" {
+			return fmt.Errorf("plan '%s' does not have a Cid. Has the plan been built?", p.Name)
+		}
+		if err := batch.Walk(p); err != nil {
+			return err
+		}
+	}
+	switch ctx.Bool("y") {
+	case false:
+		errors = batch.PromptInstall()
+	case true:
+		errors = batch.Install()
+	}
+	if len(errors) > 0 {
+		return errors[0]
+	}
+	return nil
+}
+
 // FIXME: this function is deprecated and should be replaced with batch
 func install(ctx *cli.Context) error {
 	config.Root = via.Path(ctx.String("r"))
