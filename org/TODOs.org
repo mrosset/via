@@ -26,7 +26,7 @@ functions produces side effects.
 ** DONE use Path embedding where possible
 ** DONE use Path as function arguments and return Path arguments
 ** DONE use Path in main
-** TODO use dedicated functions for Action literals
+** DONE use dedicated functions for Action literals
 ** TODO install build depends in namespace, clean namespace after
 ** TODO implement postinstall
 ** TODO Expand Config using UnMarshal and Marshal?

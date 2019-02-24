@@ -56,3 +56,27 @@ func TestPath_ToPath(t *testing.T) {
 		Got:    testConfig.Plans.ToPath(),
 	}.equals(t)
 }
+
+func TestPath_Glob(t *testing.T) {
+	var (
+		top = Path("testdata/glob")
+		one = top.Join("one")
+		two = top.Join("two")
+	)
+	top.MkdirAll()
+	one.Touch()
+	two.Touch()
+	defer top.RemoveAll()
+	glob, err := top.Glob()
+
+	tests{
+		{
+			Expect: nil,
+			Got:    err,
+		},
+		{
+			Expect: []Path{"testdata/glob/one", "testdata/glob/two"},
+			Got:    glob,
+		},
+	}.equals(t)
+}

@@ -43,21 +43,7 @@ var (
 			Name:    "upgrade",
 			Aliases: []string{"u", "up"},
 			Usage:   "upgrade packages with newer build or versions",
-			Action: func(ctx *cli.Context) error {
-				up := via.NewUpgrader(config)
-				p, err := up.Check()
-				if err != nil {
-					return err
-				}
-				if len(p) > 0 {
-					fmt.Println("upgrading", p)
-				}
-				errs := up.Upgrade()
-				if len(errs) > 0 {
-					return errs[0]
-				}
-				return nil
-			},
+			Action:  upgrade,
 		},
 	}
 )
@@ -85,6 +71,22 @@ func install(ctx *cli.Context) error {
 		if err := via.NewInstaller(config, p).Install(); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func upgrade(ctx *cli.Context) error {
+	up := via.NewUpgrader(config)
+	p, err := up.Check()
+	if err != nil {
+		return err
+	}
+	if len(p) > 0 {
+		fmt.Println("upgrading", p)
+	}
+	errs := up.Upgrade()
+	if len(errs) > 0 {
+		return errs[0]
 	}
 	return nil
 }

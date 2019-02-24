@@ -269,7 +269,7 @@ func readconfig() *via.Config {
 	if err := cloneplans(); err != nil {
 		elog.Fatal(err)
 	}
-	config, err := via.ReadConfig(cfile)
+	config, err := via.NewConfig(cfile)
 	if err != nil {
 		elog.Fatal(err)
 	}

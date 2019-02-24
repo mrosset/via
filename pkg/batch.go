@@ -131,23 +131,22 @@ func (b Batch) Download(plan *Plan) error {
 }
 
 // PlanFunc provides a func that takes a Plan
-type PlanFunc func(*Plan)
+type PlanFunc func(*Plan) error
 
 // DownloadInstall provides a Plan function that downloads and
 // installs a Plan
-func (b *Batch) DownloadInstall(plan *Plan) {
+func (b *Batch) DownloadInstall(plan *Plan) error {
 	if err := b.Download(plan); err != nil {
 		b.pm.Error(plan.Name, err.Error())
-		elog.Fatal(err)
-		return
+		return err
 	}
 	b.pm.Working(plan.Name, "install", fmt.Sprintf("%-*s", 19, ""))
 	if err := NewInstaller(b.config, plan).Install(); err != nil {
 		b.pm.Error(plan.Name, err.Error())
 		elog.Fatalf("%s: %s", plan.Name, err)
-		return
+		return fmt.Errorf("%s: %s", plan.Name, err)
 	}
-
+	return nil
 }
 
 // ForEach run PlanFunc on each plan in Plans.
@@ -158,7 +157,9 @@ func (b Batch) ForEach(fn PlanFunc, plans PlanSlice) (errors []error) {
 		go func(plan *Plan) {
 			b.pm.AddEntry(plan.Name, plan.Name, fmt.Sprintf("%+*s", 20, ""))
 			b.ch <- true
-			fn(plan)
+			if err := fn(plan); err != nil {
+				errors = append(errors, err)
+			}
 			<-b.ch
 			b.pm.Finish(plan.Name)
 			b.wg.Done()

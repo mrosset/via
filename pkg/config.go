@@ -39,34 +39,8 @@ type Config struct {
 	template *Config
 }
 
-// ConfigJSON provides json Marshal and Unmarshal interface for Config
-type ConfigJSON Config
-
-// ToConfig returns Config type
-func (j ConfigJSON) ToConfig() *Config {
-	config := Config(j)
-	return &config
-}
-
-// UnmarshalJSON provides Unmarshal interface
-func (j *ConfigJSON) UnmarshalJSON(data []byte) error {
-	var c Config
-	if err := json.Unmarshal(data, &c); err != nil {
-		return err
-	}
-	sort.Strings(c.Flags)
-	*j = ConfigJSON(c)
-	return nil
-}
-
-// MarshalJSON provides Marshal interface
-func (j *ConfigJSON) MarshalJSON() ([]byte, error) {
-	sort.Strings(j.Flags)
-	return json.Marshal(*j)
-}
-
-// ReadConfig reads config path and returns a new initialized Config
-func ReadConfig(path Path) (*Config, error) {
+// NewConfig reads config path and returns a new initialized Config
+func NewConfig(path Path) (*Config, error) {
 	var jconfig ConfigJSON
 	if err := mjson.Read(&jconfig, path.String()); err != nil {
 		return nil, err
@@ -96,6 +70,32 @@ func ReadConfig(path Path) (*Config, error) {
 		os.Setenv(i, os.ExpandEnv(j))
 	}
 	return config, nil
+}
+
+// ConfigJSON provides json Marshal and Unmarshal interface for Config
+type ConfigJSON Config
+
+// ToConfig returns Config type
+func (j ConfigJSON) ToConfig() *Config {
+	config := Config(j)
+	return &config
+}
+
+// UnmarshalJSON provides Unmarshal interface
+func (j *ConfigJSON) UnmarshalJSON(data []byte) error {
+	var c Config
+	if err := json.Unmarshal(data, &c); err != nil {
+		return err
+	}
+	sort.Strings(c.Flags)
+	*j = ConfigJSON(c)
+	return nil
+}
+
+// MarshalJSON provides Marshal interface
+func (j *ConfigJSON) MarshalJSON() ([]byte, error) {
+	sort.Strings(j.Flags)
+	return json.Marshal(*j)
 }
 
 // SanitizeEnv returns an os.Environ() environment string slice that
@@ -149,6 +149,21 @@ type DB struct {
 // Installed returns the path string of the installed directory
 func (d DB) Installed(config *Config) Path {
 	return config.Root.Join(d.String(), "installed")
+}
+
+// InstalledPlans returns a slice of installed Plan names
+func (d DB) InstalledPlans(config *Config) ([]string, error) {
+	var (
+		names = []string{}
+	)
+	files, err := d.Installed(config).Glob()
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		names = append(names, f.Base().String())
+	}
+	return names, err
 }
 
 // InstalledFiles returns all of the json manifests for each install

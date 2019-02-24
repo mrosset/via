@@ -107,10 +107,12 @@ func bindsh(root string) error {
 
 func initialize() {
 	root := config.Cache.Root()
-	// root, err := ioutil.TempDir("", "via-build")
-	// if err != nil {
-	//	elog.Fatal(err)
-	// }
+	config.Root = config.Cache.Root()
+
+	// populate root
+	if err := populate(); err != nil {
+		elog.Fatal(err)
+	}
 	// set hostname
 	if err := syscall.Sethostname([]byte("via-build")); err != nil {
 		elog.Fatalf("could not set hostname: %s", err)
@@ -136,6 +138,22 @@ func initialize() {
 	if err := enter(root); err != nil {
 		elog.Fatal(err)
 	}
+}
+
+func populate() error {
+	if via.IsInstalled(config, "devel") {
+		return nil
+	}
+	devel, err := via.NewPlan(config, "devel")
+	if err != nil {
+		return err
+	}
+	b := via.NewBatch(config)
+	b.Walk(devel)
+	if errors := b.Install(); len(errors) > 0 {
+		return errors[0]
+	}
+	return nil
 }
 
 // Enter names space and either runs build or a shell
@@ -234,6 +252,20 @@ func contain(ctx *cli.Context) error {
 	return cmd.Run()
 }
 
+func clean() error {
+	config.Root = config.Cache.Root()
+	names, err := config.DB.InstalledPlans(config)
+	if err != nil {
+		return err
+	}
+	for _, n := range names {
+		if err := via.Remove(config, n); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
 type fileSystem struct {
 	Source string
 	Type   string
@@ -257,18 +289,14 @@ func (fs fileSystem) Mount(root string) error {
 	)
 }
 
-func mkdir(path string) error {
-	return os.MkdirAll(path, 0755)
-}
-
 func busybox(root via.Path) error {
 	var (
 		bin    = via.Path.Join(root, "bin")
 		source = ""
 		target = bin.Join("busybox")
+		err    error
 	)
-	source, err := exec.LookPath("busybox")
-	if err != nil {
+	if source, err = exec.LookPath("busybox"); err != nil {
 		return err
 	}
 	if err := bin.MkdirAll(); err != nil {

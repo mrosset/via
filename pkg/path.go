@@ -43,6 +43,21 @@ func (p Path) IsDir() (bool, error) {
 	return fi.IsDir(), nil
 }
 
+// Glob returns all of the entries in the Path
+func (p Path) Glob() ([]Path, error) {
+	var (
+		paths = []Path{}
+	)
+	files, err := filepath.Glob(p.Join("*").String())
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		paths = append(paths, Path(f))
+	}
+	return paths, nil
+}
+
 // ToPath Converts to Path
 func (p Path) ToPath() Path {
 	return Path(p)
