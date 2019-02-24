@@ -105,61 +105,12 @@ var develCommand = &cli.Command{
 			Description: `Resets an entire Branch's dynamic plan meta data. This Essential puts the branch in a state as if no plans were built. Its also resets any repo data.
 
 This is useful for creating a new branch that either has another config or to bootstrap a Branch for another operating system or CPU architecture.`,
-			Action: func(ctx *cli.Context) error {
-				var (
-					files []string
-					err   error
-				)
-				if files, err = via.PlanFiles(config); err != nil {
-					return err
-				}
-				for _, path := range files {
-					plan, err := via.ReadPath(path)
-					if err != nil {
-						return err
-					}
-					plan.Cid = ""
-					plan.IsRebuilt = false
-					plan.Date = time.Now()
-					plan.BuildTime = 0
-					plan.Files = nil
-					plan.Size = 0
-					plan.AutoDepends = nil
-					if err := via.WritePlan(config, plan); err != nil {
-						return err
-					}
-				}
-				return via.RepoCreate(config)
-			},
+			Action: reset,
 		},
 		{
-			Name:  "test",
-			Usage: "installs devel group into a temp directory",
-			Action: func(ctx *cli.Context) error {
-				var (
-					batch = via.NewBatch(config)
-					plan  = &via.Plan{}
-					root  = ""
-					err   error
-				)
-				if root, err = ioutil.TempDir("", "via-test"); err != nil {
-					return err
-				}
-				defer os.RemoveAll(root)
-				config.Root = via.Path(root)
-				config.Repo = via.Path(root).Join("repo").ToRepo()
-				if plan, err = via.NewPlan(config, "devel"); err != nil {
-					return err
-				}
-				if err = batch.Walk(plan); err != nil {
-					return err
-				}
-				errors := batch.Install()
-				if len(errors) != 0 {
-					return errors[0]
-				}
-				return nil
-			},
+			Name:   "test",
+			Usage:  "installs devel group into a temp directory",
+			Action: test,
 		},
 		{
 			Name:  "upstream",
@@ -181,11 +132,15 @@ func notimplemented(ctx *cli.Context) error {
 }
 
 func cupstream(ctx *cli.Context) error {
-	files, err := via.PlanFiles(config)
-	if err != nil {
+	var (
+		sfmt  = "%-10s %-10s %-10s\n"
+		files []string
+		err   error
+	)
+
+	if files, err = via.PlanFiles(config); err != nil {
 		return err
 	}
-	sfmt := "%-10s %-10s %-10s\n"
 
 	for _, f := range files {
 		plan, err := via.ReadPath(f)
@@ -279,6 +234,58 @@ func strap(ctx *cli.Context) error {
 func env(ctx *cli.Context) error {
 	for _, k := range []string{"CFLAGS", "LDFLAGS", "CXXFLAGS"} {
 		fmt.Printf("export \"%s\"\n", config.Expand().Env.Value(k))
+	}
+	return nil
+}
+
+func reset(ctx *cli.Context) error {
+	var (
+		files []string
+		err   error
+	)
+	if files, err = via.PlanFiles(config); err != nil {
+		return err
+	}
+	for _, path := range files {
+		plan, err := via.ReadPath(path)
+		if err != nil {
+			return err
+		}
+		plan.Cid = ""
+		plan.IsRebuilt = false
+		plan.Date = time.Now()
+		plan.BuildTime = 0
+		plan.Size = 0
+		plan.AutoDepends = nil
+		if err := via.WritePlan(config, plan); err != nil {
+			return err
+		}
+	}
+	return via.RepoCreate(config)
+}
+
+func test(ctx *cli.Context) error {
+	var (
+		batch = via.NewBatch(config)
+		plan  = &via.Plan{}
+		root  = ""
+		err   error
+	)
+	if root, err = ioutil.TempDir("", "via-test"); err != nil {
+		return err
+	}
+	defer os.RemoveAll(root)
+	config.Root = via.Path(root)
+	config.Repo = via.Path(root).Join("repo").ToRepo()
+	if plan, err = via.NewPlan(config, "devel"); err != nil {
+		return err
+	}
+	if err = batch.Walk(plan); err != nil {
+		return err
+	}
+	errors := batch.Install()
+	if len(errors) != 0 {
+		return errors[0]
 	}
 	return nil
 }

@@ -243,11 +243,17 @@ var (
 	}
 )
 
-func cloneplans() error {
-	// This should not actually run, though it should be used
+func main() {
+	app.Commands = append(app.Commands, commands...)
+	sort.Sort(cli.FlagsByName(app.Flags))
+	sort.Sort(cli.CommandsByName(app.Commands))
+	if err := app.Run(os.Args); err != nil {
+		elog.Fatal(err)
+	}
+}
 
-	// instead of cloning the above via path though is should be
-	// used instead of
+func cloneplans() error {
+	//
 	if planpath.Exists() {
 		return nil
 	}
@@ -268,16 +274,6 @@ func readconfig() *via.Config {
 		elog.Fatal(err)
 	}
 	return config
-}
-
-func main() {
-	app.Commands = append(app.Commands, commands...)
-	// sort.Sort(cli.FlagsByName(app.Flags))
-	// sort.Sort(cli.CommandsByName(app.Commands))
-
-	if err := app.Run(os.Args); err != nil {
-		elog.Fatal(err)
-	}
 }
 
 func plugin(ctx *cli.Context) error {
