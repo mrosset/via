@@ -8,6 +8,7 @@ require (
 	github.com/btcsuite/btcd v0.0.0-20190109040709-5bda5314ca95 // indirect
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927
 	github.com/docker/docker v1.13.1
+	github.com/git-lfs/git-lfs v2.5.2+incompatible
 	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/gxed/hashland v0.0.0-20180221191214-d9f6b97f8db2 // indirect
 	github.com/ipfs/go-ipfs-api v1.3.3-0.20181230163852-a81f9093bbd3

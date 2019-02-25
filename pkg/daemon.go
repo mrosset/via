@@ -57,7 +57,7 @@ func StartDaemon(config *Config) error {
 		if err != nil {
 			return err
 		}
-		batch := NewBatch(config)
+		batch := NewBatch(config, os.Stdout)
 		batch.Walk(p)
 		batch.Install()
 	}

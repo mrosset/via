@@ -59,7 +59,7 @@ func batch(ctx *cli.Context) error {
 
 	config.Root = via.Path(ctx.String("r"))
 
-	batch := via.NewBatch(config)
+	batch := via.NewBatch(config, os.Stdout)
 	for _, a := range ctx.Args().Slice() {
 		p, err := via.NewPlan(config, a)
 		if err != nil {

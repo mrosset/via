@@ -381,7 +381,7 @@ func build(ctx *cli.Context) error {
 
 		if ctx.Bool("i") || os.Getenv("INSIDE_VIA") == "true" {
 			fmt.Printf(lfmt, "install", plan.NameVersion())
-			b := via.NewBatch(config)
+			b := via.NewBatch(config, os.Stdout)
 			b.Walk(plan)
 			if err := b.Install(); err != nil {
 				return err[0]

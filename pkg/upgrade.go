@@ -1,5 +1,9 @@
 package via
 
+import (
+	"os"
+)
+
 // Upgrader provides a type for upgrading installed plans
 type Upgrader struct {
 	config   *Config
@@ -57,6 +61,6 @@ func (u Upgrader) Upgrades() []string {
 //
 // FIXME: we should make this transnational.
 func (u Upgrader) Upgrade() []error {
-	batch := NewBatch(u.config)
+	batch := NewBatch(u.config, os.Stdout)
 	return batch.ForEach(batch.DownloadInstall, u.upgrades)
 }

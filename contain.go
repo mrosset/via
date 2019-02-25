@@ -148,7 +148,8 @@ func populate() error {
 	if err != nil {
 		return err
 	}
-	b := via.NewBatch(config)
+	fmt.Println("populating namespace")
+	b := via.NewBatch(config, ioutil.Discard)
 	b.Walk(devel)
 	if errors := b.Install(); len(errors) > 0 {
 		return errors[0]

@@ -32,6 +32,7 @@ functions produces side effects.
 ** TODO implement postinstall
 ** TODO Expand Config using UnMarshal and Marshal?
 ** TODO create Default config
+** TODO allow via fmt to format stdin json to stdout
 * Todo
 ** TODO move environment expand to environment file
 ** TODO Offline multihash verification

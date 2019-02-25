@@ -73,7 +73,7 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 		}
 		p, _ := NewPlan(config, d)
 		if p.IsRebuilt {
-			b := NewBatch(config)
+			b := NewBatch(config, os.Stdout)
 			b.Walk(p)
 			if err := b.Install(); err != nil {
 				return err[0]
@@ -91,7 +91,7 @@ func BuildDeps(config *Config, plan *Plan) (err error) {
 	if err := bd.BuildSteps(); err != nil {
 		return err
 	}
-	b := NewBatch(config)
+	b := NewBatch(config, os.Stdout)
 	b.Walk(plan)
 	if err := b.Install(); err != nil {
 		return err[0]

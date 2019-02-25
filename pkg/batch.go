@@ -7,85 +7,7 @@ import (
 	"io"
 	"os"
 	"sync"
-	"time"
 )
-
-// ProgressItem provides item for Progress type
-type ProgressItem struct {
-	key    string
-	status string
-	state  string
-	done   bool
-	sync.Mutex
-}
-
-// Update items state status and done state
-func (pi *ProgressItem) Update(state, status string, done bool) {
-	pi.Lock()
-	pi.state = state
-	pi.status = status
-	pi.done = done
-	pi.Unlock()
-}
-
-// Progress provides type for displaying concurrent
-type Progress struct {
-	items []*ProgressItem
-	stop  chan bool
-	sync.Mutex
-}
-
-func (p *Progress) print() {
-	print("\033[H\033[2J")
-	tdone := 0
-	for _, i := range p.items {
-		if i.done {
-			tdone++
-		}
-		fmt.Printf("%-10s %-13s %s\n", i.state, i.status, i.key)
-
-	}
-	fmt.Printf("[%d/%d]\n", tdone, len(p.items))
-	os.Stdout.Sync()
-}
-
-// Update updates item by key setting status and done stat
-func (p Progress) Update(key, state, status string, done bool) {
-	for _, i := range p.items {
-		if i.key == key {
-			i.Update(state, status, done)
-		}
-	}
-}
-
-// Start starts printing progress
-func (p Progress) Start() {
-	time.Sleep(time.Second / 4)
-	go func() {
-		for {
-			time.Sleep(time.Millisecond * 100)
-			p.print()
-			select {
-			case <-p.stop:
-				return
-			default:
-			}
-		}
-	}()
-}
-
-// Done stops printing progress
-func (p *Progress) Done() {
-	p.stop <- true
-}
-
-// Add a progress item
-func (p *Progress) Add(key string, state string) {
-	item := &ProgressItem{key: key, state: state}
-	p.Lock()
-	p.items = append(p.items, item)
-	p.Unlock()
-}
 
 // Batch Plan type
 type Batch struct {
@@ -99,18 +21,20 @@ type Batch struct {
 }
 
 // NewBatch returns a new Batch that has been initialized
-func NewBatch(conf *Config) Batch {
+func NewBatch(conf *Config, out io.Writer) Batch {
 	threads := conf.Threads
 	if threads == 0 {
-		fmt.Println(conf)
-		elog.Fatal("threads are too low 0. setting it to 4. please fix config.json")
+		elog.Println("threads are too low 0. setting it to 4. please fix config.json")
 		threads = 4
 	}
 	return Batch{
 		config: conf,
 		ch:     make(chan bool, threads),
 		wg:     new(sync.WaitGroup),
-		pm:     &Progress{stop: make(chan bool)},
+		pm: &Progress{
+			stop: make(chan bool),
+			out:  out,
+		},
 	}
 }
 

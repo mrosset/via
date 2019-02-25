@@ -29,6 +29,12 @@ var develCommand = &cli.Command{
 			Action: env,
 		},
 		{
+			Name:          "stage",
+			Usage:         "downloads and stages Plans source files",
+			Action:        stage,
+			ShellComplete: planArgCompletion,
+		},
+		{
 			Name:   "repo",
 			Usage:  "recreates file db",
 			Action: repo,
@@ -221,7 +227,7 @@ func strap(ctx *cli.Context) error {
 		if err := b.BuildSteps(); err != nil {
 			return err
 		}
-		batch := via.NewBatch(config)
+		batch := via.NewBatch(config, os.Stderr)
 		batch.Add(plan)
 		if errs := batch.Install(); len(errs) != 0 {
 			return errs[0]
@@ -264,9 +270,19 @@ func reset(ctx *cli.Context) error {
 	return via.RepoCreate(config)
 }
 
+func stage(ctx *cli.Context) error {
+	arg := ctx.Args().First()
+	plan, err := via.NewPlan(config, arg)
+	if err != nil {
+		return err
+	}
+	b := via.NewBuilder(config, plan)
+	return b.Stage()
+}
+
 func test(ctx *cli.Context) error {
 	var (
-		batch = via.NewBatch(config)
+		batch = via.NewBatch(config, os.Stdout)
 		plan  = &via.Plan{}
 		root  = ""
 		err   error
