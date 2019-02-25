@@ -3,22 +3,99 @@ package via
 import (
 	"bufio"
 	"fmt"
-	"github.com/mrosset/progmeter"
 	"github.com/mrosset/util/file"
 	"io"
 	"os"
 	"sync"
+	"time"
 )
+
+// ProgressItem provides item for Progress type
+type ProgressItem struct {
+	key    string
+	status string
+	state  string
+	done   bool
+	sync.Mutex
+}
+
+// Update items state status and done state
+func (pi *ProgressItem) Update(state, status string, done bool) {
+	pi.Lock()
+	pi.state = state
+	pi.status = status
+	pi.done = done
+	pi.Unlock()
+}
+
+// Progress provides type for displaying concurrent
+type Progress struct {
+	items []*ProgressItem
+	stop  chan bool
+	sync.Mutex
+}
+
+func (p *Progress) print() {
+	print("\033[H\033[2J")
+	tdone := 0
+	for _, i := range p.items {
+		if i.done {
+			tdone++
+		}
+		fmt.Printf("%-10s %-13s %s\n", i.state, i.status, i.key)
+
+	}
+	fmt.Printf("[%d/%d]\n", tdone, len(p.items))
+	os.Stdout.Sync()
+}
+
+// Update updates item by key setting status and done stat
+func (p Progress) Update(key, state, status string, done bool) {
+	for _, i := range p.items {
+		if i.key == key {
+			i.Update(state, status, done)
+		}
+	}
+}
+
+// Start starts printing progress
+func (p Progress) Start() {
+	time.Sleep(time.Second / 4)
+	go func() {
+		for {
+			time.Sleep(time.Millisecond * 100)
+			p.print()
+			select {
+			case <-p.stop:
+				return
+			default:
+			}
+		}
+	}()
+}
+
+// Done stops printing progress
+func (p *Progress) Done() {
+	p.stop <- true
+}
+
+// Add a progress item
+func (p *Progress) Add(key string, state string) {
+	item := &ProgressItem{key: key, state: state}
+	p.Lock()
+	p.items = append(p.items, item)
+	p.Unlock()
+}
 
 // Batch Plan type
 type Batch struct {
 	plans  PlanSlice
 	config *Config
-	pm     *progmeter.ProgMeter
 	size   int64
 	ch     chan bool
 	wg     *sync.WaitGroup
 	keys   []string
+	pm     *Progress
 }
 
 // NewBatch returns a new Batch that has been initialized
@@ -31,9 +108,9 @@ func NewBatch(conf *Config) Batch {
 	}
 	return Batch{
 		config: conf,
-		pm:     progmeter.NewProgMeter(false),
 		ch:     make(chan bool, threads),
 		wg:     new(sync.WaitGroup),
+		pm:     &Progress{stop: make(chan bool)},
 	}
 }
 
@@ -57,6 +134,7 @@ func (b *Batch) PruneInstalled() {
 func (b *Batch) Add(plan *Plan) {
 	b.plans = append(b.plans, plan)
 	b.size += plan.Size
+	b.pm.Add(plan.Name, "wait")
 }
 
 // Walk the plan's dependency tree and add each dependency to the
@@ -124,8 +202,8 @@ func (b Batch) Download(plan *Plan) error {
 	if err != nil {
 		return err
 	}
-	pw := NewProgressWriter(b.pm, plan.Name, res.ContentLength, fd)
 	defer fd.Close()
+	pw := NewProgressWriter(b.pm, plan.Name, res.ContentLength, fd)
 	_, err = io.Copy(pw, res.Body)
 	return err
 }
@@ -136,38 +214,36 @@ type PlanFunc func(*Plan) error
 // DownloadInstall provides a Plan function that downloads and
 // installs a Plan
 func (b *Batch) DownloadInstall(plan *Plan) error {
+	b.pm.Update(plan.Name, "download", "", false)
 	if err := b.Download(plan); err != nil {
-		b.pm.Error(plan.Name, err.Error())
 		return err
 	}
-	b.pm.Working(plan.Name, "install", fmt.Sprintf("%-*s", 19, ""))
+	b.pm.Update(plan.Name, "install", "", false)
 	if err := NewInstaller(b.config, plan).Install(); err != nil {
-		b.pm.Error(plan.Name, err.Error())
 		elog.Fatalf("%s: %s", plan.Name, err)
 		return fmt.Errorf("%s: %s", plan.Name, err)
 	}
+	b.pm.Update(plan.Name, "done", "", true)
 	return nil
 }
 
 // ForEach run PlanFunc on each plan in Plans.
 func (b Batch) ForEach(fn PlanFunc, plans PlanSlice) (errors []error) {
 	for _, p := range plans {
-		b.wg.Add(1)
-		b.pm.AddTodos(1)
+
 		go func(plan *Plan) {
-			b.pm.AddEntry(plan.Name, plan.Name, fmt.Sprintf("%+*s", 20, ""))
+			b.wg.Add(1)
 			b.ch <- true
 			if err := fn(plan); err != nil {
 				errors = append(errors, err)
 			}
-			<-b.ch
-			b.pm.Finish(plan.Name)
 			b.wg.Done()
+			<-b.ch
 		}(p)
 	}
+	b.pm.Start()
 	b.wg.Wait()
-	b.pm.MarkDone()
-	fmt.Println()
+	b.pm.Done()
 	return errors
 }
 

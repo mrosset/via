@@ -2,8 +2,7 @@ package via
 
 import (
 	"fmt"
-	"github.com/mrosset/progmeter"
-	"github.com/mrosset/util/human"
+	"github.com/git-lfs/git-lfs/tools/humanize"
 	"io"
 	"strconv"
 	"strings"
@@ -11,18 +10,18 @@ import (
 )
 
 // ProgressWriter provides a writer interface that updates speed and
-// progress information for ProgMeter
+// progress information for Progress type
 type ProgressWriter struct {
 	total int64
 	w     io.Writer
 	done  int64
 	start time.Time
-	pm    *progmeter.ProgMeter
+	pm    *Progress
 	key   string
 }
 
 // NewProgressWriter returns a new ProgressWriter that has been initialized
-func NewProgressWriter(pm *progmeter.ProgMeter, key string, t int64, w io.Writer) *ProgressWriter {
+func NewProgressWriter(pm *Progress, key string, t int64, w io.Writer) *ProgressWriter {
 	return &ProgressWriter{
 		pm:    pm,
 		key:   key,
@@ -37,12 +36,12 @@ func (pw *ProgressWriter) Write(b []byte) (int, error) {
 	}
 	pw.done += int64(len(b))
 	percent := int((pw.done * 100) / pw.total)
-	width := 10
+	width := 8
 	progress := (width * percent) / 100
-	bps := float64(pw.done) / time.Now().Sub(pw.start).Seconds()
-	bar := fmt.Sprintf("%-*s", width, strings.Repeat("#", int(progress)))
-	speed := fmt.Sprintf("%s/s %3.3s%%", human.ByteSize(bps), strconv.Itoa(percent))
-	pw.pm.Working(pw.key, bar, speed)
-	// time.Sleep(2.4e7)
+	bar := fmt.Sprintf("[%-*s]", width, strings.Repeat("#", int(progress)))
+	bps := humanize.FormatByteRate(uint64(pw.done), time.Now().Sub(pw.start))
+	speed := fmt.Sprintf(" %s %s%%", bps, strconv.Itoa(percent))
+	pw.pm.Update(pw.key, bar, speed, false)
+	time.Sleep(2.4e6)
 	return pw.w.Write(b)
 }
