@@ -1,12 +1,13 @@
 package via
 
 import (
+	"io/ioutil"
 	"testing"
 )
 
 func TestBatchAdd(t *testing.T) {
 	var (
-		d      = NewBatch(testConfig)
+		d      = NewBatch(testConfig, ioutil.Discard)
 		expect = "hello-2.9"
 	)
 	d.Add(testPlan)
@@ -21,7 +22,7 @@ func TestBatchAdd(t *testing.T) {
 
 func TestBatchWalk(t *testing.T) {
 	var (
-		batch  = NewBatch(testConfig)
+		batch  = NewBatch(testConfig, ioutil.Discard)
 		expect = 1
 	)
 	batch.Walk(testPlan)
