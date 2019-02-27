@@ -379,7 +379,7 @@ func build(ctx *cli.Context) error {
 			return err
 		}
 
-		if ctx.Bool("i") || os.Getenv("INSIDE_VIA") == "true" {
+		if ctx.Bool("i") {
 			fmt.Printf(lfmt, "install", plan.NameVersion())
 			b := via.NewBatch(config, os.Stdout)
 			b.Walk(plan)
