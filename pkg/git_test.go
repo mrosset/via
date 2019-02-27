@@ -32,7 +32,7 @@ func TestCloneBranch(t *testing.T) {
 		Expect: nil,
 		Got: CloneBranch(
 			gitd,
-			"../plans",
+			Path(wd).Join("../plans").String(),
 			"x86_64-via-linux-gnu-release",
 		),
 	}.equals(t)
