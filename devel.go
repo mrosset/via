@@ -257,12 +257,14 @@ func reset(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
+		if plan.Group == "builtin" || plan.Group == "groups" {
+			continue
+		}
 		plan.Cid = ""
 		plan.IsRebuilt = false
 		plan.Date = time.Now()
 		plan.BuildTime = 0
 		plan.Size = 0
-		plan.AutoDepends = nil
 		if err := via.WritePlan(config, plan); err != nil {
 			return err
 		}
