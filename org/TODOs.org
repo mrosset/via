@@ -26,7 +26,8 @@ functions produces side effects.
 ** DONE use Path as function arguments and return Path arguments
 ** DONE use Path in main
 ** DONE use dedicated functions for Action literals
-** TODO spit config flags and package flags
+** TODO split config flags and package flags
+** TODO refactor Batch
 ** TODO end user docker instance
 ** TODO install build depends in namespace, clean namespace after
 *** TODO revisit dependency installation

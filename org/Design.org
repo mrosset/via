@@ -3,7 +3,7 @@
 
 * TODO Todo                                                           :devel:
 ** Pre-Release
-*** TODO Config and Plan context
+*** DONE Config and Plan context
 **** TODO Config
 Right now we are loading and keeping the Config as a global variable. This
 causes issues with a client server model. Move Config so that it is refreanced
@@ -12,29 +12,26 @@ as a Context.
 For the most part we pass Plan's as a context, but there are still some
 functions that refreance a plan by Name. The only function that should reference
 by name is probably NewPlan and possibly some query functions.
-*** TODO Sane Path referencing
+*** DONE Sane Path referencing
 **** Problem
 We have over abused filepath.Join, there are paths hard coded all over the
 place. Windows path's will never work at this rate.
 **** Solution
-***** TODO Path scope
+***** DONE Path scope
 Remove filepath.Join imports from via.go. All path reference should occur at the
 object level.
 ***** TODO Path test's
 Create much more intensive test's in relation to Path and there sanity
-*** TODO Rpc daemon
 *** TODO Linux and Darwin base/devel plans
-**** DONE Move non essential plans to another branch.
-     CLOSED: [2016-11-09 Wed 06:50]
-**** DONE Trim plans on HEAD to bare minimal plans required for a toolchain
-CLOSED: [2017-09-14 Thu 00:34]
+**** Move non essential plans to another branch.
+**** TODO Trim plans on HEAD to bare minimal plans required for a toolchain
 *** TODO Package upgrading
 *** TODO Plan syncing
 ** Features not implemented
 *** TODO Interface to add and remove flags
-    Right now we have alot of global flags, some actually have an effect on most
-    packages. But in some case they can break a build, or we want to override a
-    flag.
+Right now we have alot of global flags, some actually have an effect on most
+packages. But in some case they can break a build, or we want to override a
+flag.
 
 **** Potential solutions
 ***** RemoveFlag
@@ -65,37 +62,37 @@ CLOSED: [2017-09-14 Thu 00:34]
      on macos when building emacs archive packages fails when nextstep is enabled
 
 *** TODO When packaging check PREFIX is honored
-    We should check the sanity of PKGDIR.
+We should check the sanity of PKGDIR.
 
-    We only record files in our manifest not directories. so
-    an empty directory can end up in our tarball. But not be listed in the
-    manifest this means we could try to untar a directory outside of our PREFIX.
+We only record files in our manifest not directories. so
+an empty directory can end up in our tarball. But not be listed in the
+manifest this means we could try to untar a directory outside of our PREFIX.
 
-    We'll have to check the total entries in each of these directories
-    - $PKGDIR
-    - /usr
-    - /usr/local
+We'll have to check the total entries in each of these directories
+- $PKGDIR
+- /usr
+- /usr/local
 
 *** TODO Via initialization
-    When we first run via, it is dependent on the plans git repo for meta data.
-    currently we git clone recursive the via repo, which contains the plans repo
-    as well. We also do not respect the user and just blindly clone it on first run.
+When we first run via, it is dependent on the plans git repo for meta data.
+currently we git clone recursive the via repo, which contains the plans repo
+as well. We also do not respect the user and just blindly clone it on first run.
 
 **** TODO Create an init via function
      do not assume and fetch the plans repository. Error gracefully and suggest
      user to init the plans repo.
 
 *** TODO Make it so package downloading/installing is not so incremental.
-    We should predetermine what is going to be installed and what needs
-    downloading before we actually do it. This allows us to batch download instead
-    of sequentially downloading. It also gives us the option to present to the
-    user what is going to happen, with a potential yes/no prompt
+We should predetermine what is going to be installed and what needs
+downloading before we actually do it. This allows us to batch download instead
+of sequentially downloading. It also gives us the option to present to the
+user what is going to happen, with a potential yes/no prompt
 
 *** TODO Rework the archive logic.
 *** TODO Have plans replace alternative builds
-    when installing packages that have provide the same program but with different
-    features. There will be file path clashes. e.g emacs vs emacs-nox. We need to
-    provide a replace mechanism. To remove emacs and to install emacs-nox.
+when installing packages that have provide the same program but with different
+features. There will be file path clashes. e.g emacs vs emacs-nox. We need to
+provide a replace mechanism. To remove emacs and to install emacs-nox.
 ** Toolchain
 *** TODO Cross building
     Currently we build all packages on there native hosts. But it would be easier
@@ -132,6 +129,20 @@ CLOSED: [2017-09-14 Thu 00:34]
      instance. And then build a package. There are some draw backs to this it
      needs refining and I think ultimately a RPC method might be better. Still
      thinking on this.
+*** Rob Landley
+**** Synthetic filesystem
+[[https:www.youtube.com/watch?v=Sk9TatW9ino&t=1710s][youtube]]
+**** maybe we can write a etcfs for system configuration?
+**** toybox
+[[https://github.com/landley/toybox][github]]
+**** makeroot
+[[https://github.com/landley/mkroot][github]]
+**** musl-cross-make
+[[https://github.com/richfelker/musl-cross-make][github]]
+**** mount dev we can reuse this concept with contain
+[[https://youtu.be/Sk9TatW9ino?t=5506][devtmpfs]]
+**** miniconfig
+[[http://landley.net/aboriginal/FAQ.html#dev_miniconfig][landley.net]]
 
 ** Experimental
 *** TODO Snapin's
