@@ -38,14 +38,18 @@ type Progress struct {
 }
 
 func (p *Progress) print() {
+	var (
+		tdone = 0
+	)
+	if len(p.items) == 0 {
+		return
+	}
 	fmt.Fprintf(p.out, "\033[H\033[2J")
-	tdone := 0
-	for _, i := range p.items {
-		if i.done {
+	for _, it := range p.items {
+		if it.done {
 			tdone++
 		}
-		fmt.Fprintf(p.out, "%-10s %-13s %s\n", i.state, i.status, i.key)
-
+		fmt.Fprintf(p.out, "%-10s %-13s %s\n", it.state, it.status, it.key)
 	}
 	fmt.Fprintf(p.out, "[%d/%d]\n", tdone, len(p.items))
 	os.Stdout.Sync()
@@ -69,7 +73,6 @@ func (p Progress) Start() {
 			p.print()
 			select {
 			case <-p.stop:
-				fmt.Fprintf(p.out, "done\n")
 				return
 			default:
 			}

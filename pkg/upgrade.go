@@ -62,5 +62,8 @@ func (u Upgrader) Upgrades() []string {
 // FIXME: we should make this transnational.
 func (u Upgrader) Upgrade() []error {
 	batch := NewBatch(u.config, os.Stdout)
+	for _, u := range u.upgrades {
+		batch.Add(u)
+	}
 	return batch.ForEach(batch.DownloadInstall, u.upgrades)
 }
