@@ -25,24 +25,36 @@ func TestClone(t *testing.T) {
 func TestCloneBranch(t *testing.T) {
 	t.Parallel()
 	var (
-		gitd = Path("testdata/plans.git")
+		gitd  = Path("testdata/plans.git")
+		plans = Path("..").Join("plans")
 	)
 	defer gitd.RemoveAll()
-	test{
-		Expect: nil,
-		Got: CloneBranch(
-			gitd,
-			"https://github.com/mrosset/plans",
-			"x86_64-via-linux-gnu-release",
-		),
+	tests{
+		{
+			Name:   "Plans exists",
+			Expect: true,
+			Got:    plans.Exists(),
+		},
+		{
+			Name:   "CloneBranch",
+			Expect: nil,
+			Got: CloneBranch(
+				gitd,
+				plans.String(),
+				"x86_64-via-linux-gnu-release",
+			),
+		},
 	}.equals(t)
+
 	got, err := Branch(gitd)
 	tests{
 		{
+			Name:   "Branch error",
 			Expect: nil,
 			Got:    err,
 		},
 		{
+			Name:   "Test branch",
 			Expect: "x86_64-via-linux-gnu-release",
 			Got:    got,
 		},
