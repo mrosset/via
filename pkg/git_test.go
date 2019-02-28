@@ -1,7 +1,6 @@
 package via
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -33,16 +32,19 @@ func TestCloneBranch(t *testing.T) {
 		Expect: nil,
 		Got: CloneBranch(
 			gitd,
-			Path(wd).Join("../plans").String(),
+			"../plans",
 			"x86_64-via-linux-gnu-release",
 		),
 	}.equals(t)
 	got, err := Branch(gitd)
-	if err != nil {
-		t.Fatal(fmt.Errorf("%s: %s", wd, err))
-	}
-	test{
-		Expect: "x86_64-via-linux-gnu-release",
-		Got:    got,
+	tests{
+		{
+			Expect: nil,
+			Got:    err,
+		},
+		{
+			Expect: "x86_64-via-linux-gnu-release",
+			Got:    got,
+		},
 	}.equals(t)
 }
