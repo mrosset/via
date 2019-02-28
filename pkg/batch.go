@@ -58,7 +58,6 @@ func (b *Batch) PruneInstalled() {
 func (b *Batch) Add(plan *Plan) {
 	b.plans = append(b.plans, plan)
 	b.size += plan.Size
-	b.pm.Add(plan.Name, "wait")
 }
 
 // Walk the plan's dependency tree and add each dependency to the
@@ -154,7 +153,7 @@ func (b *Batch) DownloadInstall(plan *Plan) error {
 // ForEach run PlanFunc on each plan in Plans.
 func (b Batch) ForEach(fn PlanFunc, plans PlanSlice) (errors []error) {
 	for _, p := range plans {
-
+		b.pm.Add(p.Name, "wait")
 		go func(plan *Plan) {
 			b.wg.Add(1)
 			b.ch <- true
