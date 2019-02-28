@@ -25,7 +25,7 @@ Create much more intensive test's in relation to Path and there sanity
 *** TODO Linux and Darwin base/devel plans
 **** Move non essential plans to another branch.
 **** TODO Trim plans on HEAD to bare minimal plans required for a toolchain
-*** TODO Package upgrading
+*** DONE Package upgrading
 *** TODO Plan syncing
 ** Features not implemented
 *** TODO Interface to add and remove flags
@@ -93,6 +93,7 @@ user what is going to happen, with a potential yes/no prompt
 when installing packages that have provide the same program but with different
 features. There will be file path clashes. e.g emacs vs emacs-nox. We need to
 provide a replace mechanism. To remove emacs and to install emacs-nox.
+
 ** Toolchain
 *** TODO Cross building
     Currently we build all packages on there native hosts. But it would be easier
@@ -102,7 +103,6 @@ provide a replace mechanism. To remove emacs and to install emacs-nox.
 
 
 **** Transition to cross compiling all builds
-
 ***** TODO create a linux x86_64 target compiler
       change our current compiler from a native gcc to a cross x86_64.
       this would not actually change our builds much. Just that we would
@@ -111,18 +111,17 @@ provide a replace mechanism. To remove emacs and to install emacs-nox.
 
 ****** TODO Notes
        toolchain package names will change to their gnu triple.
-
 ******* x86_64-via-linux-gnu-gcc
 ******* x86_64-via-linux-gnu-binutils
 
 ***** TODO Create a second cross compiler targeting power8 as a test.
 
-*** TODO Sandbox
-    currently we are starting to build packages in a docker container. but this is
-    not automated we need to manually spin up the container and then interactively
-    build packages.
+*** DONE Sandbox
+currently we are starting to build packages in a docker container. but this is
+not automated we need to manually spin up the container and then interactively
+build packages.
 
-    we should have a simple mechanism to build package in a container.
+we should have a simple mechanism to build package in a container.
 
 **** Partially implemented
      Right now this is partially implement in that we can spin up a docker
