@@ -32,8 +32,8 @@ func TestCloneBranch(t *testing.T) {
 		Expect: nil,
 		Got: CloneBranch(
 			gitd,
-			"../plans",
-			"master",
+			"https://github.com/mrosset/plans",
+			"x86_64-via-linux-gnu-release",
 		),
 	}.equals(t)
 	got, err := Branch(gitd)
@@ -43,7 +43,7 @@ func TestCloneBranch(t *testing.T) {
 			Got:    err,
 		},
 		{
-			Expect: "master",
+			Expect: "x86_64-via-linux-gnu-release",
 			Got:    got,
 		},
 	}.equals(t)
