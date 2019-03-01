@@ -35,9 +35,23 @@ func Clone(dir Path, url string) error {
 	_, err := git.PlainClone(dir.String(), false, &git.CloneOptions{
 		URL:               url,
 		Progress:          os.Stdout,
+		Depth:             1,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 	})
 	return err
+}
+
+// Fetch remote URL references
+func Fetch(dir Path) error {
+	r, err := git.PlainOpen(dir.String())
+	if err != nil {
+		return err
+	}
+	rm, err := r.Remote("origin")
+	if err != nil {
+		return err
+	}
+	return rm.Fetch(&git.FetchOptions{})
 }
 
 func references(path Path) (refs []string, err error) {
