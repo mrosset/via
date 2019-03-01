@@ -8,17 +8,6 @@ import (
 	gpath "path"
 )
 
-// Clone remote URL into directory.
-func Clone(dir Path, url string) error {
-	_, err := git.PlainClone(dir.String(), false, &git.CloneOptions{
-		URL:               url,
-		Progress:          os.Stdout,
-		Depth:             1,
-		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
-	})
-	return err
-}
-
 // gitref returns git branch reference
 func gitref(ref string) plumbing.ReferenceName {
 	return plumbing.ReferenceName(
@@ -26,7 +15,32 @@ func gitref(ref string) plumbing.ReferenceName {
 	)
 }
 
-func References(path Path) (refs []string, err error) {
+// Checkout git ref in dir
+func Checkout(dir Path, ref string) error {
+	r, err := git.PlainOpen(dir.String())
+	if err != nil {
+		return err
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		return err
+	}
+	return w.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.ReferenceName(ref),
+	})
+}
+
+// Clone remote URL into directory.
+func Clone(dir Path, url string) error {
+	_, err := git.PlainClone(dir.String(), false, &git.CloneOptions{
+		URL:               url,
+		Progress:          os.Stdout,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+	})
+	return err
+}
+
+func references(path Path) (refs []string, err error) {
 	r, err := git.PlainOpen(path.String())
 	if err != nil {
 		return nil, err
