@@ -7,7 +7,7 @@ import (
 func TestClone(t *testing.T) {
 	t.Parallel()
 	var (
-		gitd = Path("testdata/via-test")
+		gitd = Path("testdata/git-test-clone")
 	)
 	defer gitd.RemoveAll()
 	tests{
@@ -26,10 +26,12 @@ func TestCheckout(t *testing.T) {
 }
 
 func TestCloneBranch(t *testing.T) {
+	t.Parallel()
 	var (
-		gitd  = Path("testdata/plans.git")
+		gitd  = Path("testdata/git-test-clone-branch")
 		plans = Path("..").Join("plans")
 	)
+	defer gitd.RemoveAll()
 	tests{
 		{
 			Name:   "Plans exists",
@@ -41,18 +43,12 @@ func TestCloneBranch(t *testing.T) {
 			Expect: nil,
 			Got: CloneBranch(
 				gitd,
-				plans.String(),
+				"https://github.com/mrosset/via-test",
 				"x86_64-via-linux-gnu-release",
 			),
 		},
 	}.equals(t)
-}
 
-func TestBranch(t *testing.T) {
-	var (
-		gitd = Path("testdata/plans.git")
-	)
-	defer gitd.RemoveAll()
 	got, err := Branch(gitd)
 	tests{
 		{
@@ -66,4 +62,5 @@ func TestBranch(t *testing.T) {
 			Got:    got,
 		},
 	}.equals(t)
+
 }
