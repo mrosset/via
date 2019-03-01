@@ -1,6 +1,7 @@
 package via
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -22,8 +23,10 @@ func TestClone(t *testing.T) {
 	}.equals(t)
 }
 
+func TestCheckout(t *testing.T) {
+}
+
 func TestCloneBranch(t *testing.T) {
-	t.Parallel()
 	var (
 		gitd  = Path("testdata/plans.git")
 		plans = Path("..").Join("plans")
@@ -45,7 +48,12 @@ func TestCloneBranch(t *testing.T) {
 			),
 		},
 	}.equals(t)
+}
 
+func TestBranch(t *testing.T) {
+	var (
+		gitd = Path("tesdata/plans.git")
+	)
 	got, err := Branch(gitd)
 	tests{
 		{
@@ -59,4 +67,14 @@ func TestCloneBranch(t *testing.T) {
 			Got:    got,
 		},
 	}.equals(t)
+}
+
+func TestReferencse(t *testing.T) {
+	refs, err := References("../plans")
+	if err != nil {
+		t.Error(err)
+	}
+	for _, r := range refs {
+		fmt.Println(r)
+	}
 }

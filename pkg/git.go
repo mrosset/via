@@ -20,19 +20,35 @@ func Clone(dir Path, url string) error {
 }
 
 // gitref returns git branch reference
-func gitref(branch string) plumbing.ReferenceName {
+func gitref(ref string) plumbing.ReferenceName {
 	return plumbing.ReferenceName(
-		fmt.Sprintf("refs/heads/%s", branch),
+		fmt.Sprintf("refs/heads/%s", ref),
 	)
 }
 
+func References(path Path) (refs []string, err error) {
+	r, err := git.PlainOpen(path.String())
+	if err != nil {
+		return nil, err
+	}
+	iter, err := r.References()
+	if err != nil {
+		return nil, err
+	}
+	fn := func(r *plumbing.Reference) error {
+		refs = append(refs, string(r.Name()))
+		return nil
+	}
+	return refs, iter.ForEach(fn)
+}
+
 // CloneBranch clone remove URL with branch to directory
-func CloneBranch(dir Path, url, branch string) error {
+func CloneBranch(dir Path, url, ref string) error {
 	_, err := git.PlainClone(dir.String(), false, &git.CloneOptions{
 		URL:           url,
 		Progress:      os.Stdout,
 		Depth:         1,
-		ReferenceName: gitref(branch),
+		ReferenceName: gitref(ref),
 	})
 	return err
 }
