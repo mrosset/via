@@ -143,5 +143,9 @@ func TestBuilder_Expand(t *testing.T) {
 			Expect: "--pflag1 --pflag2",
 			Got:    ExpandCommand("$PlanFlags", builder),
 		},
+		{
+			Expect: "testdata/cache/packages/test-1.0.0//opt/via",
+			Got:    ExpandCommand("$PKGDIR/$PREFIX", builder),
+		},
 	}.equals(t)
 }

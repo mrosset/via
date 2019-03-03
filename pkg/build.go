@@ -309,7 +309,7 @@ func (b Builder) doCommands(dir Path, cmds []string) (err error) {
 			cmd.Stdout = os.Stdout
 		}
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("%s: %s\n", j, err)
+			return fmt.Errorf("%s: %s", j, err)
 		}
 	}
 	return nil
