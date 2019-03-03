@@ -4,7 +4,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"github.com/mrosset/gurl"
-	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/json"
 	"os"
 )
@@ -37,16 +36,16 @@ func Download(config *Config, plan *Plan) error {
 	if isDocker() {
 		url = "http://172.17.0.1:8080/ipfs/" + plan.Cid
 	}
-	if file.Exists(pfile) {
+	if pfile.Exists() {
 		return nil
 	}
 	config.Repo.Ensure()
-	return gurl.NameDownload(config.Repo.String(), url, PackageFile(config, plan))
+	return gurl.NameDownload(config.Repo.String(), url, pfile.String())
 }
 
 // VerifyCid verifies that the download tarball matches the plans Cid
 func (i Installer) VerifyCid() error {
-	cid, err := HashOnly(i.config, PackagePath(i.config, i.plan))
+	cid, err := HashOnly(i.config, PackagePath(i.config, i.plan).String())
 	if err != nil {
 		return err
 	}
@@ -81,7 +80,7 @@ func (i Installer) Install() error {
 	if err := Download(i.config, i.plan); err != nil {
 		return err
 	}
-	man, err := ReadPackManifest(pfile)
+	man, err := ReadPackManifest(pfile.String())
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -93,7 +92,7 @@ func (i Installer) Install() error {
 			elog.Println(e)
 		}
 	}
-	fd, err := os.Open(pfile)
+	fd, err := os.Open(pfile.String())
 	if err != nil {
 		elog.Println(err)
 		return err

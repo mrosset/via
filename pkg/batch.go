@@ -3,7 +3,6 @@ package via
 import (
 	"bufio"
 	"fmt"
-	"github.com/mrosset/util/file"
 	"io"
 	"os"
 	"sync"
@@ -93,9 +92,11 @@ func (b *Batch) ToInstall() PlanSlice {
 
 // ToDownload returns a string slice of Plans to download
 func (b *Batch) ToDownload() []string {
-	s := []string{}
+	var (
+		s = []string{}
+	)
 	for _, p := range b.plans {
-		if !PackageFileExists(b.config, p) && !IsInstalled(b.config, p.Name) {
+		if !PackagePath(b.config, p).Exists() && !IsInstalled(b.config, p.Name) {
 			s = append(s, p.Name)
 		}
 	}
@@ -114,14 +115,14 @@ func (b Batch) Download(plan *Plan) error {
 		url = b.config.Binary + "/" + plan.Cid
 	}
 	b.config.Repo.Ensure()
-	if file.Exists(pfile) {
+	if pfile.Exists() {
 		return nil
 	}
 	res, err := client.Get(url)
 	if err != nil {
 		return err
 	}
-	fd, err := os.Create(pfile)
+	fd, err := os.Create(pfile.String())
 	if err != nil {
 		return err
 	}

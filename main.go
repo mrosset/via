@@ -427,7 +427,6 @@ func edit(ctx *cli.Context) error {
 		return err
 	}
 	elog.Println("linting...")
-	via.Verbose(false)
 	return via.FmtPlans(config)
 }
 
@@ -502,7 +501,7 @@ func plog(ctx *cli.Context) error {
 		return err
 	}
 	return file.Cat(os.Stdout,
-		b.BuildDir().Join("config.log").String(),
+		b.Context.BuildDir.Join("config.log").String(),
 	)
 }
 
@@ -550,7 +549,7 @@ func options(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	c := b.StageDir().Join("configure").String()
+	c := b.Context.StageDir.Join("configure").String()
 	cmd := exec.Command("sh", c, "--help")
 	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
@@ -577,7 +576,7 @@ func pack(ctx *cli.Context) error {
 			return err
 		}
 		b := via.NewBuilder(config, plan)
-		if err := b.Package(b.BuildDir()); err != nil {
+		if err := b.Package(b.Context.BuildDir); err != nil {
 			return err
 		}
 	}
@@ -653,11 +652,11 @@ func cd(ctx *cli.Context) error {
 		return err
 	}
 	if ctx.Bool("s") {
-		fmt.Printf("cd %s", b.StageDir())
+		fmt.Printf("cd %s", b.Context.StageDir)
 		return nil
 	}
 	if ctx.Bool("b") {
-		fmt.Printf("cd %s", b.BuildDir())
+		fmt.Printf("cd %s", b.Context.BuildDir)
 		return nil
 	}
 	return fmt.Errorf("cd requires either -s or -b flag")

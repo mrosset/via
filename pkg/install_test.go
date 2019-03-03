@@ -22,19 +22,21 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	}
 
 	testConfig.Repo.Ensure()
-	file.Touch(PackagePath(testConfig, plan))
+	PackagePath(testConfig, plan).Touch()
 
 	tests{
 		{
+			Name:   "verify cid",
 			Expect: nil,
 			Got:    NewInstaller(testConfig, plan).VerifyCid(),
 		},
 	}.equals(t)
 
 	plan.Cid = ""
-	file.Touch(PackagePath(testConfig, plan))
+	PackagePath(testConfig, plan).Touch()
 
 	test{
+		Name:   "verify empty cid",
 		Expect: "verify-0.0.1 Plans CID does not match tarballs got QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH",
 		Got:    NewInstaller(testConfig, plan).Install().Error(),
 	}.equals(t)

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mrosset/util/console"
-	"github.com/mrosset/util/file"
 	"github.com/mrosset/util/human"
 	mjson "github.com/mrosset/util/json"
 	"path/filepath"
@@ -203,16 +202,6 @@ func PackageFile(config *Config, plan *Plan) string {
 // file/directory
 func (p *Plan) SourceFile() string {
 	return join(filepath.Base(p.Expand().Url))
-}
-
-// PackagePath returns the full path of the plans package file
-func PackagePath(config *Config, plan *Plan) string {
-	return join(config.Repo.String(), PackageFile(config, plan))
-}
-
-// PackageFileExists return true if a plan's package file exists
-func PackageFileExists(config *Config, plan *Plan) bool {
-	return file.Exists(PackagePath(config, plan))
 }
 
 func (p Plan) stageDir() string {

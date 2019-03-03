@@ -11,19 +11,80 @@ import (
 	"path/filepath"
 )
 
+// BuildContext type contains everything required to build a Plan
+type BuildContext struct {
+	BuildDir    Path
+	StageDir    Path
+	PackageDir  Path
+	SourcePath  Path
+	PackagePath Path
+	GlobalFlags Flags
+	PlanFlags   Flags
+	Patch       []string
+	Build       []string
+	Package     []string
+}
+
+// NewBuildContext returns a newly initialized BuildContext
+func NewBuildContext(config *Config, plan *Plan) BuildContext {
+	return BuildContext{
+		BuildDir:    BuildDir(config, plan),
+		StageDir:    StageDir(config, plan),
+		PackageDir:  PackageDir(config, plan),
+		SourcePath:  SourcePath(config, plan),
+		PackagePath: PackagePath(config, plan),
+		GlobalFlags: config.Flags,
+		PlanFlags:   plan.Flags,
+	}
+}
+
+// BuildDir returns the path for the plans' build directory
+func BuildDir(config *Config, plan *Plan) Path {
+	bdir := config.Cache.Builds().Join(plan.NameVersion())
+	if plan.BuildInStage {
+		bdir = config.Cache.Stages().Join(plan.stageDir())
+	}
+	return bdir
+}
+
+// StageDir returns the plans's stage directory
+func StageDir(config *Config, plan *Plan) Path {
+	return config.Cache.Stages().Join(plan.stageDir())
+}
+
+// PackageDir return the full path for plan's package directory
+func PackageDir(config *Config, plan *Plan) Path {
+	return config.Cache.Packages().Join(plan.NameVersion())
+}
+
+// SourcePath returns the full path of the Plans source file
+//
+// FIXME: don't use base of source URL for source filename
+func SourcePath(config *Config, plan *Plan) Path {
+	file := filepath.Base(plan.Expand().Url)
+	return config.Cache.Sources().Join(file)
+}
+
+// PackagePath returns the full path of the plans package file
+func PackagePath(config *Config, plan *Plan) Path {
+	return config.Repo.Join(PackageFile(config, plan))
+}
+
 // Builder provides type for building a Plan
 type Builder struct {
-	Config *Config
-	Plan   *Plan
-	Cache  Cache
+	Config  *Config
+	Plan    *Plan
+	Cache   Cache
+	Context BuildContext
 }
 
 // NewBuilder returns new Builder that has been initialized
 func NewBuilder(config *Config, plan *Plan) Builder {
 	return Builder{
-		Config: config,
-		Plan:   plan,
-		Cache:  config.Cache,
+		Config:  config,
+		Plan:    plan,
+		Cache:   config.Cache,
+		Context: NewBuildContext(config, plan),
 	}
 }
 
@@ -51,7 +112,7 @@ func (b Builder) BuildSteps() error {
 		return err
 	}
 	fmt.Printf(lfmt, "package", b.Plan.NameVersion())
-	if err := b.Package(b.BuildDir()); err != nil {
+	if err := b.Package(b.Context.BuildDir); err != nil {
 		return err
 	}
 	return RepoCreate(b.Config)
@@ -59,7 +120,7 @@ func (b Builder) BuildSteps() error {
 
 // Download Plans sources to Cache
 func (b Builder) Download() error {
-	if b.SourcePath().Exists() {
+	if b.Context.SourcePath.Exists() {
 		return nil
 	}
 	url, err := url.Parse(b.SourceURL())
@@ -85,7 +146,7 @@ func (b Builder) Download() error {
 
 // Stage the Plans source files into it's staging directory
 func (b Builder) Stage() error {
-	if b.Plan.Url == "" || b.StageDir().Exists() {
+	if b.Plan.Url == "" || b.Context.StageDir.Exists() {
 		return nil
 	}
 	url, err := url.Parse(b.SourceURL())
@@ -93,20 +154,20 @@ func (b Builder) Stage() error {
 		return err
 	}
 	if url.Scheme == "git" {
-		if err := Clone(b.StageDir(), b.SourcePath().String()); err != nil {
+		if err := Clone(b.Context.StageDir, b.Context.SourcePath.String()); err != nil {
 			return err
 		}
 	} else {
-		switch b.SourcePath().Ext() {
+		switch b.Context.SourcePath.Ext() {
 		case "zip":
-			unzip(b.Cache.Stages(), b.SourcePath().String())
+			unzip(b.Cache.Stages(), b.Context.SourcePath.String())
 		default:
-			if err := GNUUntar(b.Cache.Stages(), b.SourcePath().String()); err != nil {
+			if err := GNUUntar(b.Cache.Stages(), b.Context.SourcePath.String()); err != nil {
 				return err
 			}
 		}
 	}
-	return b.doCommands(b.StageDir(), b.Plan.Patch)
+	return b.doCommands(b.Context.StageDir, b.Plan.Patch)
 }
 
 // Build runs the Plans Build section
@@ -129,7 +190,7 @@ func (b Builder) Build() error {
 		}
 	}
 	flags := append(b.Config.Flags, b.Plan.Flags...)
-	Path(b.BuildDir()).Ensure()
+	b.Context.BuildDir.Ensure()
 	// Parent plan Build is run first this plans is added at the end.
 	if b.Plan.Inherit != "" {
 		parent, err := NewPlan(b.Config, b.Plan.Inherit)
@@ -139,9 +200,8 @@ func (b Builder) Build() error {
 		build = append(parent.Build, b.Plan.Build...)
 		flags = append(flags, parent.Flags...)
 	}
-	// FIXME: this should be set within exec.Cmd
-	if err := b.doCommands(b.BuildDir(), build); err != nil {
-		return fmt.Errorf("%s in %s", err, b.BuildDir())
+	if err := b.doCommands(b.Context.BuildDir, build); err != nil {
+		return fmt.Errorf("%s in %s", err, b.Context.BuildDir)
 	}
 	return nil
 }
@@ -168,9 +228,9 @@ func (b Builder) Expand(in string) string {
 	case "PREFIX":
 		return b.Config.Prefix.String()
 	case "SRCDIR":
-		return b.StageDir().String()
+		return b.Context.StageDir.String()
 	case "PKGDIR":
-		return b.PackageDir().String()
+		return b.Context.PackageDir.String()
 	case "Flags":
 		return fmt.Sprintf("%s %s", b.Config.Flags.Join(), b.Plan.Flags.Join())
 	case "PlanFlags":
@@ -188,11 +248,11 @@ func (b Builder) Package(dir Path) error {
 		plan = b.Plan
 		pack = plan.Package
 		// TODO: use temp file here
-		pfile = PackagePath(b.Config, plan)
+		pfile = b.Context.PackagePath
 	)
 
-	b.PackageDir().RemoveAll()
-	b.PackageDir().Ensure()
+	b.Context.PackageDir.RemoveAll()
+	b.Context.PackageDir.Ensure()
 
 	if plan.Inherit != "" {
 		parent, _ := NewPlan(b.Config, plan.Inherit)
@@ -233,13 +293,9 @@ func (b Builder) Package(dir Path) error {
 
 // CreatePackage create Tarball package
 func (b Builder) CreatePackage() error {
-	var (
-		pfile = PackagePath(b.Config, b.Plan)
-	)
-
 	b.Config.Repo.Ensure()
 
-	fd, err := os.Create(pfile)
+	fd, err := os.Create(b.Context.PackagePath.String())
 	if err != nil {
 		elog.Println(err)
 		return err
@@ -253,40 +309,15 @@ func (b Builder) CreatePackage() error {
 // Tarball creates manifest and walks PackageDir taring and
 // compressing package files
 func (b Builder) Tarball(wr io.Writer) (err error) {
-	if err := CreateManifest(b.Config, b.Plan, b.PackageDir().String()); err != nil {
+	if err := CreateManifest(b.Config, b.Plan, b.Context.PackageDir.String()); err != nil {
 		return err
 	}
-	return archive(wr, b.PackageDir().String())
+	return archive(wr, b.Context.PackageDir.String())
 }
 
 // SourceURL returns the Plans expanded Url
 func (b Builder) SourceURL() string {
 	return b.Plan.Expand().Url
-}
-
-// SourcePath returns the full path of the Plans source file
-func (b Builder) SourcePath() Path {
-	file := filepath.Base(b.Plan.Expand().Url)
-	return b.Cache.Sources().Join(file)
-}
-
-// PackageDir return the full path for Builder's package directory
-func (b Builder) PackageDir() Path {
-	return b.Cache.Packages().Join(b.Plan.NameVersion())
-}
-
-// BuildDir returns the path for the Builder's build directory
-func (b Builder) BuildDir() Path {
-	bdir := b.Cache.Builds().Join(b.Plan.NameVersion())
-	if b.Plan.BuildInStage {
-		bdir = b.Cache.Stages().Join(b.Plan.stageDir())
-	}
-	return bdir
-}
-
-// StageDir returns the Builders stage directory
-func (b Builder) StageDir() Path {
-	return b.Cache.Stages().Join(b.Plan.stageDir())
 }
 
 // doCommands runs in cmd in dir Path

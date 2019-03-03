@@ -61,7 +61,7 @@ func TestPlanPackagePath(t *testing.T) {
 		}
 	)
 	test{
-		Got:    PackagePath(testConfig, plan),
+		Got:    PackagePath(testConfig, plan).String(),
 		Expect: "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz",
 	}.equals(t)
 }

@@ -41,9 +41,9 @@ func whichAPI(config *Config) string {
 }
 
 // IpfsAdd add a file to ipfs and returns the ipfs multihash
-func IpfsAdd(config *Config, path string) (string, error) {
+func IpfsAdd(config *Config, path Path) (string, error) {
 	s := shell.NewShell(whichAPI(config))
-	fd, err := os.Open(path)
+	fd, err := os.Open(path.String())
 	if err != nil {
 		return "", err
 	}

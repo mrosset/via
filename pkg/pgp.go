@@ -43,23 +43,23 @@ func Sign(config *Config, plan *Plan) (err error) {
 		// TODO: prompt for user Password use keyagent?
 		pw := "test"
 		/*
-		   fmt.Printf("%s Password: ", identity.Name)
-		   _, err := fmt.Scanln(&pw)
-		   if err != nil {
-		           return err
-		   }
+			   fmt.Printf("%s Password: ", identity.Name)
+			   _, err := fmt.Scanln(&pw)
+			   if err != nil {
+				   return err
+			   }
 		*/
 		err = entity.PrivateKey.Decrypt([]byte(pw))
 		if err != nil {
 			return err
 		}
 	}
-	gz, err := os.Open(pfile)
+	gz, err := os.Open(pfile.String())
 	if err != nil {
 		return err
 	}
 	defer gz.Close()
-	sig, err := os.Create(pfile + ".sig")
+	sig, err := os.Create(pfile.String() + ".sig")
 	if err != nil {
 		return err
 	}

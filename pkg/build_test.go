@@ -6,18 +6,26 @@ import (
 	"testing"
 )
 
-func TestBuilder_PathMethods(t *testing.T) {
+func TestNewBuildContext(t *testing.T) {
 	var (
-		builder = NewBuilder(testConfig, testPlan)
+		bc = NewBuildContext(testConfig, testPlan)
 	)
 	tests{
 		{
+			Expect: Path(wd).Join("testdata/cache/builds/hello-2.9"),
+			Got:    bc.BuildDir,
+		},
+		{
 			Expect: Path(wd).Join("testdata/cache/stages/hello-2.9"),
-			Got:    builder.StageDir(),
+			Got:    bc.StageDir,
+		},
+		{
+			Expect: Path(wd).Join("testdata/cache/packages/hello-2.9"),
+			Got:    bc.PackageDir,
 		},
 		{
 			Expect: Path(wd).Join("testdata/cache/sources/hello-2.9.tar.gz"),
-			Got:    builder.SourcePath(),
+			Got:    bc.SourcePath,
 		},
 	}.equals(t)
 }
@@ -34,7 +42,7 @@ func TestBuilder_Download(t *testing.T) {
 		},
 		{
 			Expect: true,
-			Got:    builder.SourcePath().Exists(),
+			Got:    builder.Context.SourcePath.Exists(),
 		},
 	}.equals(t)
 
@@ -80,7 +88,7 @@ func TestBuilder_Package(t *testing.T) {
 	tests{
 		{
 			Expect: nil,
-			Got:    builder.Package(builder.BuildDir()),
+			Got:    builder.Package(builder.Context.BuildDir),
 		},
 		{
 			Name:   "Install exists",
@@ -89,11 +97,11 @@ func TestBuilder_Package(t *testing.T) {
 		},
 		{
 			Expect: nil,
-			Got:    builder.PackageDir().RemoveAll(),
+			Got:    builder.Context.PackageDir.RemoveAll(),
 		},
 		{
 			Expect: false,
-			Got:    builder.PackageDir().Exists(),
+			Got:    builder.Context.PackageDir.Exists(),
 		},
 	}.equals(t)
 }
