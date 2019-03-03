@@ -51,7 +51,7 @@ func (b Builder) BuildSteps() error {
 		return err
 	}
 	fmt.Printf(lfmt, "package", b.Plan.NameVersion())
-	if err := b.Package(); err != nil {
+	if err := b.Package(b.BuildDir()); err != nil {
 		return err
 	}
 	return RepoCreate(b.Config)
@@ -181,7 +181,7 @@ func (b Builder) Expand(in string) string {
 }
 
 // Package the Plan
-func (b Builder) Package() error {
+func (b Builder) Package(dir Path) error {
 	// Remove plans Cid it's assumed we'll be creating a new one
 	b.Plan.Cid = ""
 	var (
@@ -199,7 +199,7 @@ func (b Builder) Package() error {
 		pack = append(parent.Package, plan.Package...)
 	}
 	// Run package commands
-	if err := b.doCommands(b.BuildDir(), pack); err != nil {
+	if err := b.doCommands(dir, pack); err != nil {
 		return err
 	}
 	// Package sub packages
@@ -208,7 +208,7 @@ func (b Builder) Package() error {
 		if err != nil {
 			return err
 		}
-		if err := NewBuilder(b.Config, p).Package(); err != nil {
+		if err := NewBuilder(b.Config, p).Package(dir); err != nil {
 			return err
 		}
 	}

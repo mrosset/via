@@ -80,7 +80,7 @@ func TestBuilder_Package(t *testing.T) {
 	tests{
 		{
 			Expect: nil,
-			Got:    builder.Package(),
+			Got:    builder.Package(builder.BuildDir()),
 		},
 		{
 			Name:   "Install exists",

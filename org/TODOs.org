@@ -32,10 +32,15 @@ Global and plan flags are merged together. This does not always work
 for plans that are not of the gnu build type.
 
 *** Solution
+**** DONE Don't expand Flags and PlanFlags with using environment use os.Expand instead?
+
 **** TODO Don't merge Global and Plan flags. use Flags and PlanFlags
 environment variables
-**** Don't expand Flags and PlanFlags with using environment use os.Expand instead?
-
+** TODO refactor sub packaging
+*** Problem
+sub packaging is recursive, which makes accessing the BuildDir resolve
+to sub plan which does not exist. Since we need to run commands from
+the parent BuildDir
 ** TODO refactor Batch
 ** TODO end user docker instance
 ** TODO install build depends in namespace, clean namespace after

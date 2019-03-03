@@ -577,7 +577,7 @@ func pack(ctx *cli.Context) error {
 			return err
 		}
 		b := via.NewBuilder(config, plan)
-		if err := b.Package(); err != nil {
+		if err := b.Package(b.BuildDir()); err != nil {
 			return err
 		}
 	}
