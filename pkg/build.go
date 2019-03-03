@@ -161,7 +161,7 @@ func ExpandCommand(input string, builder Builder) string {
 // Flags
 // PlanFlags
 //
-// FIXME: instead dof using os.Expand using encoding/template. os.Expand
+// FIXME: instead of using os.Expand using encoding/template. os.Expand
 // is used so current plans do not break
 func (b Builder) Expand(in string) string {
 	switch in {
