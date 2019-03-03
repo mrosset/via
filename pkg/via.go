@@ -40,9 +40,9 @@ func Debug(b bool) {
 }
 
 // PostInstall calls each of the Plans PostInstall commands
-func PostInstall(config *Config, plan *Plan) (err error) {
-	return doCommands(config, "/", append(plan.PostInstall, config.PostInstall...))
-}
+// func PostInstall(config *Config, plan *Plan) (err error) {
+//	return doCommands(config, "/", append(plan.PostInstall, config.PostInstall...))
+// }
 
 // Remove a plan from the system
 func Remove(config *Config, name string) (err error) {

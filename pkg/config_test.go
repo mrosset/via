@@ -28,6 +28,7 @@ var (
 			"LDFLAGS": "",
 			"PREFIX":  "/opt/via",
 		},
+		Prefix: "/opt/via",
 	}
 )
 

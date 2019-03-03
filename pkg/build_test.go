@@ -83,6 +83,7 @@ func TestBuilder_Package(t *testing.T) {
 			Got:    builder.Package(),
 		},
 		{
+			Name:   "Install exists",
 			Expect: true,
 			Got:    Path("testdata/cache/packages/hello-2.9/opt/via/bin/hello").Exists(),
 		},
@@ -104,5 +105,43 @@ func TestBuilder_BuildSteps(t *testing.T) {
 	test{
 		Expect: nil,
 		Got:    builder.BuildSteps(),
+	}.equals(t)
+}
+
+func TestBuilder_Expand(t *testing.T) {
+	var (
+		config = &Config{
+			Prefix: "/opt/via",
+			Cache:  Cache{"testdata/cache"},
+			Flags:  []string{"--cflag1", "--cflag2"},
+		}
+		plan = &Plan{
+			Name:    "test",
+			Version: "1.0.0",
+			Flags:   []string{"--pflag1", "--pflag2"},
+		}
+		builder = NewBuilder(config, plan)
+	)
+	tests{
+		{
+			Expect: "/opt/via",
+			Got:    ExpandCommand("$PREFIX", builder),
+		},
+		{
+			Expect: "testdata/cache/stages/test-1.0.0",
+			Got:    ExpandCommand("$SRCDIR", builder),
+		},
+		{
+			Expect: "testdata/cache/packages/test-1.0.0",
+			Got:    ExpandCommand("$PKGDIR", builder),
+		},
+		{
+			Expect: "--cflag1 --cflag2 --pflag1 --pflag2",
+			Got:    ExpandCommand("$Flags", builder),
+		},
+		{
+			Expect: "--pflag1 --pflag2",
+			Got:    ExpandCommand("$PlanFlags", builder),
+		},
 	}.equals(t)
 }

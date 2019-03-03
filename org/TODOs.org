@@ -27,6 +27,15 @@ functions produces side effects.
 ** DONE use Path in main
 ** DONE use dedicated functions for Action literals
 ** TODO split config flags and package flags
+*** Problem
+Global and plan flags are merged together. This does not always work
+for plans that are not of the gnu build type.
+
+*** Solution
+**** TODO Don't merge Global and Plan flags. use Flags and PlanFlags
+environment variables
+**** Don't expand Flags and PlanFlags with using environment use os.Expand instead?
+
 ** TODO refactor Batch
 ** TODO end user docker instance
 ** TODO install build depends in namespace, clean namespace after

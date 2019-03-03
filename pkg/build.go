@@ -106,7 +106,7 @@ func (b Builder) Stage() error {
 			}
 		}
 	}
-	return doCommands(b.Config, b.StageDir(), b.Plan.Patch)
+	return b.doCommands(b.StageDir(), b.Plan.Patch)
 }
 
 // Build runs the Plans Build section
@@ -140,12 +140,44 @@ func (b Builder) Build() error {
 		flags = append(flags, parent.Flags...)
 	}
 	// FIXME: this should be set within exec.Cmd
-	os.Setenv("SRCDIR", b.StageDir().String())
-	os.Setenv("Flags", expand(flags.Join()))
-	if err := doCommands(b.Config, b.BuildDir(), build); err != nil {
+	if err := b.doCommands(b.BuildDir(), build); err != nil {
 		return fmt.Errorf("%s in %s", err, b.BuildDir())
 	}
 	return nil
+}
+
+// ExpandCommand expands input's variables using builders Expands
+func ExpandCommand(input string, builder Builder) string {
+	return os.Expand(input, builder.Expand)
+}
+
+// Expand shell like variables returning an expanded string. This
+// conforms to os.Expand function mapper argument.
+//
+// Supported variables are.
+// PREFIX
+// SRCDIR
+// PKGDIR
+// Flags
+// PlanFlags
+//
+// FIXME: instead dof using os.Expand using encoding/template. os.Expand
+// is used so current plans do not break
+func (b Builder) Expand(in string) string {
+	switch in {
+	case "PREFIX":
+		return b.Config.Prefix.String()
+	case "SRCDIR":
+		return b.StageDir().String()
+	case "PKGDIR":
+		return b.PackageDir().String()
+	case "Flags":
+		return fmt.Sprintf("%s %s", b.Config.Flags.Join(), b.Plan.Flags.Join())
+	case "PlanFlags":
+		return b.Plan.Flags.Join()
+	}
+
+	return ""
 }
 
 // Package the Plan
@@ -162,13 +194,12 @@ func (b Builder) Package() error {
 	b.PackageDir().RemoveAll()
 	b.PackageDir().Ensure()
 
-	os.Setenv("PKGDIR", b.PackageDir().String())
 	if plan.Inherit != "" {
 		parent, _ := NewPlan(b.Config, plan.Inherit)
 		pack = append(parent.Package, plan.Package...)
 	}
 	// Run package commands
-	if err := doCommands(b.Config, b.BuildDir(), pack); err != nil {
+	if err := b.doCommands(b.BuildDir(), pack); err != nil {
 		return err
 	}
 	// Package sub packages
@@ -259,26 +290,26 @@ func (b Builder) StageDir() Path {
 }
 
 // doCommands runs in cmd in dir Path
-func doCommands(config *Config, dir Path, cmds []string) (err error) {
+func (b Builder) doCommands(dir Path, cmds []string) (err error) {
 	bash, err := exec.LookPath("bash")
 	if err != nil {
 		return err
 	}
 	for _, j := range cmds {
+		args := ExpandCommand(j, b)
 		cmd := &exec.Cmd{
 			Path:   bash,
-			Args:   []string{"bash", "-c", j},
+			Args:   []string{"bash", "-c", args},
 			Stdin:  os.Stdin,
 			Stderr: os.Stderr,
 			Dir:    dir.String(),
-			Env:    config.SanitizeEnv(),
+			Env:    b.Config.SanitizeEnv(),
 		}
 		if verbose {
 			cmd.Stdout = os.Stdout
 		}
 		if err := cmd.Run(); err != nil {
-			elog.Printf("%s: %s\n", j, err)
-			return err
+			return fmt.Errorf("%s: %s\n", j, err)
 		}
 	}
 	return nil

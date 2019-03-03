@@ -2,9 +2,8 @@ package via
 
 import (
 	"encoding/json"
-	"testing"
-
 	mjson "github.com/mrosset/util/json"
+	"testing"
 )
 
 var (
@@ -15,7 +14,7 @@ var (
 		ManualDepends: []string{"libgomp"},
 		BuildInStage:  false,
 		Build:         []string{"touch hello"},
-		Package:       []string{"install -m755 -D hello $PKGDIR/$PREFIX/bin/hello"},
+		Package:       []string{"install -m755 -D hello ${PKGDIR}/${PREFIX}/bin/hello"},
 		Files:         []string{"a.out"},
 		Group:         "core",
 	}
