@@ -220,21 +220,36 @@ func strap(ctx *cli.Context) error {
 			fmt.Printf(lfmt, "rebuilt", plan.NameVersion())
 			continue
 		}
-
-		via.Clean(config, plan)
+		if err := insDeps(plan); err != nil {
+			return err
+		}
+		if err := via.Clean(config, plan); err != nil {
+			return err
+		}
 
 		b := via.NewBuilder(config, plan)
 		if err := b.BuildSteps(); err != nil {
 			return err
 		}
-		batch := via.NewBatch(config, os.Stderr)
-		batch.Add(plan)
-		if errs := batch.Install(); len(errs) != 0 {
+	}
+	return nil
+
+}
+
+func insDeps(plan *via.Plan) error {
+	for _, p := range plan.BuildDepends {
+		plan, err := via.NewPlan(config, p)
+		if err != nil {
+			return err
+		}
+		b := via.NewBatch(config, os.Stdout)
+		b.Walk(plan)
+		errs := b.Install()
+		if len(errs) > 0 {
 			return errs[0]
 		}
 	}
 	return nil
-
 }
 
 func env(ctx *cli.Context) error {
