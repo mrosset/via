@@ -1,6 +1,7 @@
 package main
 
 import (
+	gojson "encoding/json"
 	"fmt"
 	"github.com/mrosset/gurl"
 	"github.com/mrosset/util/console"
@@ -148,13 +149,13 @@ var (
 		},
 		{
 			Name:   "fmt",
-			Usage:  "format plans",
+			Usage:  "format all plans",
 			Action: fmtplans,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
-					Name:  "v",
+					Name:  "i",
 					Value: false,
-					Usage: "verbose information",
+					Usage: "fmt stdin to stdout",
 				},
 			},
 		},
@@ -445,8 +446,14 @@ func list(ctx *cli.Context) error {
 }
 
 func fmtplans(ctx *cli.Context) error {
-	via.Verbose(ctx.Bool("v"))
-	return via.FmtPlans(config)
+	if !ctx.Bool("i") {
+		return via.FmtPlans(config)
+	}
+	plan := &via.Plan{}
+	if err := gojson.NewDecoder(os.Stdin).Decode(plan); err != nil {
+		return err
+	}
+	return json.WritePretty(plan, os.Stdout)
 }
 
 func parse(input string, plan *via.Plan) error {

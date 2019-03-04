@@ -26,7 +26,7 @@ functions produces side effects.
 ** DONE use Path as function arguments and return Path arguments
 ** DONE use Path in main
 ** DONE use dedicated functions for Action literals
-** TODO split config flags and package flags
+** DONE split config flags and package flags
 *** Problem
 Global and plan flags are merged together. This does not always work
 for plans that are not of the gnu build type.
@@ -34,9 +34,10 @@ for plans that are not of the gnu build type.
 *** Solution
 **** DONE Don't expand Flags and PlanFlags using environment use os.Expand instead?
 
-**** TODO Don't merge Global and Plan flags. use Flags and PlanFlags
+**** DONE Don't merge Global and Plan flags. use Flags and PlanFlags
 environment variables
 
+** DONE allow via fmt to format stdin json to stdout
 ** TODO refactor Batch
 *** TODO refactor sub packaging
 **** Problem
@@ -50,7 +51,6 @@ the parent BuildDir
 ** TODO implement postinstall
 ** TODO Expand Config using UnMarshal and Marshal?
 ** TODO create Default config
-** TODO allow via fmt to format stdin json to stdout
 * Todo
 ** TODO move environment expand to environment file
 ** TODO Offline multihash verification
