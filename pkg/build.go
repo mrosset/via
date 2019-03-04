@@ -232,7 +232,7 @@ func (b Builder) Expand(in string) string {
 	case "PKGDIR":
 		return b.Context.PackageDir.String()
 	case "Flags":
-		return fmt.Sprintf("%s %s", b.Config.Flags.Join(), b.Plan.Flags.Join())
+		return b.Config.Flags.Join()
 	case "PlanFlags":
 		return b.Plan.Flags.Join()
 	}

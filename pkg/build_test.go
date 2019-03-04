@@ -144,7 +144,7 @@ func TestBuilder_Expand(t *testing.T) {
 			Got:    ExpandCommand("$PKGDIR", builder),
 		},
 		{
-			Expect: "--cflag1 --cflag2 --pflag1 --pflag2",
+			Expect: "--cflag1 --cflag2",
 			Got:    ExpandCommand("$Flags", builder),
 		},
 		{

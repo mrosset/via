@@ -101,9 +101,9 @@ var develCommand = &cli.Command{
 			},
 		},
 		{
-			Name:   "fix",
+			Name:   "refactor",
 			Usage:  "DEV ONLY used to mass modify plans",
-			Action: notimplemented,
+			Action: refactor,
 		},
 		{
 			Name:  "reset",
@@ -295,6 +295,29 @@ func stage(ctx *cli.Context) error {
 	}
 	b := via.NewBuilder(config, plan)
 	return b.Stage()
+}
+
+func refactor(ctx *cli.Context) error {
+	files, err := via.PlanFiles(config)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		p, err := via.ReadPath(f)
+		if err != nil {
+			return err
+		}
+		if p.Group == "builtin" || p.Group == "devel" {
+			continue
+		}
+		for i, c := range p.Build {
+			if strings.Contains(c, "$Flags") {
+				p.Build[i] = strings.Replace(c, "$Flags", "$Flags $PlanFlags", -1)
+				fmt.Println(p.Build[i])
+			}
+		}
+	}
+	return nil
 }
 
 func test(ctx *cli.Context) error {
