@@ -1,6 +1,7 @@
 package via
 
 import (
+	. "github.com/mrosset/via/pkg/test"
 	"testing"
 )
 
@@ -10,7 +11,7 @@ func TestClone(t *testing.T) {
 		gitd = Path("testdata/git-test/clone")
 	)
 	defer gitd.RemoveAll()
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    gitd.Clone("https://github.com/mrosset/via-test"),
@@ -19,7 +20,7 @@ func TestClone(t *testing.T) {
 			Expect: true,
 			Got:    gitd.Join("README.md").Exists(),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestCheckout(t *testing.T) {
@@ -28,7 +29,7 @@ func TestCheckout(t *testing.T) {
 		gitd = Path("testdata/git-test/checkout")
 	)
 	defer gitd.RemoveAll()
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    gitd.Clone("https://github.com/mrosset/via-test"),
@@ -37,7 +38,7 @@ func TestCheckout(t *testing.T) {
 			Expect: nil,
 			Got:    Checkout(gitd, "refs/heads/master"),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestCloneBranch(t *testing.T) {
@@ -47,7 +48,7 @@ func TestCloneBranch(t *testing.T) {
 		origin = "https://github.com/mrosset/via-test"
 	)
 	defer gitd.RemoveAll()
-	tests{
+	Tests{
 		{
 			Name:   "CloneBranch",
 			Expect: nil,
@@ -57,9 +58,9 @@ func TestCloneBranch(t *testing.T) {
 				"x86_64-via-linux-gnu-release",
 			),
 		},
-	}.equals(t)
+	}.Equals(t)
 	got, err := Branch(gitd)
-	tests{
+	Tests{
 		{
 			Name:   "Clone Branch error",
 			Expect: nil,
@@ -70,6 +71,6 @@ func TestCloneBranch(t *testing.T) {
 			Expect: "x86_64-via-linux-gnu-release",
 			Got:    got,
 		},
-	}.equals(t)
+	}.Equals(t)
 
 }

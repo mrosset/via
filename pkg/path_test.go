@@ -1,44 +1,45 @@
 package via
 
 import (
+	. "github.com/mrosset/via/pkg/test"
 	"os"
 	"testing"
 )
 
 func TestPath_String(t *testing.T) {
-	tests{
+	Tests{
 		{
 			Expect: "testdata/plans/core/hello.json",
 			Got:    Path("testdata/plans/core/hello.json").String(),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPath_Expand(t *testing.T) {
 	os.Setenv("_PATH", "testdata")
-	test{
+	Test{
 		Expect: Path("testdata"),
 		Got:    Path("$_PATH").Expand(),
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPath_Join(t *testing.T) {
-	test{
+	Test{
 		Expect: Path("testdata/join"),
 		Got:    Path("testdata").Join("join"),
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPath_NewPath(t *testing.T) {
 	defer func() {
 		if r := recover(); r != nil {
-			test{
+			Test{
 				Expect: os.ErrNotExist,
 				Got:    r.(error),
-			}.equals(t)
+			}.Equals(t)
 		}
 	}()
-	tests{
+	Tests{
 		{
 			Expect: Path("testdata/repo"),
 			Got:    NewPath("testdata", "repo"),
@@ -46,15 +47,15 @@ func TestPath_NewPath(t *testing.T) {
 		{
 			Expect: nil,
 		},
-	}.equals(t)
+	}.Equals(t)
 	NewPath("testdata", "fail")
 }
 
 func TestPath_ToPath(t *testing.T) {
-	test{
+	Test{
 		Expect: Path("testdata/plans"),
 		Got:    testConfig.Plans.ToPath(),
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPath_Glob(t *testing.T) {
@@ -69,7 +70,7 @@ func TestPath_Glob(t *testing.T) {
 	defer top.RemoveAll()
 	glob, err := top.Glob()
 
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    err,
@@ -78,5 +79,5 @@ func TestPath_Glob(t *testing.T) {
 			Expect: []Path{"testdata/glob/one", "testdata/glob/two"},
 			Got:    glob,
 		},
-	}.equals(t)
+	}.Equals(t)
 }

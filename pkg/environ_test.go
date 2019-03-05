@@ -1,6 +1,7 @@
 package via
 
 import (
+	. "github.com/mrosset/via/pkg/test"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestEnv_KeyValue(t *testing.T) {
 		}
 	)
 
-	tests{
+	Tests{
 		{
 			Expect: []string{"OS=linux", "TERM=dumb"},
 			Got:    env.KeyValue(),
@@ -21,5 +22,5 @@ func TestEnv_KeyValue(t *testing.T) {
 			Expect: "OS=linux",
 			Got:    env.Value("OS"),
 		},
-	}.equals(t)
+	}.Equals(t)
 }

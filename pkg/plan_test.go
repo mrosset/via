@@ -3,6 +3,7 @@ package via
 import (
 	"encoding/json"
 	mjson "github.com/mrosset/util/json"
+	. "github.com/mrosset/via/pkg/test"
 	"testing"
 )
 
@@ -21,17 +22,17 @@ var (
 )
 
 func TestPlanDepends(t *testing.T) {
-	test{
+	Test{
 		Expect: []string{"libgomp"},
 		Got:    testPlan.Depends(),
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPlanExpand(t *testing.T) {
-	test{
+	Test{
 		Expect: "http://mirrors.kernel.org/gnu/hello/hello-2.9.tar.gz",
 		Got:    testPlan.Expand().Url,
-	}.equals(t)
+	}.Equals(t)
 
 }
 
@@ -60,10 +61,10 @@ func TestPlanPackagePath(t *testing.T) {
 			Cid:     "QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4",
 		}
 	)
-	test{
+	Test{
 		Got:    PackagePath(testConfig, plan).String(),
 		Expect: "testdata/repo/QmdmdqJZ5NuyiiEYhjsPfEHU87PYHXSNrFLM34misaZBo4.tar.gz",
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPlanJSON_Encode(t *testing.T) {
@@ -73,10 +74,10 @@ func TestPlanJSON_Encode(t *testing.T) {
 		}
 		file = "testdata/plan.json"
 	)
-	test{
+	Test{
 		Expect: nil,
 		Got:    mjson.Write(jplan, file),
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPlanJSON_MarshalJSON(t *testing.T) {
@@ -99,7 +100,7 @@ func TestPlanJSON_MarshalJSON(t *testing.T) {
 	if err = json.Unmarshal(got, &plan); err != nil {
 		t.Fatal(err)
 	}
-	tests{
+	Tests{
 		{
 			Expect: expect,
 			Got:    plan.SubPackages,
@@ -120,12 +121,12 @@ func TestPlanJSON_MarshalJSON(t *testing.T) {
 			Expect: expect,
 			Got:    plan.BuildDepends,
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestPlans_ConfigFile(t *testing.T) {
-	test{
+	Test{
 		Expect: Path("testdata/plans/config.json"),
 		Got:    testConfig.Plans.ConfigFile(),
-	}.equals(t)
+	}.Equals(t)
 }

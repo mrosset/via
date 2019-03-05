@@ -3,6 +3,7 @@ package via
 import (
 	"encoding/json"
 	"fmt"
+	. "github.com/mrosset/via/pkg/test"
 	"os"
 	"reflect"
 	"sort"
@@ -52,7 +53,7 @@ func TestConfig_Unmarshal(t *testing.T) {
 		data   = []byte(`{"Flags":["beta","alpha"]}`)
 		config = new(ConfigJSON)
 	)
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    json.Unmarshal(data, config),
@@ -61,7 +62,7 @@ func TestConfig_Unmarshal(t *testing.T) {
 			Expect: Flags{"alpha", "beta"},
 			Got:    config.Flags,
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestConfig_Marshal(t *testing.T) {
@@ -72,10 +73,10 @@ func TestConfig_Marshal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	test{
+	Test{
 		Expect: []byte(`{"Branch":"","Identity":"","Arch":"","OS":"","Root":"","PlansRepo":"","Threads":0,"IpfsAPI":"","Cache":"","DB":"","Plans":"","Repo":"","Binary":"","Prefix":"","Flags":["alpha","beta"],"Env":null,"Remove":null,"PostInstall":null}`),
 		Got:    b,
-	}.equals(t)
+	}.Equals(t)
 }
 
 // FIXME: this needs to run offline
@@ -119,34 +120,34 @@ func TestConfigExpand(t *testing.T) {
 		}
 	)
 
-	test{
+	Test{
 		Expect: "https://bitbucket.org/strings/publish/raw/x86_64-via-linux-gnu/repo",
 		Got:    c.Expand().Binary,
-	}.equals(t)
+	}.Equals(t)
 
-	test{
+	Test{
 		Expect: "/usr/local/via/include",
 		Got:    c.Expand().Env["C_INCLUDE_PATH"],
-	}.equals(t)
+	}.Equals(t)
 
-	test{
+	Test{
 		Expect: "--build=x86_64-via-linux-gnu",
 		Got:    c.Expand().Flags[0],
-	}.equals(t)
+	}.Equals(t)
 
-	test{
+	Test{
 		Expect: "-O2 -pipe",
 		Got:    c.Expand().Env["CXXFLAGS"],
-	}.equals(t)
+	}.Equals(t)
 
 }
 
 func TestDB_Installed(t *testing.T) {
-	tests{
+	Tests{
 		{
 			Expect: Path(wd).Join("testdata/root/var/lib/via/db/installed"),
 			Got:    testConfig.DB.Installed(testConfig),
 		},
-	}.equals(t)
+	}.Equals(t)
 
 }

@@ -1,11 +1,12 @@
 package via
 
 import (
+	. "github.com/mrosset/via/pkg/test"
 	"testing"
 )
 
 func TestRepoFilePaths(t *testing.T) {
-	tests{
+	Tests{
 		{
 			Expect: Path("testdata/plans/repo.json"),
 			Got:    testConfig.Repo.File(testConfig),
@@ -14,7 +15,7 @@ func TestRepoFilePaths(t *testing.T) {
 			Expect: Path("testdata/plans/files.json"),
 			Got:    testConfig.Repo.FilesFile(testConfig),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestRepoFilesOwns(t *testing.T) {
@@ -33,24 +34,24 @@ func TestRepoFilesOwns(t *testing.T) {
 	)
 
 	for i := 0; i <= 100; i++ {
-		test{
+		Test{
 			Expect: expectOne,
 			Got:    repo.Owns(tfile),
-		}.equals(t)
-		test{
+		}.Equals(t)
+		Test{
 			Expect: expectOne,
 			Got:    inverse.Owns(tfile),
-		}.equals(t)
+		}.Equals(t)
 	}
 
-	test{
+	Test{
 		Expect: expectMore,
 		Got:    repo.Owners(tfile),
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestRepoCreate(t *testing.T) {
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    RepoCreate(testConfig),
@@ -65,11 +66,11 @@ func TestRepoCreate(t *testing.T) {
 			Expect: true,
 			Got:    Path("testdata/plans/repo.json").Exists(),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestRepo_Exists(t *testing.T) {
-	tests{
+	Tests{
 		{
 			Name:   "ensure",
 			Expect: nil,
@@ -85,5 +86,5 @@ func TestRepo_Exists(t *testing.T) {
 			Expect: false,
 			Got:    Repo{"testdata/false"}.Exists(),
 		},
-	}.equals(t)
+	}.Equals(t)
 }

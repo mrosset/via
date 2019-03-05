@@ -3,6 +3,7 @@
 package via
 
 import (
+	. "github.com/mrosset/via/pkg/test"
 	"testing"
 )
 
@@ -10,7 +11,7 @@ func TestNewBuildContext(t *testing.T) {
 	var (
 		bc = NewBuildContext(testConfig, testPlan)
 	)
-	tests{
+	Tests{
 		{
 			Expect: Path(wd).Join("testdata/cache/builds/hello-2.9"),
 			Got:    bc.BuildDir,
@@ -27,7 +28,7 @@ func TestNewBuildContext(t *testing.T) {
 			Expect: Path(wd).Join("testdata/cache/sources/hello-2.9.tar.gz"),
 			Got:    bc.SourcePath,
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestBuilder_Download(t *testing.T) {
@@ -35,7 +36,7 @@ func TestBuilder_Download(t *testing.T) {
 		builder = NewBuilder(testConfig, testPlan)
 	)
 	builder.Cache.Init()
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    builder.Download(),
@@ -44,7 +45,7 @@ func TestBuilder_Download(t *testing.T) {
 			Expect: true,
 			Got:    builder.Context.SourcePath.Exists(),
 		},
-	}.equals(t)
+	}.Equals(t)
 
 }
 
@@ -52,7 +53,7 @@ func TestBuilder_Stage(t *testing.T) {
 	var (
 		builder = NewBuilder(testConfig, testPlan)
 	)
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    builder.Stage(),
@@ -65,19 +66,19 @@ func TestBuilder_Stage(t *testing.T) {
 			Expect: true,
 			Got:    Path("testdata/cache/stages/hello-2.9/configure").Exists(),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestBuilder_Build(t *testing.T) {
 	var (
 		builder = NewBuilder(testConfig, testPlan)
 	)
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    builder.Build(),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestBuilder_Package(t *testing.T) {
@@ -85,7 +86,7 @@ func TestBuilder_Package(t *testing.T) {
 	var (
 		builder = NewBuilder(testConfig, testPlan)
 	)
-	tests{
+	Tests{
 		{
 			Expect: nil,
 			Got:    builder.Package(builder.Context.BuildDir),
@@ -103,17 +104,17 @@ func TestBuilder_Package(t *testing.T) {
 			Expect: false,
 			Got:    builder.Context.PackageDir.Exists(),
 		},
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestBuilder_BuildSteps(t *testing.T) {
 	var (
 		builder = NewBuilder(testConfig, testPlan)
 	)
-	test{
+	Test{
 		Expect: nil,
 		Got:    builder.BuildSteps(),
-	}.equals(t)
+	}.Equals(t)
 }
 
 func TestBuilder_Expand(t *testing.T) {
@@ -130,7 +131,7 @@ func TestBuilder_Expand(t *testing.T) {
 		}
 		builder = NewBuilder(config, plan)
 	)
-	tests{
+	Tests{
 		{
 			Expect: "/opt/via",
 			Got:    ExpandCommand("$PREFIX", builder),
@@ -155,5 +156,5 @@ func TestBuilder_Expand(t *testing.T) {
 			Expect: "testdata/cache/packages/test-1.0.0//opt/via",
 			Got:    ExpandCommand("$PKGDIR/$PREFIX", builder),
 		},
-	}.equals(t)
+	}.Equals(t)
 }

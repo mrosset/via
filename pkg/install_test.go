@@ -2,6 +2,7 @@ package via
 
 import (
 	"github.com/mrosset/util/file"
+	. "github.com/mrosset/via/pkg/test"
 	"os"
 	"testing"
 )
@@ -24,22 +25,22 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	testConfig.Repo.Ensure()
 	PackagePath(testConfig, plan).Touch()
 
-	tests{
+	Tests{
 		{
 			Name:   "verify cid",
 			Expect: nil,
 			Got:    NewInstaller(testConfig, plan).VerifyCid(),
 		},
-	}.equals(t)
+	}.Equals(t)
 
 	plan.Cid = ""
 	PackagePath(testConfig, plan).Touch()
 
-	test{
+	Test{
 		Name:   "verify empty cid",
 		Expect: "verify-0.0.1 Plans CID does not match tarballs got QmbFMke1KXqnYyBBWxB74N4c5SBnJMVAiMNRcGu6x1AwQH",
 		Got:    NewInstaller(testConfig, plan).Install().Error(),
-	}.equals(t)
+	}.Equals(t)
 
 }
 
