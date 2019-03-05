@@ -29,12 +29,6 @@ $(BIN): $(SRC)
 fmt:
 	go fmt ./...
 
-.PHONY: contain
-
-contain: $(wildcard contain/*.go)
-	go build -o ./contain/contain ./contain
-	cd ./contain; ./contain
-
 start:
 	-docker rm -f via
 	docker run --privileged --name via -it -d -e DISPLAY=$(DISPLAY) -e TERM=$(TERM) -v /tmp:/tmp -v /home:/home strings/via:devel
