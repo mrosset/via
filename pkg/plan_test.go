@@ -2,8 +2,8 @@ package via
 
 import (
 	"encoding/json"
+	. "github.com/mrosset/test"
 	mjson "github.com/mrosset/util/json"
-	. "github.com/mrosset/via/pkg/test"
 	"testing"
 )
 

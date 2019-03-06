@@ -457,10 +457,9 @@ func fmtplans(ctx *cli.Context) error {
 }
 
 func parse(input string, plan *via.Plan) error {
-	var (
-		t = fmt.Sprintf("%s\n", input)
+	tmpl, err := template.New("stdout").Parse(
+		fmt.Sprintf("%s\n", input),
 	)
-	tmpl, err := template.New("stdout").Parse(t)
 	if err != nil {
 		return err
 	}

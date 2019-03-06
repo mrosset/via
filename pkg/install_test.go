@@ -1,8 +1,8 @@
 package via
 
 import (
+	. "github.com/mrosset/test"
 	"github.com/mrosset/util/file"
-	. "github.com/mrosset/via/pkg/test"
 	"os"
 	"testing"
 )

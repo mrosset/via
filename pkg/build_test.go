@@ -3,7 +3,7 @@
 package via
 
 import (
-	. "github.com/mrosset/via/pkg/test"
+	. "github.com/mrosset/test"
 	"testing"
 )
 

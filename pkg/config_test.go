@@ -3,7 +3,7 @@ package via
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/mrosset/via/pkg/test"
+	. "github.com/mrosset/test"
 	"os"
 	"reflect"
 	"sort"
