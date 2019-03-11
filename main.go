@@ -472,7 +472,7 @@ func show(ctx *cli.Context) error {
 	}
 	plan, err := via.NewPlan(config, ctx.Args().First())
 	if err != nil {
-		elog.Fatal(err)
+		return err
 	}
 	if ctx.String("t") != "" {
 		return parse(ctx.String("t"), plan)
@@ -487,11 +487,7 @@ func show(ctx *cli.Context) error {
 }
 
 func fconfig(_ *cli.Context) error {
-	err := json.WritePretty(config, os.Stdout)
-	if err != nil {
-		return err
-	}
-	return nil
+	return json.WritePretty(config, os.Stdout)
 }
 
 func repo(_ *cli.Context) error {
