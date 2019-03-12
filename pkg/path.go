@@ -29,6 +29,11 @@ func NewPath(paths ...string) Path {
 	return np
 }
 
+// Abs returns the absolute path
+func (p Path) Abs() (string, error) {
+	return filepath.Abs(p.String())
+}
+
 // Stat Path
 func (p Path) Stat() (os.FileInfo, error) {
 	return os.Stat(p.String())

@@ -81,3 +81,14 @@ func TestPath_Glob(t *testing.T) {
 		},
 	}.Equals(t)
 }
+
+func TestPath_Abs(t *testing.T) {
+	got, err := Path(".").Abs()
+	if err != nil {
+		t.Fatal(err)
+	}
+	Test{
+		Expect: wd,
+		Got:    got,
+	}.Equals(t)
+}
