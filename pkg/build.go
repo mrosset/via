@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 )
 
-// BuildContext type contains everything required to build a Plan
-type BuildContext struct {
+// BuildState type contains everything required to build a Plan
+type BuildState struct {
 	BuildDir    Path
 	StageDir    Path
 	PackageDir  Path
@@ -25,9 +25,9 @@ type BuildContext struct {
 	Package     []string
 }
 
-// NewBuildContext returns a newly initialized BuildContext
-func NewBuildContext(config *Config, plan *Plan) BuildContext {
-	return BuildContext{
+// NewBuildContext returns a newly initialized BuildState
+func NewBuildContext(config *Config, plan *Plan) BuildState {
+	return BuildState{
 		BuildDir:    buildDir(config, plan),
 		StageDir:    stageDir(config, plan),
 		PackageDir:  packageDir(config, plan),
@@ -75,7 +75,7 @@ type Builder struct {
 	Config  *Config
 	Plan    *Plan
 	Cache   Cache
-	Context BuildContext
+	Context BuildState
 }
 
 // NewBuilder returns new Builder that has been initialized
