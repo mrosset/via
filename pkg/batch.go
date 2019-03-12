@@ -96,7 +96,7 @@ func (b *Batch) ToDownload() []string {
 		s = []string{}
 	)
 	for _, p := range b.plans {
-		if !PackagePath(b.config, p).Exists() && !IsInstalled(b.config, p.Name) {
+		if !packagePath(b.config, p).Exists() && !IsInstalled(b.config, p.Name) {
 			s = append(s, p.Name)
 		}
 	}
@@ -106,7 +106,7 @@ func (b *Batch) ToDownload() []string {
 // Download plan's binary tarball for configured ipfs gateway
 func (b Batch) Download(plan *Plan) error {
 	var (
-		pfile = PackagePath(b.config, plan)
+		pfile = packagePath(b.config, plan)
 		url   = ""
 	)
 	if isDocker() {

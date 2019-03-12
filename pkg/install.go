@@ -31,7 +31,7 @@ func NewInstaller(config *Config, plan *Plan) *Installer {
 func Download(config *Config, plan *Plan) error {
 	var (
 		url   = config.Binary + "/" + plan.Cid
-		pfile = PackagePath(config, plan)
+		pfile = packagePath(config, plan)
 	)
 	if isDocker() {
 		url = "http://172.17.0.1:8080/ipfs/" + plan.Cid
@@ -45,7 +45,7 @@ func Download(config *Config, plan *Plan) error {
 
 // VerifyCid verifies that the download tarball matches the plans Cid
 func (i Installer) VerifyCid() error {
-	cid, err := HashOnly(i.config, PackagePath(i.config, i.plan).String())
+	cid, err := HashOnly(i.config, packagePath(i.config, i.plan).String())
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (i Installer) VerifyCid() error {
 func (i Installer) Install() error {
 	var (
 		name  = i.plan.Name
-		pfile = PackagePath(i.config, i.plan)
+		pfile = packagePath(i.config, i.plan)
 	)
 	if err := i.VerifyCid(); err != nil {
 		return err

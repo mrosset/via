@@ -19,7 +19,7 @@ func Sign(config *Config, plan *Plan) (err error) {
 	var (
 		entity   *openpgp.Entity
 		identity *openpgp.Identity
-		pfile    = PackagePath(config, plan)
+		pfile    = packagePath(config, plan)
 	)
 	fd, err := os.Open(keyring)
 	if err != nil {

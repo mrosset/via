@@ -23,7 +23,7 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	}
 
 	testConfig.Repo.Ensure()
-	PackagePath(testConfig, plan).Touch()
+	packagePath(testConfig, plan).Touch()
 
 	Tests{
 		{
@@ -34,7 +34,7 @@ func TestInstallerCidVerifiy(t *testing.T) {
 	}.Equals(t)
 
 	plan.Cid = ""
-	PackagePath(testConfig, plan).Touch()
+	packagePath(testConfig, plan).Touch()
 
 	Test{
 		Name:   "verify empty cid",

@@ -28,18 +28,18 @@ type BuildContext struct {
 // NewBuildContext returns a newly initialized BuildContext
 func NewBuildContext(config *Config, plan *Plan) BuildContext {
 	return BuildContext{
-		BuildDir:    BuildDir(config, plan),
-		StageDir:    StageDir(config, plan),
-		PackageDir:  PackageDir(config, plan),
-		SourcePath:  SourcePath(config, plan),
-		PackagePath: PackagePath(config, plan),
+		BuildDir:    buildDir(config, plan),
+		StageDir:    stageDir(config, plan),
+		PackageDir:  packageDir(config, plan),
+		SourcePath:  sourcePath(config, plan),
+		PackagePath: packagePath(config, plan),
 		GlobalFlags: config.Flags,
 		PlanFlags:   plan.Flags,
 	}
 }
 
-// BuildDir returns the path for the plans' build directory
-func BuildDir(config *Config, plan *Plan) Path {
+// buildDir returns the path for the plans' build directory
+func buildDir(config *Config, plan *Plan) Path {
 	bdir := config.Cache.Builds().Join(plan.NameVersion())
 	if plan.BuildInStage {
 		bdir = config.Cache.Stages().Join(plan.stageDir())
@@ -47,26 +47,26 @@ func BuildDir(config *Config, plan *Plan) Path {
 	return bdir
 }
 
-// StageDir returns the plans's stage directory
-func StageDir(config *Config, plan *Plan) Path {
+// stageDir returns the plans's stage directory
+func stageDir(config *Config, plan *Plan) Path {
 	return config.Cache.Stages().Join(plan.stageDir())
 }
 
-// PackageDir return the full path for plan's package directory
-func PackageDir(config *Config, plan *Plan) Path {
+// packageDir return the full path for plan's package directory
+func packageDir(config *Config, plan *Plan) Path {
 	return config.Cache.Packages().Join(plan.NameVersion())
 }
 
-// SourcePath returns the full path of the Plans source file
+// sourcePath returns the full path of the Plans source file
 //
 // FIXME: don't use base of source URL for source filename
-func SourcePath(config *Config, plan *Plan) Path {
+func sourcePath(config *Config, plan *Plan) Path {
 	file := filepath.Base(plan.Expand().Url)
 	return config.Cache.Sources().Join(file)
 }
 
-// PackagePath returns the full path of the plans package file
-func PackagePath(config *Config, plan *Plan) Path {
+// packagePath returns the full path of the plans package file
+func packagePath(config *Config, plan *Plan) Path {
 	return config.Repo.Join(PackageFile(config, plan))
 }
 
@@ -306,7 +306,7 @@ func (b Builder) CreatePackage() error {
 	return b.Tarball(gz)
 }
 
-// Tarball creates manifest and walks PackageDir taring and
+// Tarball creates manifest and walks packageDir taring and
 // compressing package files
 func (b Builder) Tarball(wr io.Writer) (err error) {
 	if err := CreateManifest(b.Config, b.Plan, b.Context.PackageDir.String()); err != nil {
