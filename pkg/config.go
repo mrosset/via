@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+const (
+	// ConfigSuffix is the path of config.json under GOPATH
+	ConfigSuffix = "src/github.com/mrosset/via/plans/config.json"
+)
+
 // Config represents via configuration type
 type Config struct {
 	Branch    string
@@ -39,6 +44,11 @@ type Config struct {
 	template *Config
 }
 
+// ConfigPath returns full path for known config
+func ConfigPath() Path {
+	return Path(os.Getenv("GOPATH")).Join(ConfigSuffix)
+}
+
 // NewConfig reads config path and returns a new initialized Config
 func NewConfig(path Path) (*Config, error) {
 	var jconfig ConfigJSON
@@ -46,10 +56,7 @@ func NewConfig(path Path) (*Config, error) {
 		return nil, err
 	}
 
-	// TODO: create a marshal command to sort these fields?
-	// sort.Strings([]string(config.Flags))
-	// sort.Strings(config.Remove)
-
+	// FIXME: don't write file at this point
 	if err := mjson.Write(&jconfig, path.String()); err != nil {
 		return nil, err
 	}

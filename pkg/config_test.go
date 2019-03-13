@@ -151,3 +151,11 @@ func TestDB_Installed(t *testing.T) {
 	}.Equals(t)
 
 }
+
+func TestConfigPath(t *testing.T) {
+	expect, _ := Path(wd).Join("..", "plans", "config.json").Abs()
+	Test{
+		Expect: Path(expect),
+		Got:    ConfigPath(),
+	}.Equals(t)
+}
