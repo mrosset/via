@@ -220,6 +220,7 @@ func ExpandCommand(input string, builder Builder) string {
 // PKGDIR
 // Flags
 // PlanFlags
+// LDFLAGS
 //
 // FIXME: instead of using os.Expand using encoding/template. os.Expand
 // is used so current plans do not break
@@ -235,6 +236,8 @@ func (b Builder) Expand(in string) string {
 		return b.Config.Flags.Join()
 	case "PlanFlags":
 		return b.Plan.Flags.Join()
+	case "LDFLAGS":
+		return b.Config.Env["LDFLAGS"]
 	}
 
 	return ""

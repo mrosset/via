@@ -110,7 +110,7 @@ func (j *ConfigJSON) MarshalJSON() ([]byte, error) {
 // exec command calls nothing leaks from system environment
 func (c Config) SanitizeEnv() []string {
 	var (
-		keep = []string{"HOME", "TERM", "PKGDIR", "SRCDIR", "Flags"}
+		keep = []string{"HOME", "TERM", "PKGDIR", "SRCDIR", "Flags", "PlanFlags", "SHELL", "DISPLAY"}
 		env  = []string{}
 	)
 	for _, e := range keep {

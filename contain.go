@@ -379,15 +379,15 @@ func mount(root via.Path) error {
 			Type:   "tmpfs",
 		},
 	}
-	// mount our binds
-	for _, source := range binds {
-		if err := bind(source, root); err != nil {
-			return err
-		}
-	}
 	// mount our filesystems
 	for _, m := range fs {
 		if err := m.Mount(root.String()); err != nil {
+			return err
+		}
+	}
+	// mount our binds
+	for _, source := range binds {
+		if err := bind(source, root); err != nil {
 			return err
 		}
 	}
