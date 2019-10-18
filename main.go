@@ -9,7 +9,7 @@ import (
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
 	viaplugin "github.com/mrosset/via/pkg/plugin"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli"
 	"log"
 	"os"
 	"os/exec"
@@ -37,7 +37,7 @@ var (
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "config",
-				Value: "/path/to/some",
+				Value: "/path/to/config",
 			},
 		},
 	}

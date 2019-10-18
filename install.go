@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/via/pkg"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli"
 	"os"
 	"path/filepath"
 )
