@@ -200,7 +200,7 @@ var (
 		},
 		{
 			Name:   "debug",
-			Usage:  "displays enviroment and PATH details",
+			Usage:  "displays environment and PATH details",
 			Action: debug,
 		},
 		{
@@ -254,7 +254,6 @@ func main() {
 }
 
 func cloneplans() error {
-	//
 	if planpath.Exists() {
 		return nil
 	}
@@ -263,9 +262,8 @@ func cloneplans() error {
 }
 
 func readconfig() *via.Config {
-	// FIXME: check this somewhere else maybe?
 	if os.Getenv("GOPATH") == "" {
-		elog.Fatal("GOPATH must be set")
+		log.Fatal("GOPATH environment variable must be set")
 	}
 	if err := cloneplans(); err != nil {
 		elog.Fatal(err)
