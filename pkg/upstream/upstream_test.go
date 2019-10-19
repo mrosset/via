@@ -25,7 +25,7 @@ func TestGnuUpstreamLatest(t *testing.T) {
 				"emacs",
 				"http://mirrors.kernel.org/gnu/emacs/",
 				"25.1",
-				"26.1",
+				"26.3",
 			},
 		}
 	)
