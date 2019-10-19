@@ -263,7 +263,7 @@ func cloneplans() error {
 
 func readconfig() *via.Config {
 	if os.Getenv("GOPATH") == "" {
-		log.Fatal("GOPATH environment variable must be set")
+		elog.Fatal("GOPATH environment variable must be set")
 	}
 	if err := cloneplans(); err != nil {
 		elog.Fatal(err)
