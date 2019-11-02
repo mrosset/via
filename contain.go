@@ -124,9 +124,9 @@ func initialize() {
 	if err := mount(root); err != nil {
 		elog.Fatal(err)
 	}
-	if err := bindbin(root); err != nil {
-		elog.Fatal(err)
-	}
+	// if err := bindbin(root); err != nil {
+	//	elog.Fatal(err)
+	// }
 	// setup busybox and links
 	// if err := busybox(root); err != nil {
 	//	elog.Fatal(err)
@@ -355,11 +355,14 @@ func bind(source, root via.Path) error {
 func mount(root via.Path) error {
 	// our binds
 	binds := []via.Path{
+		"/bin/sh",
 		"/dev", // TODO: don not bind all of dev. mknod's?
 		"/etc/resolv.conf",
+		"/etc/services",
 		"/etc/ssl",
 		"/etc/passwd",
 		"/etc/group",
+		// "/gnu",
 		via.Path("$HOME/.ccache").Expand(),
 		config.Cache.ToPath(),
 		config.Plans.ToPath(),
