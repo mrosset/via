@@ -20,6 +20,10 @@ devel: default
 run: default
 	$(BIN) help
 
+via-%:
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o "$@"
+	aarch64-linux-gnu-strip "$@"
+
 $(BIN): $(SRC)
 	CGO_ENABLED=0 go build -o $(BIN)
 	@git diff --quiet || echo WARNING: git tree is dirty

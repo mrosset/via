@@ -4,7 +4,6 @@ require (
 	astuart.co/goq v1.0.0
 	github.com/andybalholm/cascadia v1.1.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible
-	github.com/btcsuite/btcd v0.20.0-beta // indirect
 	github.com/docker/docker v1.13.1
 	github.com/git-lfs/git-lfs v2.5.2+incompatible
 	github.com/gogo/protobuf v1.3.1 // indirect
