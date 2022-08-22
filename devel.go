@@ -5,7 +5,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/mrosset/via/pkg"
 	"github.com/mrosset/via/pkg/upstream"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli/v2"
 	"io/ioutil"
 	"net"
 	"net/url"

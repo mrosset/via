@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/via/pkg"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli/v2"
 	"os"
 	"path/filepath"
 )
@@ -36,8 +36,8 @@ var (
 					Usage: "use single threaded installer",
 				},
 			},
-			ShellComplete: planArgCompletion,
-			Action:        batch,
+			BashComplete: planArgCompletion,
+			Action:       batch,
 		},
 		&cli.Command{
 			Name:    "upgrade",

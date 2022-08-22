@@ -5,7 +5,7 @@ import (
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/mrosset/util/file"
 	"github.com/mrosset/via/pkg"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli/v2"
 	"io/ioutil"
 	"os"
 	"os/exec"

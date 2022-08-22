@@ -8,7 +8,7 @@ import (
 	"github.com/mrosset/util/json"
 	"github.com/mrosset/via/pkg"
 	viaplugin "github.com/mrosset/via/pkg/plugin"
-	"gopkg.in/urfave/cli.v2"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/exec"
@@ -30,9 +30,9 @@ var (
 	elog     = log.New(os.Stderr, "", log.Lshortfile)
 	lfmt     = "%-20.20s %v\n"
 	app      = &cli.App{
-		Name:                  "via",
-		Usage:                 "a systems package manager",
-		EnableShellCompletion: true,
+		Name:                 "via",
+		Usage:                "a systems package manager",
+		EnableBashCompletion: true,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "config",
@@ -42,17 +42,17 @@ var (
 	}
 	commands = []*cli.Command{
 		{
-			Name:          "edit",
-			Usage:         "calls EDITOR to edit plan",
-			Action:        edit,
-			ShellComplete: planArgCompletion,
+			Name:         "edit",
+			Usage:        "calls EDITOR to edit plan",
+			Action:       edit,
+			BashComplete: planArgCompletion,
 		},
 		{
-			Name:          "build",
-			Usage:         "builds a plan locally",
-			Aliases:       []string{"b"},
-			Action:        build,
-			ShellComplete: planArgCompletion,
+			Name:         "build",
+			Usage:        "builds a plan locally",
+			Aliases:      []string{"b"},
+			Action:       build,
+			BashComplete: planArgCompletion,
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
 					Name:  "c",
@@ -107,16 +107,16 @@ var (
 			},
 		},
 		{
-			Name:          "remove",
-			Usage:         "uninstall package",
-			Action:        remove,
-			ShellComplete: planArgCompletion,
+			Name:         "remove",
+			Usage:        "uninstall package",
+			Action:       remove,
+			BashComplete: planArgCompletion,
 		},
 		{
-			Name:          "show",
-			Usage:         "prints plan to stdout",
-			Action:        show,
-			ShellComplete: planArgCompletion,
+			Name:         "show",
+			Usage:        "prints plan to stdout",
+			Action:       show,
+			BashComplete: planArgCompletion,
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "t",
@@ -141,10 +141,10 @@ var (
 			Action: fconfig,
 		},
 		{
-			Name:          "list",
-			Usage:         "list files for `PLAN`",
-			Action:        list,
-			ShellComplete: planArgCompletion,
+			Name:         "list",
+			Usage:        "list files for `PLAN`",
+			Action:       list,
+			BashComplete: planArgCompletion,
 		},
 		{
 			Name:   "fmt",
@@ -159,10 +159,10 @@ var (
 			},
 		},
 		{
-			Name:          "log",
-			Usage:         "output's config.log for build",
-			ShellComplete: planArgCompletion,
-			Action:        plog,
+			Name:         "log",
+			Usage:        "output's config.log for build",
+			BashComplete: planArgCompletion,
+			Action:       plog,
 		},
 		{
 			Name:   "elf",
@@ -175,10 +175,10 @@ var (
 			Action: search,
 		},
 		{
-			Name:          "options",
-			Usage:         "prints the GNU configure options for a package",
-			Action:        options,
-			ShellComplete: planArgCompletion,
+			Name:         "options",
+			Usage:        "prints the GNU configure options for a package",
+			Action:       options,
+			BashComplete: planArgCompletion,
 		},
 		{
 			Name:   "create",
@@ -213,10 +213,10 @@ var (
 			Action: notimplemented,
 		},
 		{
-			Name:          "get",
-			Usage:         "download source from upstream",
-			Action:        get,
-			ShellComplete: planArgCompletion,
+			Name:         "get",
+			Usage:        "download source from upstream",
+			Action:       get,
+			BashComplete: planArgCompletion,
 		},
 		{
 			Name:  "bump",
@@ -227,7 +227,7 @@ var (
 					Usage: "new version",
 				},
 			},
-			ShellComplete: planArgCompletion,
+			BashComplete: planArgCompletion,
 			Action: func(ctx *cli.Context) error {
 				if ctx.String("ver") == "" {
 					return fmt.Errorf("you must specify new version with -ver")
